@@ -43,21 +43,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// server.js (veya backend dosyanız)
-require('dotenv').config();
-const express = require('express');
-const app = express();
-
-app.get('/api/config', (req, res) => {
-    res.json({
-        apiUrl: process.env.API_URL
-    });
-});
-
-app.listen(process.env.PORT, () => {
-    console.log(`Server running on port ${process.env.PORT}`);
-});
-
 // JWT Middleware
 const authMiddleware = async (req, res, next) => {
     try {
@@ -95,6 +80,14 @@ const adminMiddleware = async (req, res, next) => {
         res.status(500).json({ error: 'Sunucu hatası' });
     }
 };
+
+// API_URL'yi döndüren endpoint
+app.get('/api/config', (req, res) => {
+    console.log('API_URL istendi:', process.env.API_URL);
+    res.json({
+        apiUrl: process.env.API_URL || 'http://localhost:3000'
+    });
+});
 
 // Kayıt
 app.post('/api/register', async (req, res) => {
@@ -207,7 +200,7 @@ app.post('/api/forgot-password', async (req, res) => {
         user.resetPasswordExpires = new Date(Date.now() + 3600000);
         await user.save();
 
-        const resetUrl = `http://localhost:3000/reset-password.html?token=${resetToken}`;
+        const resetUrl = `${process.env.API_URL}/reset-password.html?token=${resetToken}`;
         await transporter.sendMail({
             to: email,
             subject: 'DİZİT Şifre Sıfırlama',
@@ -501,7 +494,7 @@ app.get('/api/movies', async (req, res) => {
                     query.year = { $gte: start, $lte: end, $type: "number" };
                 }
             } else if (year === 'before-2000') {
-                query.year = { $lte: 2000, $exists: true, $ne: null, $type: "number" }; // 2000 ve öncesi, sadece sayı
+                query.year = { $lte: 2000, $exists: true, $ne: null, $type: "number" };
             } else {
                 const parsedYear = parseInt(year);
                 if (!isNaN(parsedYear)) {
@@ -1197,7 +1190,7 @@ app.post('/api/dislike', authMiddleware, async (req, res) => {
         }
         await user.save();
         const totalLikes = await User.countDocuments({
-            likes: { $elemMatch: { seriesId, seasonNumber, episodeNumber } }
+            likes: +{ $elemMatch: { seriesId, seasonNumber, episodeNumber } }
         });
         const totalDislikes = await User.countDocuments({
             dislikes: { $elemMatch: { seriesId, seasonNumber, episodeNumber } }
