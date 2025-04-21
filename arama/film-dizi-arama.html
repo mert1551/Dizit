@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film veya Dizi Arama - DİZİT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="film-dizi-arama.css">
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <a href="../index.html" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Film veya dizi ara...">
+                <button id="search-btn" onclick="performSearch(document.getElementById('search-input').value)"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="burger-menu" id="burger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+        <div class="nav-container" id="nav-container">
+            <ul class="nav-links">
+                <li><a href="../index.html" class="home-link">Anasayfa</a></li>
+                <li><a href="#" class="active">Filmler</a></li>
+                <li><a href="#">Diziler</a></li>
+                <li><a href="#">Kategoriler</a></li>
+                <li><a href="#">Trend</a></li>
+            </ul>
+            <div class="auth-buttons">
+                <button class="login-btn" onclick="openAuthModal()">Giriş Yap</button>
+                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Arama Overlay -->
+    <div class="search-overlay" id="search-overlay">
+        <div class="search-overlay-header">
+            <input type="text" id="search-overlay-input" placeholder="Film veya dizi ara...">
+            <button id="close-overlay" class="close-overlay-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="search-results" id="search-results"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <div class="search-page-container">
+            <h1 class="page-title">Film veya Dizi Arama</h1>
+            
+            <!-- Gelişmiş Arama Formu -->
+            <div class="advanced-search-container">
+                <div class="search-form">
+                    <!-- İçerik Seçimi -->
+                    <div class="search-form-row">
+                        <div class="search-form-group">
+                            <label for="type">İçerik</label>
+                            <select id="type">
+                                <option value="">Tümü</option>
+                                <option value="film">Film</option>
+                                <option value="dizi">Dizi</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="search-form-row">
+                        <div class="search-form-group">
+                            <label for="year">Yıl</label>
+                            <select id="year" class="filter-select">
+                                <option value="">Tüm Yıllar</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                                <option value="2021">2021</option>
+                                <option value="2015-2020">2015-2020</option>
+                                <option value="2010-2015">2010-2015</option>
+                                <option value="2000-2010">2000-2010</option>
+                                <option value="before-2000">2000'den Öncesi</option>
+                            </select>
+                        </div>
+                        <div class="search-form-group">
+                            <label for="genre">Tür</label>
+                            <select id="genre" multiple>
+                                <option value="">Tümü</option>
+                                <option value="Aile">Aile</option>
+                                <option value="Aksiyon">Aksiyon</option>
+                                <option value="Animasyon">Animasyon</option>
+                                <option value="Belgesel">Belgesel</option>
+                                <option value="Bilim Kurgu">Bilim Kurgu</option>
+                                <option value="Biyografi">Biyografi</option>
+                                <option value="Dram">Dram</option>
+                                <option value="Fantastik">Fantastik</option>
+                                <option value="Gerilim">Gerilim</option>
+                                <option value="Gizem">Gizem</option>
+                                <option value="Komedi">Komedi</option>
+                                <option value="Korku">Korku</option>
+                                <option value="Macera">Macera</option>
+                                <option value="Müzik">Müzik</option>
+                                <option value="Polisiye">Polisiye</option>
+                                <option value="Romantik">Romantik</option>
+                                <option value="Savaş">Savaş</option>
+                                <option value="Short">Short</option>
+                                <option value="Spor">Spor</option>
+                                <option value="Suç">Suç</option>
+                                <option value="Tarih">Tarih</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="search-form-row">
+                        <div class="search-form-group">
+                            <label for="sort">Sıralama</label>
+                            <select id="sort">
+                                <option value="year-desc">Yıla Göre (Yeniden Eskiye)</option>
+                                <option value="year-asc">Yıla Göre (Eskiden Yeniye)</option>
+                                <option value="rating-desc">IMDB Puanına Göre (Yüksekten Düşüğe)</option>
+                                <option value="rating-asc">IMDB Puanına Göre (Düşükten Yükseğe)</option>
+                                <option value="title-asc">İsme Göre (A-Z)</option>
+                                <option value="title-desc">İsme Göre (Z-A)</option>
+                            </select>
+                        </div>
+                        <div class="search-form-group language-options">
+                            <label>Dil Seçenekleri</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="dublaj" value="Türkçe Dublaj">
+                                    <span class="checkbox-text"><img src="../resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="altyazi" value="Türkçe Altyazı">
+                                    <span class="checkbox-text"><i class="fas fa-closed-captioning"></i> Altyazı</span>
+                                </label>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" id="yerli" value="Yerli">
+                                    <span class="checkbox-text"><img src="../resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="search-form-row">
+                        <div class="search-form-group search-button-group">
+                            <button id="search-button" class="search-btn">
+                                <i class="fas fa-search"></i> Ara
+                            </button>
+                            <button id="reset-button" class="reset-btn">
+                                <i class="fas fa-undo"></i> Temizle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtre Bilgisi -->
+            <div class="filter-info" id="filter-info">
+                <div class="active-filters" id="active-filters">
+                    <span class="total-results" id="total-results">0 film veya dizi bulundu</span>
+                </div>
+            </div>
+            
+            <!-- Film veya Dizi Sonuçları -->
+            <div class="search-results-container">
+                <div class="movie-grid" id="search-results-grid"></div>
+                
+                <!-- Sayfalama -->
+                <div class="pagination" id="pagination">
+                    <button class="pagination-btn prev" id="prev-page" disabled>
+                        <i class="fas fa-chevron-left"></i> Önceki
+                    </button>
+                    <div class="pagination-info" id="pagination-info">
+                        Sayfa <span id="current-page">1</span> / <span id="total-pages">1</span>
+                    </div>
+                    <button class="pagination-btn next" id="next-page" disabled>
+                        Sonraki <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>DİZİT</h3>
+                <p>En iyi film ve dizi izleme platformu.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="../movies.js"></script>
+    <script src="film-arama.js"></script>
+</body>
+</html>

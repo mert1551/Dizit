@@ -1,0 +1,768 @@
+/* Film Sayfası Stilleri */
+.film-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.film-hero {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.film-poster {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    object-fit: cover;
+    height: auto;
+}
+
+.film-info {
+    flex: 1;
+    min-width: 300px;
+}
+
+.film-title {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.film-title2 {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.film-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+}
+
+.film-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.film-meta-item i {
+    color: var(--accent-color);
+}
+
+.film-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.film-genre {
+    background-color: rgba(255, 204, 0, 0.2);
+    color: var(--accent-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.film-genre:hover {
+    background-color: rgba(255, 204, 0, 0.4);
+}
+
+.film-languages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.film-language {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: rgba(255, 204, 0, 0.1);
+    color: var(--accent-color);
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.film-language .flag-icon {
+    width: 16px;
+    height: 10px;
+}
+
+.film-plot {
+    color: var(--text-color);
+    line-height: 1.6;
+    background-color: var(--secondary-bg);
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.film-plot strong {
+    color: var(--accent-color);
+    margin-right: 5px;
+}
+
+/* Player Container */
+.player-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.player-box {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.player-title {
+    margin-bottom: 15px;
+}
+
+.film-name {
+    font-size: 2.5rem;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.runtime-info {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 5px 0 0;
+}
+
+.video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: #000;
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Series Section */
+.series-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.series-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.series-btn {
+    padding: 10px 20px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.series-btn.active,
+.series-btn:hover {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+}
+
+.section-title {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+}
+
+.section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--accent-color);
+    margin-left: 15px;
+    opacity: 0.3;
+}
+
+.similar-movies {
+    margin-top: 40px;
+    padding: 0 20px;
+}
+
+/* Player Actions */
+.player-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.like-btn, .dislike-btn, .favorite-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--card-bg);
+    border: 2px solid var(--text-secondary);
+    color: var(--text-color);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.like-btn i, .dislike-btn i, .favorite-btn i {
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+.like-btn:hover:not(.active), .dislike-btn:hover:not(.active), .favorite-btn:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.like-btn.active {
+    background-color: transparent;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.like-btn.active i {
+    color: var(--accent-color);
+}
+
+.dislike-btn.active {
+    background-color: transparent;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.dislike-btn.active i {
+    color: var(--accent-color);
+}
+
+.favorite-btn.active {
+    background-color: transparent;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.favorite-btn.active i {
+    color: var(--accent-color);
+    animation: heartbeat 0.5s ease;
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.like-btn.active:hover, .dislike-btn.active:hover, .favorite-btn.active:hover {
+    opacity: 0.9;
+}
+
+.like-btn.disabled, .dislike-btn.disabled, .favorite-btn.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.watched-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.watched-checkbox input {
+    display: none;
+}
+
+.watched-checkbox .checkbox-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--accent-color);
+    border-radius: 4px;
+    margin-right: 8px;
+    position: relative;
+    cursor: pointer;
+}
+
+.watched-checkbox input:checked + .checkbox-custom::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: var(--accent-color);
+    font-size: 14px;
+    position: absolute;
+}
+
+.watched-checkbox.disabled .checkbox-custom {
+    border-color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+/* Video Seçenekleri Stilleri */
+.video-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.video-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.video-option-btn.active,
+.video-option-btn:hover {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+}
+
+.video-option-btn .flag-icon {
+    width: 16px;
+    height: 10px;
+}
+
+.video-option-btn .fas {
+    font-size: 0.9rem;
+    margin-left: 5px;
+}
+
+/* Error Container */
+.error-container {
+    max-width: 600px;
+    margin: 100px auto;
+    text-align: center;
+    padding: 30px;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.error-container h2 {
+    font-size: 2rem;
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+
+.error-container p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.error-container .home-button, .error-container .request-button {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin: 0 10px;
+}
+
+.error-container .home-button {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+}
+
+.error-container .home-button:hover {
+    background-color: var(--text-secondary);
+}
+
+.error-container .request-button {
+    background-color: var(--text-secondary);
+    color: var(--primary-bg);
+}
+
+.error-container .request-button:hover {
+    background-color: var(--accent-color);
+}
+
+.error-container .error-icon {
+    font-size: 3rem;
+    color: var(--accent-color);
+    margin-bottom: 20px;
+}
+
+/* Toast Messages */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: var(--primary-bg);
+    font-size: 0.9rem;
+    font-weight: 500;
+    z-index: 1000;
+    opacity: 0;
+    background: linear-gradient(135deg, var(--accent-color), rgba(255, 204, 0, 0.8));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+.toast.success {
+    background: var(--accent-color);
+}
+
+.toast.error {
+    background: linear-gradient(135deg, #dc3545, #b32d38);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .film-container, .series-section {
+        padding: 15px;
+    }
+
+    .film-hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 15px;
+    }
+
+    .film-poster {
+        max-width: 250px;
+        width: 100%;
+        height: auto;
+    }
+
+    .film-title {
+        font-size: 2rem;
+    }
+
+    .film-title2 {
+        font-size: 1rem;
+    }
+
+    .film-meta, .film-genres, .film-languages {
+        justify-content: center;
+    }
+
+    .player-container {
+        padding: 15px;
+    }
+
+    .film-name {
+        font-size: 2rem;
+    }
+
+    .runtime-info {
+        font-size: 1rem;
+    }
+
+    .series-selector {
+        justify-content: center;
+    }
+
+    .similar-movies {
+        padding: 0 10px;
+    }
+
+    .player-actions {
+        gap: 10px;
+    }
+
+    .like-btn, .dislike-btn, .favorite-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+
+    .watched-checkbox {
+        font-size: 0.8rem;
+    }
+
+    .error-container {
+        margin: 50px 20px;
+        padding: 20px;
+    }
+
+    .error-container h2 {
+        font-size: 1.8rem;
+    }
+
+    .error-container p {
+        font-size: 1rem;
+    }
+
+    .error-container .home-button, .error-container .request-button {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        margin: 5px;
+    }
+
+    .toast {
+        width: 90%;
+        text-align: center;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .film-title {
+        font-size: 1.5rem;
+    }
+
+    .film-title2 {
+        font-size: 0.9rem;
+    }
+
+    .film-meta-item, .film-genre, .film-language {
+        font-size: 0.8rem;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+    }
+
+    .film-name {
+        font-size: 1.5rem;
+    }
+
+    .runtime-info {
+        font-size: 0.9rem;
+    }
+
+    .series-btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+
+    .like-btn, .dislike-btn, .favorite-btn {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+    }
+
+    .watched-checkbox {
+        font-size: 0.7rem;
+    }
+
+    .watched-checkbox input {
+        width: 14px;
+        height: 14px;
+    }
+
+    .video-option-btn {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+    }
+
+    .video-option-btn .flag-icon {
+        width: 12px;
+        height: 8px;
+    }
+
+    .video-option-btn .fas {
+        font-size: 0.8rem;
+    }
+
+    .error-container h2 {
+        font-size: 1.5rem;
+    }
+
+    .error-container p {
+        font-size: 0.9rem;
+    }
+
+    .error-container .error-icon {
+        font-size: 2.5rem;
+    }
+
+    .toast {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .film-poster {
+        max-width: 200px;
+        width: 100%;
+        height: auto;
+    }
+}
+
+@media (max-width: 365px) {
+    .film-poster {
+        max-width: 180px;
+        width: 100%;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .film-hero {
+        padding: 10px;
+    }
+}
+
+/* add-movie.css bölümü */
+.add-movie-section {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.add-movie-form {
+    background: var(--secondary-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.add-movie-form .form-group {
+    margin-bottom: 15px;
+}
+
+.add-movie-form label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.add-movie-form input,
+.add-movie-form textarea,
+.add-movie-form select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--text-secondary);
+    border-radius: 5px;
+    background: var(--primary-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.add-movie-form textarea {
+    resize: vertical;
+}
+
+.add-movie-form .error-message {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.add-movie-form .auth-submit {
+    background: var(--accent-color);
+    color: var(--primary-bg);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+.add-movie-form .auth-submit:hover {
+    background: var(--text-secondary);
+}
+
+/* Responsive ayarlar */
+@media (max-width: 768px) {
+    .add-movie-section {
+        margin: 30px auto;
+        padding: 0 15px;
+    }
+
+    .add-movie-form {
+        padding: 15px;
+    }
+
+    .add-movie-form input,
+    .add-movie-form textarea,
+    .add-movie-form select {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    .add-movie-form .auth-submit {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .add-movie-section {
+        margin: 20px auto;
+        padding: 0 10px;
+    }
+
+    .add-movie-form {
+        padding: 10px;
+    }
+
+    .add-movie-form label {
+        font-size: 0.9rem;
+    }
+
+    .add-movie-form input,
+    .add-movie-form textarea,
+    .add-movie-form select {
+        padding: 6px;
+        font-size: 0.8rem;
+    }
+
+    .add-movie-form .auth-submit {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}

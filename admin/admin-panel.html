@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - DİZİT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        :root {
+            --primary-bg: #1a1a1a;
+            --secondary-bg: #2c2c2c;
+            --card-bg: #333;
+            --text-color: #fff;
+            --text-secondary: #b0b0b0;
+            --accent-color: #ffd700;
+            --input-bg: #444;
+            --border-color: #555;
+            --danger-color: #ff5555;
+            --success-color: #55ff55;
+            --table-header-bg: #3a3a3a;
+            --movie-row-alt: #262626;
+        }
+
+        body {
+            background: var(--primary-bg);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 80px auto 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1rem;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            color: var(--text-secondary);
+        }
+
+        .filter-group select, .search-bar {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 8px;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .movie-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .movie-table th, .movie-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .movie-table th {
+            background: var(--table-header-bg);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .movie-table tr:nth-child(even) {
+            background: var(--movie-row-alt);
+        }
+
+        .movie-table tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .movie-poster {
+            width: 60px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--secondary-bg);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .user-table th, .user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-table th {
+            background: var(--table-header-bg);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .user-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: #e6b800;
+        }
+
+        .delete-btn {
+            background: var(--danger-color);
+        }
+
+        .delete-btn:hover {
+            background: #cc4444;
+        }
+
+        .ban-btn {
+            background: var(--danger-color);
+        }
+
+        .ban-btn:hover {
+            background: #cc4444;
+        }
+
+        .unban-btn {
+            background: var(--success-color);
+        }
+
+        .unban-btn:hover {
+            background: #44cc44;
+        }
+
+        .admin-btn {
+            background: #007bff;
+        }
+
+        .admin-btn:hover {
+            background: #0056b3;
+        }
+
+        .admin-only-message {
+            text-align: center;
+            color: var(--danger-color);
+            font-size: 1.2rem;
+            padding: 20px;
+            background: var(--secondary-bg);
+            border-radius: 8px;
+        }
+
+        .search-bar {
+            max-width: 300px;
+            width: 100%;
+        }
+
+        .statistics {
+            background: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .statistics h3 {
+            margin-top: 0;
+            color: var(--accent-color);
+        }
+
+        .statistics p {
+            margin: 5px 0;
+            color: var(--text-secondary);
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast-notification.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .movie-table, .user-table {
+                font-size: 0.9rem;
+            }
+
+            .movie-table th, .movie-table td,
+            .user-table th, .user-table td {
+                padding: 8px;
+            }
+
+            .actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .action-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+
+            .movie-poster {
+                width: 40px;
+                height: 60px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-container {
+                padding: 10px;
+            }
+
+            .movie-table, .user-table {
+                display: block;
+            }
+
+            .movie-table thead, .user-table thead {
+                display: none;
+            }
+
+            .movie-table tr, .user-table tr {
+                display: block;
+                margin-bottom: 10px;
+                border: 1px solid var(--border-color);
+                border-radius: 5px;
+                padding: 10px;
+            }
+
+            .movie-table td, .user-table td {
+                display: block;
+                text-align: left;
+                padding: 5px 0;
+            }
+
+            .movie-table td::before, .user-table td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                display: inline-block;
+                width: 100px;
+                color: var(--accent-color);
+            }
+
+            .movie-table td:last-child, .user-table td:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <a href="../index.html" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="burger-menu" id="burger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+        <div class="nav-container" id="nav-container">
+            <ul class="nav-links">
+                <li><a href="admin-panel.html" class="active">Anasayfa</a></li>
+                <li><a href="add-movie.html">Ekle</a></li>
+                <li><a href="edit-movie.html">Düzenle</a></li>
+            </ul>
+            <div class="auth-buttons" id="auth-buttons">
+                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
+                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+            </div>
+            <div class="user-info" id="user-info" style="display: none;">
+                <div class="user-profile">
+                    <span class="user-greeting">Merhaba,</span>
+                    <span class="username-display" id="username-display"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="auth-modal" id="auth-modal">
+        <div class="auth-modal-content">
+            <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="login-tab" onclick="switchTab('login')">Giriş Yap</button>
+                <button class="tab-btn" id="signup-tab" onclick="switchTab('signup')">Üye Ol</button>
+            </div>
+            <div class="auth-form" id="login-form">
+                <h2>Giriş Yap</h2>
+                <form id="login-form-submit" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Kullanıcı Adı</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Parola</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <p class="error-message" id="login-error"></p>
+                    <button type="submit" class="auth-submit">Giriş Yap</button>
+                </form>
+            </div>
+            <div class="auth-form" id="signup-form" style="display: none;">
+                <h2>Üye Ol</h2>
+                <form id="signup-form-submit" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signup-username">Kullanıcı Adı</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">E-posta</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Parola</label>
+                        <input type="password" id="signup-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password-confirm">Parola Tekrar</label>
+                        <input type="password" id="signup-password-confirm" required>
+                    </div>
+                    <p class="error-message" id="signup-error"></p>
+                    <button type="submit" class="auth-submit">Üye Ol</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <main class="admin-container">
+        <section id="admin-content" style="display: none;">
+            <div class="statistics">
+                <h3>Platform İstatistikleri</h3>
+                <p id="stats-movies">Toplam Film: 0</p>
+                <p id="stats-series">Toplam Dizi: 0</p>
+                <p id="stats-users">Toplam Kullanıcı: 0</p>
+                <p id="stats-banned">Yasaklı Kullanıcı: 0</p>
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('movies')">Film/Dizi Listesi</button>
+                <button class="tab-btn" onclick="showTab('users')">Üye Listesi</button>
+            </div>
+            <div id="movies-tab" class="tab-content active">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="type-filter">Tür:</label>
+                        <select id="type-filter">
+                            <option value="all">Tümü</option>
+                            <option value="film">Film</option>
+                            <option value="dizi">Dizi</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="genre-filter">Kategori:</label>
+                        <select id="genre-filter">
+                            <option value="all">Tümü</option>
+                        </select>
+                    </div>
+                    <input type="text" id="movie-search" class="search-bar" placeholder="Film veya dizi ara...">
+                </div>
+                <table class="movie-table">
+                    <thead>
+                        <tr>
+                            <th>Poster</th>
+                            <th>Başlık</th>
+                            <th>Tür</th>
+                            <th>Yıl</th>
+                            <th>Kategoriler</th>
+                            <th>Eylemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movie-list"></tbody>
+                </table>
+            </div>
+            <div id="users-tab" class="tab-content">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="status-filter">Durum:</label>
+                        <select id="status-filter">
+                            <option value="all">Tümü</option>
+                            <option value="active">Aktif</option>
+                            <option value="banned">Yasaklı</option>
+                        </select>
+                    </div>
+                    <input type="text" id="user-search" class="search-bar" placeholder="Kullanıcı ara...">
+                </div>
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı Adı</th>
+                            <th>E-posta</th>
+                            <th>Durum</th>
+                            <th>Admin</th>
+                            <th>Eylemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list"></tbody>
+                </table>
+            </div>
+        </section>
+        <div class="admin-only-message" id="admin-only-message" style="display: none;">
+            Bu sayfa yalnızca yöneticiler içindir. Lütfen yönetici hesabıyla giriş yapın.
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>DİZİT</h3>
+                <p>En iyi film ve dizi izleme platformu.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <div class="toast-notification" id="toast-notification"></div>
+
+    <script>
+        let isLoggedIn = !!localStorage.getItem('token');
+        let currentUser = localStorage.getItem('username') || null;
+        let isAdmin = false;
+        let allMovies = [];
+        let allUsers = [];
+
+        // Toast Notification
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Check Admin Status
+        async function checkAdminStatus() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    console.log('Token bulunamadı');
+                    throw new Error('Token bulunamadı');
+                }
+                const res = await fetch('/api/check-admin', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    throw new Error(`Admin kontrol hatası: ${res.status} ${res.statusText}`);
+                }
+                const data = await res.json();
+                isAdmin = data.isAdmin;
+                console.log('Admin durumu:', isAdmin, 'Kullanıcı:', currentUser);
+                updateAdminUI();
+                if (isAdmin) {
+                    await Promise.all([fetchMovies(), fetchUsers()]);
+                }
+            } catch (error) {
+                console.error('Admin kontrol hatası:', error.message);
+                showToast('Yönetici durumu kontrol edilemedi');
+                updateAdminUI();
+            }
+        }
+
+        // Update Admin UI
+        function updateAdminUI() {
+            const adminContent = document.getElementById('admin-content');
+            const adminMessage = document.getElementById('admin-only-message');
+            if (isLoggedIn && isAdmin) {
+                adminContent.style.display = 'block';
+                adminMessage.style.display = 'none';
+            } else {
+                adminContent.style.display = 'none';
+                adminMessage.style.display = 'block';
+            }
+            updateAuthUI();
+        }
+
+        // Update Auth UI
+        function updateAuthUI() {
+            const authButtons = document.getElementById('auth-buttons');
+            const userInfo = document.getElementById('user-info');
+            const usernameDisplay = document.getElementById('username-display');
+            if (isLoggedIn && currentUser) {
+                authButtons.style.display = 'none';
+                userInfo.style.display = 'flex';
+                usernameDisplay.textContent = currentUser;
+            } else {
+                authButtons.style.display = 'flex';
+                userInfo.style.display = 'none';
+            }
+        }
+
+        // Auth Modal
+        function openAuthModal(type = 'login') {
+            const modal = document.getElementById('auth-modal');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            modal.classList.add('active');
+            if (type === 'login') {
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+            } else {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                loginTab.classList.remove('active');
+                signupTab.classList.add('active');
+            }
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('active');
+            document.getElementById('login-error').textContent = '';
+            document.getElementById('signup-error').textContent = '';
+            document.getElementById('login-form-submit').reset();
+            document.getElementById('signup-form-submit').reset();
+        }
+
+        function switchTab(type) {
+            openAuthModal(type);
+        }
+
+        // Handle Login
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.error || 'Giriş başarısız';
+                    return;
+                }
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('username', data.username);
+                isLoggedIn = true;
+                currentUser = data.username;
+                closeAuthModal();
+                showToast('Giriş başarılı!');
+                await checkAdminStatus();
+            } catch (error) {
+                console.error('Giriş hatası:', error);
+                errorEl.textContent = 'Sunucu hatası';
+            }
+        }
+
+        // Handle Signup
+        async function handleSignup(event) {
+            event.preventDefault();
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const passwordConfirm = document.getElementById('signup-password-confirm').value;
+            const errorEl = document.getElementById('signup-error');
+            if (password !== passwordConfirm) {
+                errorEl.textContent = 'Parolalar eşleşmiyor';
+                return;
+            }
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.error || 'Kayıt başarısız';
+                    return;
+                }
+                closeAuthModal();
+                showToast('Kayıt başarılı! Lütfen giriş yapın.');
+            } catch (error) {
+                console.error('Kayıt hatası:', error);
+                errorEl.textContent = 'Sunucu hatası';
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            isAdmin = false;
+            allMovies = [];
+            allUsers = [];
+            updateAdminUI();
+            showToast('Çıkış yapıldı');
+        }
+
+        // Show Tab
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`${tab}-tab`).classList.add('active');
+            document.querySelector(`.tab-btn[onclick="showTab('${tab}')"]`).classList.add('active');
+        }
+
+        // Fetch Movies
+        async function fetchMovies() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token bulunamadı');
+                }
+                const res = await fetch('/api/movies', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    throw new Error(`Filmler alınamadı: ${res.status} ${res.statusText}`);
+                }
+                const movies = await res.json();
+                allMovies = Array.isArray(movies) ? movies : [];
+                console.log('Filmler alındı:', allMovies.length);
+                updateStatistics();
+                renderMovies(allMovies);
+                populateGenreFilter();
+            } catch (error) {
+                console.error('Film listeleme hatası:', error.message);
+                showToast('Filmler yüklenemedi');
+                document.getElementById('movie-list').innerHTML = '<tr><td colspan="6">Filmler yüklenemedi</td></tr>';
+            }
+        }
+
+        // Fetch Users
+        async function fetchUsers() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('Token bulunamadı');
+                }
+                const res = await fetch('/api/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    throw new Error(`Kullanıcılar alınamadı: ${res.status} ${res.statusText}`);
+                }
+                const users = await res.json();
+                allUsers = Array.isArray(users) ? users : [];
+                console.log('Kullanıcılar alındı:', allUsers.length, 'Veri:', JSON.stringify(allUsers.slice(0, 2)));
+                updateStatistics();
+                renderUsers(allUsers);
+                if (allUsers.length === 0) {
+                    showToast('Kayıtlı kullanıcı bulunamadı');
+                    document.getElementById('user-list').innerHTML = '<tr><td colspan="5">Kayıtlı kullanıcı bulunamadı</td></tr>';
+                }
+            } catch (error) {
+                console.error('Kullanıcı listeleme hatası:', error.message);
+                showToast('Kullanıcılar yüklenemedi');
+                document.getElementById('user-list').innerHTML = '<tr><td colspan="5">Kullanıcılar yüklenemedi</td></tr>';
+            }
+        }
+
+        // Update Statistics
+        function updateStatistics() {
+            const movieCount = allMovies.filter(m => m.type === 'film').length;
+            const seriesCount = allMovies.filter(m => m.type === 'dizi').length;
+            const userCount = allUsers.length;
+            const bannedCount = allUsers.filter(u => u.isBanned).length;
+            document.getElementById('stats-movies').textContent = `Toplam Film: ${movieCount}`;
+            document.getElementById('stats-series').textContent = `Toplam Dizi: ${seriesCount}`;
+            document.getElementById('stats-users').textContent = `Toplam Kullanıcı: ${userCount}`;
+            document.getElementById('stats-banned').textContent = `Yasaklı Kullanıcı: ${bannedCount}`;
+        }
+
+        // Render Movies
+        function renderMovies(movies) {
+            const movieList = document.getElementById('movie-list');
+            movieList.innerHTML = '';
+            if (movies.length === 0) {
+                movieList.innerHTML = '<tr><td colspan="6">Film veya dizi bulunamadı</td></tr>';
+                return;
+            }
+            movies.forEach(movie => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td data-label="Poster"><img src="${movie.poster || 'placeholder.jpg'}" alt="${movie.title}" class="movie-poster"></td>
+                    <td data-label="Başlık">${movie.title}</td>
+                    <td data-label="Tür">${movie.type === 'film' ? 'Film' : 'Dizi'}</td>
+                    <td data-label="Yıl">${movie.year || '-'}</td>
+                    <td data-label="Kategoriler">${Array.isArray(movie.genres) ? movie.genres.join(', ') : '-'}</td>
+                    <td data-label="Eylemler" class="actions">
+                        <button class="action-btn" onclick="editMovie('${movie.id}')">Düzenle</button>
+                        <button class="action-btn delete-btn" onclick="deleteMovie('${movie.id}')">Sil</button>
+                    </td>
+                `;
+                movieList.appendChild(row);
+            });
+        }
+
+        // Render Users
+        function renderUsers(users) {
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = '';
+            if (users.length === 0) {
+                userList.innerHTML = '<tr><td colspan="5">Kullanıcı bulunamadı</td></tr>';
+                return;
+            }
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const isCurrentUser = user.username === currentUser;
+                row.innerHTML = `
+                    <td data-label="Kullanıcı Adı">${user.username}</td>
+                    <td data-label="E-posta">${user.email}</td>
+                    <td data-label="Durum">${user.isBanned ? 'Yasaklı' : 'Aktif'}</td>
+                    <td data-label="Admin">${user.isAdmin ? 'Evet' : 'Hayır'}</td>
+                    <td data-label="Eylemler" class="actions">
+                        ${user.isBanned ?
+                            `<button class="action-btn unban-btn" onclick="unbanUser('${user.username}')">Yasağı Kaldır</button>` :
+                            (isCurrentUser ? '' : `<button class="action-btn ban-btn" onclick="banUser('${user.username}')">Yasakla</button>`)}
+                        <button class="action-btn delete-btn" onclick="deleteUser('${user.username}')">Sil</button>
+                        ${isCurrentUser ? '' :
+                            (user.isAdmin ?
+                                `<button class="action-btn admin-btn" onclick="toggleAdmin('${user.username}', false)">Adminliği Kaldır</button>` :
+                                `<button class="action-btn admin-btn" onclick="toggleAdmin('${user.username}', true)">Admin Yap</button>`)}
+                    </td>
+                `;
+                userList.appendChild(row);
+            });
+        }
+
+        // Edit Movie
+        function editMovie(movieId) {
+            window.location.href = `edit-movie.html?id=${movieId}`;
+        }
+
+        // Delete Movie
+        async function deleteMovie(movieId) {
+            if (!confirm('Bu filmi/diziyi silmek istediğinizden emin misiniz?')) return;
+            try {
+                const res = await fetch(`/api/movies/${movieId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (res.ok) {
+                    showToast('Film/Dizi silindi');
+                    await fetchMovies();
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || 'Silme başarısız');
+                }
+            } catch (error) {
+                console.error('Film silme hatası:', error);
+                showToast('Sunucu hatası');
+            }
+        }
+
+        // Ban User
+        async function banUser(username) {
+            if (!confirm(`${username} kullanıcısını yasaklamak istediğinizden emin misiniz?`)) return;
+            try {
+                const res = await fetch(`/api/users/${username}/ban`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ isBanned: true })
+                });
+                if (res.ok) {
+                    showToast(`${username} yasaklandı`);
+                    await fetchUsers();
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || 'Yasaklama başarısız');
+                }
+            } catch (error) {
+                console.error('Kullanıcı yasaklama hatası:', error);
+                showToast('Sunucu hatası');
+            }
+        }
+
+        // Unban User
+        async function unbanUser(username) {
+            if (!confirm(`${username} kullanıcısının yasağını kaldırmak istediğinizden emin misiniz?`)) return;
+            try {
+                const res = await fetch(`/api/users/${username}/ban`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ isBanned: false })
+                });
+                if (res.ok) {
+                    showToast(`${username} kullanıcısının yasağı kaldırıldı`);
+                    await fetchUsers();
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || 'Yasağı kaldırma başarısız');
+                }
+            } catch (error) {
+                console.error('Kullanıcı yasağı kaldırma hatası:', error);
+                showToast('Sunucu hatası');
+            }
+        }
+
+        // Delete User
+        async function deleteUser(username) {
+            if (!confirm(`${username} kullanıcısını silmek istediğinizden emin misiniz?`)) return;
+            try {
+                const res = await fetch(`/api/users/${username}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (res.ok) {
+                    showToast(`${username} silindi`);
+                    await fetchUsers();
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || 'Silme başarısız');
+                }
+            } catch (error) {
+                console.error('Kullanıcı silme hatası:', error);
+                showToast('Sunucu hatası');
+            }
+        }
+
+        // Toggle Admin Status
+        async function toggleAdmin(username, makeAdmin) {
+            if (!confirm(`${username} kullanıcısını ${makeAdmin ? 'admin yapmayı' : 'adminlikten çıkarmayı'} istediğinizden emin misiniz?`)) return;
+            try {
+                const res = await fetch(`/api/users/${username}/admin`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ isAdmin: makeAdmin })
+                });
+                if (res.ok) {
+                    showToast(`${username} ${makeAdmin ? 'admin yapıldı' : 'adminliği kaldırıldı'}`);
+                    await fetchUsers();
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || 'Admin güncelleme başarısız');
+                }
+            } catch (error) {
+                console.error('Admin güncelleme hatası:', error);
+                showToast('Sunucu hatası');
+            }
+        }
+
+        // Populate Genre Filter
+        function populateGenreFilter() {
+            const genreFilter = document.getElementById('genre-filter');
+            genreFilter.innerHTML = '<option value="all">Tümü</option>';
+            const genres = new Set();
+            allMovies.forEach(movie => {
+                if (Array.isArray(movie.genres)) {
+                    movie.genres.forEach(genre => genres.add(genre));
+                }
+            });
+            genres.forEach(genre => {
+                const option = document.createElement('option');
+                option.value = genre;
+                option.textContent = genre;
+                genreFilter.appendChild(option);
+            });
+        }
+
+        // Filter and Search Movies
+        function filterMovies() {
+            const type = document.getElementById('type-filter').value;
+            const genre = document.getElementById('genre-filter').value;
+            const search = document.getElementById('movie-search').value.toLowerCase();
+            const filteredMovies = allMovies.filter(movie => {
+                const matchesType = type === 'all' || movie.type === type;
+                const matchesGenre = genre === 'all' || (Array.isArray(movie.genres) && movie.genres.includes(genre));
+                const matchesSearch = movie.title.toLowerCase().includes(search) || (movie.title2 && movie.title2.toLowerCase().includes(search));
+                return matchesType && matchesGenre && matchesSearch;
+            });
+            renderMovies(filteredMovies);
+        }
+
+        // Filter and Search Users
+        function filterUsers() {
+            const status = document.getElementById('status-filter').value;
+            const search = document.getElementById('user-search').value.toLowerCase();
+            const filteredUsers = allUsers.filter(user => {
+                const matchesStatus = status === 'all' ||
+                    (status === 'active' && !user.isBanned) ||
+                    (status === 'banned' && user.isBanned);
+                const matchesSearch = user.username.toLowerCase().includes(search) || user.email.toLowerCase().includes(search);
+                return matchesStatus && matchesSearch;
+            });
+            renderUsers(filteredUsers);
+        }
+
+        // Event Listeners
+        document.getElementById('type-filter').addEventListener('change', filterMovies);
+        document.getElementById('genre-filter').addEventListener('change', filterMovies);
+        document.getElementById('movie-search').addEventListener('input', filterMovies);
+        document.getElementById('status-filter').addEventListener('change', filterUsers);
+        document.getElementById('user-search').addEventListener('input', filterUsers);
+
+        // Burger Menu
+        document.getElementById('burger-menu').addEventListener('click', () => {
+            const navContainer = document.getElementById('nav-container');
+            navContainer.classList.toggle('active');
+        });
+
+        // Initial Check
+        checkAdminStatus();
+    </script>
+</body>
+</html>

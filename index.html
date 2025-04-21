@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DİZİT - Film ve Dizi İzleme Platformu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="header">
+        <a href="#" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Film veya dizi ara...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="burger-menu" id="burger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+        <div class="nav-container" id="nav-container">
+            <ul class="nav-links">
+                <li><a href="#" class="home-link active">Anasayfa</a></li>
+                <li><a href="filmler.html?type=film">Filmler</a></li>
+                <li><a href="diziler.html?type=dizi">Diziler</a></li>
+                <li><a href="arama/film-dizi-arama.html">Detaylı Arama (Keşfet)</a></li>
+                <li><a href="istek-form/request-complaint.html">İstek ve Şikayet</a></li>
+            </ul>
+            <div class="auth-buttons" id="auth-buttons">
+                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
+                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+            </div>
+            <div class="user-info" id="user-info" style="display: none;">
+                <div class="user-profile">
+                    <span class="user-greeting">Merhaba,</span>
+                    <span class="username-display" id="username-display"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="auth-modal" id="auth-modal">
+        <div class="auth-modal-content">
+            <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="login-tab" onclick="switchTab('login')">Giriş Yap</button>
+                <button class="tab-btn" id="signup-tab" onclick="switchTab('signup')">Üye Ol</button>
+                <button class="tab-btn" id="forgot-tab" onclick="switchTab('forgot')">Şifremi Unuttum</button>
+            </div>
+            <div class="auth-form" id="login-form">
+                <h2>Giriş Yap</h2>
+                <form id="login-form-submit" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Kullanıcı Adı</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Parola</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <p class="error-message" id="login-error"></p>
+                    <button type="submit" class="auth-submit">Giriş Yap</button>
+                    <p class="forgot-link" onclick="switchTab('forgot')">Şifrenizi mi unuttunuz?</p>
+                </form>
+            </div>
+            <div class="auth-form" id="signup-form" style="display: none;">
+                <h2>Üye Ol</h2>
+                <form id="signup-form-submit" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signup-username">Kullanıcı Adı</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">E-posta</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Parola</label>
+                        <input type="password" id="signup-password" required oninput="validatePassword()">
+                        <p class="password-hint" id="password-hint">Parola en az 8 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password-confirm">Parola Tekrar</label>
+                        <input type="password" id="signup-password-confirm" required>
+                    </div>
+                    <p class="error-message" id="signup-error"></p>
+                    <button type="submit" class="auth-submit">Üye Ol</button>
+                </form>
+            </div>
+            <div class="auth-form" id="forgot-form" style="display: none;">
+                <h2>Şifremi Unuttum</h2>
+                <form id="forgot-form-submit" onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label for="forgot-email">E-posta</label>
+                        <input type="email" id="forgot-email" required>
+                    </div>
+                    <p class="error-message" id="forgot-error"></p>
+                    <p class="success-message" id="forgot-success"></p>
+                    <button type="submit" class="auth-submit">Şifre Sıfırlama Bağlantısı Gönder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="search-overlay" id="search-overlay">
+        <div class="search-overlay-header">
+            <input type="text" id="search-overlay-input" placeholder="Film veya dizi ara...">
+            <button id="close-overlay" class="close-overlay-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="search-results" id="search-results"></div>
+    </div>
+
+    <main>
+        <div class="home-content">
+            <section>
+                <h2 class="section-title">IMDB'de En Yüksek Filmler</h2>
+                <div class="poster-slider" id="top-films-slider">
+                    <div class="slider-container" id="top-films-slider-container"></div>
+                    <button class="slider-prev" id="top-films-prev"><i class="fas fa-chevron-left"></i></button>
+                    <button class="slider-next" id="top-films-next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </section>
+            <section>
+                <h2 class="section-title">IMDB'de En Yüksek Diziler</h2>
+                <div class="poster-slider" id="top-series-slider">
+                    <div class="slider-container" id="top-series-slider-container"></div>
+                    <button class="slider-prev" id="top-series-prev"><i class="fas fa-chevron-left"></i></button>
+                    <button class="slider-next" id="top-series-next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </section>
+            <section>
+                <h2 class="section-title">Yeni Eklenen Filmler</h2>
+                <div class="poster-slider" id="new-films-slider">
+                    <div class="slider-container" id="new-films-slider-container"></div>
+                    <button class="slider-prev" id="new-films-prev"><i class="fas fa-chevron-left"></i></button>
+                    <button class="slider-next" id="new-films-next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </section>
+            <section>
+                <h2 class="section-title">Yeni Eklenen Diziler</h2>
+                <div class="poster-slider" id="new-series-slider">
+                    <div class="slider-container" id="new-series-slider-container"></div>
+                    <button class="slider-prev" id="new-series-prev"><i class="fas fa-chevron-left"></i></button>
+                    <button class="slider-next" id="new-series-next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </section>
+            <section>
+                <h2 class="section-title">Tüm Filmler</h2>
+                <div class="movie-grid" id="all-films-grid"></div>
+                <div class="show-all" id="show-all-films" style="display: none;">
+                    <button onclick="window.location.href='filmler.html?type=film'">Tümünü Göster</button>
+                </div>
+            </section>
+            <section>
+                <h2 class="section-title">Tüm Diziler</h2>
+                <div class="movie-grid" id="all-series-grid"></div>
+                <div class="show-all" id="show-all-series" style="display: none;">
+                    <button onclick="window.location.href='diziler.html?type=dizi'">Tümünü Göster</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>DİZİT</h3>
+                <p>En iyi film ve dizi izleme platformu.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script>
+        let isLoggedIn = !!localStorage.getItem('token');
+        let currentUser = localStorage.getItem('username') || null;
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                return false;
+            }
+            try {
+                const res = await fetch('http://localhost:3000/api/verify-token', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    isLoggedIn = true;
+                    currentUser = data.username;
+                    localStorage.setItem('username', data.username);
+                    updateAuthUI();
+                    return true;
+                } else {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    isLoggedIn = false;
+                    currentUser = null;
+                    updateAuthUI();
+                    return false;
+                }
+            } catch (error) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                return false;
+            }
+        }
+
+        function updateAuthUI() {
+            document.getElementById('auth-buttons').style.display = isLoggedIn ? 'none' : 'flex';
+            document.getElementById('user-info').style.display = isLoggedIn ? 'flex' : 'none';
+            if (isLoggedIn) document.getElementById('username-display').textContent = currentUser;
+        }
+
+        function openAuthModal(type = 'login') {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.add('active');
+            switchTab(type);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.remove('active');
+            document.getElementById('login-error').textContent = '';
+            document.getElementById('signup-error').textContent = '';
+            document.getElementById('forgot-error').textContent = '';
+            document.getElementById('forgot-success').textContent = '';
+            document.getElementById('login-form-submit').reset();
+            document.getElementById('signup-form-submit').reset();
+            document.getElementById('forgot-form-submit').reset();
+            document.getElementById('password-hint').style.color = '#666';
+        }
+
+        function switchTab(type) {
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            const forgotTab = document.getElementById('forgot-tab');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const forgotForm = document.getElementById('forgot-form');
+            const loginError = document.getElementById('login-error');
+            const signupError = document.getElementById('signup-error');
+            const forgotError = document.getElementById('forgot-error');
+            const forgotSuccess = document.getElementById('forgot-success');
+
+            loginTab.classList.toggle('active', type === 'login');
+            signupTab.classList.toggle('active', type === 'signup');
+            forgotTab.classList.toggle('active', type === 'forgot');
+            loginForm.style.display = type === 'login' ? 'block' : 'none';
+            signupForm.style.display = type === 'signup' ? 'block' : 'none';
+            forgotForm.style.display = type === 'forgot' ? 'block' : 'none';
+            loginError.textContent = '';
+            signupError.textContent = '';
+            forgotError.textContent = '';
+            forgotSuccess.textContent = '';
+            document.getElementById('login-form-submit').reset();
+            document.getElementById('signup-form-submit').reset();
+            document.getElementById('forgot-form-submit').reset();
+            document.getElementById('password-hint').style.color = '#666';
+        }
+
+        function validatePassword() {
+            const password = document.getElementById('signup-password').value;
+            const hint = document.getElementById('password-hint');
+            const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+            
+            if (!strongPasswordRegex.test(password) && password.length > 0) {
+                hint.style.color = '#e74c3c';
+            } else {
+                hint.style.color = '#666';
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            try {
+                console.log('Giriş denemesi:', { username });
+                const res = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                console.log('Sunucu yanıtı:', data);
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+                    isLoggedIn = true;
+                    currentUser = data.username;
+                    errorEl.textContent = '';
+                    closeAuthModal();
+                    updateAuthUI();
+                    if (data.isAdmin) {
+                        console.log('Admin kullanıcısı, yönlendiriliyor: /admin/admin-panel.html');
+                        window.location.href = '/admin/admin-panel.html';
+                    } else {
+                        console.log('Admin olmayan kullanıcı, sayfa yeniden yükleniyor');
+                        window.location.reload();
+                    }
+                } else {
+                    errorEl.textContent = data.error || 'Giriş başarısız';
+                    console.log('Giriş hatası:', data.error);
+                }
+            } catch (error) {
+                errorEl.textContent = 'Sunucuyla bağlantı hatası';
+                console.error('Giriş işlemi hatası:', error);
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const passwordConfirm = document.getElementById('signup-password-confirm').value;
+            const errorEl = document.getElementById('signup-error');
+            const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+            if (!strongPasswordRegex.test(password)) {
+                errorEl.textContent = 'Parola en az 8 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.';
+                return;
+            }
+            if (password !== passwordConfirm) {
+                errorEl.textContent = 'Parolalar eşleşmiyor';
+                return;
+            }
+            try {
+                const res = await fetch('http://localhost:3000/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    const loginRes = await fetch('http://localhost:3000/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const loginData = await loginRes.json();
+                    if (loginRes.ok) {
+                        localStorage.setItem('token', loginData.token);
+                        localStorage.setItem('username', loginData.username);
+                        isLoggedIn = true;
+                        currentUser = loginData.username;
+                        closeAuthModal();
+                        updateAuthUI();
+                        window.location.reload();
+                    } else {
+                        errorEl.textContent = loginData.error || 'Otomatik giriş başarısız';
+                    }
+                } else {
+                    errorEl.textContent = data.error || 'Kayıt başarısız';
+                }
+            } catch (error) {
+                errorEl.textContent = 'Sunucuyla bağlantı hatası';
+            }
+        }
+
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+            const errorEl = document.getElementById('forgot-error');
+            const successEl = document.getElementById('forgot-success');
+            try {
+                const res = await fetch('http://localhost:3000/api/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    successEl.textContent = 'Şifre sıfırlama bağlantısı e-postanıza gönderildi.';
+                    errorEl.textContent = '';
+                } else {
+                    errorEl.textContent = data.error || 'Şifre sıfırlama başarısız';
+                    successEl.textContent = '';
+                }
+            } catch (error) {
+                errorEl.textContent = 'Sunucuyla bağlantı hatası';
+                successEl.textContent = '';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            updateAuthUI();
+            window.location.href = 'index.html';
+        }
+
+        function displayItems(items, containerId, isSlider = true) {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`Container bulunamadı: ${containerId}`);
+                return;
+            }
+            container.innerHTML = '';
+            console.log(`Rendering items for ${containerId}:`, items);
+
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                container.innerHTML = '<p>İçerik bulunamadı.</p>';
+                return;
+            }
+
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = isSlider ? 'slider-item' : 'movie-card';
+                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
+                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
+                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
+                             item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
+                card.innerHTML = `
+                    <div class="poster-wrapper">
+                        <img src="${item.poster || 'https://via.placeholder.com/300x450'}" alt="${item.title || 'Başlık Yok'}" class="${isSlider ? 'slider-poster' : 'movie-poster'}">
+                        ${badge}
+                    </div>
+                    <div class="${isSlider ? 'slider-info' : 'movie-info'}">
+                        <h3 class="${isSlider ? 'slider-title' : 'movie-title'}">${item.title || 'Başlık Yok'}</h3>
+                        <div class="${isSlider ? 'slider-meta' : 'movie-meta'}">
+                            <span>${item.year || 'Bilinmiyor'}</span>
+                            <div class="imdb-rating">
+                                <i class="fas fa-star"></i> ${item.rating || 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => window.location.href = item.type === "dizi" ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
+                container.appendChild(card);
+            });
+        }
+
+        function getTopFilms(movieList) {
+            console.log('Top films filter:', movieList);
+            return movieList.filter(m => m.type === "film").sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        }
+
+        function getTopSeries(movieList) {
+            console.log('Top series filter:', movieList);
+            return movieList.filter(m => m.type === "dizi").sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        }
+
+        function getNewFilms(movieList) {
+            console.log('New films filter:', movieList);
+            return movieList.filter(m => m.type === "film").sort((a, b) => (b.year || 0) - (a.year || 0));
+        }
+
+        function getNewSeries(movieList) {
+            console.log('New series filter:', movieList);
+            return movieList.filter(m => m.type === "dizi").sort((a, b) => (b.year || 0) - (a.year || 0));
+        }
+
+        function getAllFilms(movieList) {
+            console.log('All films filter:', movieList);
+            return movieList.filter(m => m.type === "film");
+        }
+
+        function getAllSeries(movieList) {
+            console.log('All series filter:', movieList);
+            return movieList.filter(m => m.type === "dizi");
+        }
+
+        async function fetchMovies() {
+            try {
+                console.log('Fetching movies...');
+                const response = await fetch('http://localhost:3000/api/movies');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const movies = await response.json();
+                console.log('Fetched movies:', movies);
+                return movies;
+            } catch (error) {
+                console.error('Veri çekme hatası:', error);
+                return null;
+            }
+        }
+
+        async function updateContent() {
+            const movies = await fetchMovies();
+            if (!movies || !Array.isArray(movies) || movies.length === 0) {
+                console.warn('Veritabanında veri bulunamadı.');
+                document.querySelectorAll('.slider-container, .movie-grid').forEach(container => {
+                    container.innerHTML = '<p>İçerik bulunamadı.</p>';
+                });
+                return;
+            }
+
+            const topFilms = getTopFilms(movies).slice(0, 10);
+            const topSeries = getTopSeries(movies).slice(0, 10);
+            const newFilms = getNewFilms(movies).slice(0, 10);
+            const newSeries = getNewSeries(movies).slice(0, 10);
+            const allFilms = getAllFilms(movies);
+            const allSeries = getAllSeries(movies);
+
+            console.log('Top films:', topFilms);
+            console.log('Top series:', topSeries);
+            console.log('New films:', newFilms);
+            console.log('New series:', newSeries);
+            console.log('All films:', allFilms);
+            console.log('All series:', allSeries);
+
+            displayItems(topFilms, 'top-films-slider-container', true);
+            displayItems(topSeries, 'top-series-slider-container', true);
+            displayItems(newFilms, 'new-films-slider-container', true);
+            displayItems(newSeries, 'new-series-slider-container', true);
+            displayItems(allFilms.slice(0, 12), 'all-films-grid', false);
+            displayItems(allSeries.slice(0, 12), 'all-series-grid', false);
+
+            document.getElementById('show-all-films').style.display = allFilms.length > 12 ? 'block' : 'none';
+            document.getElementById('show-all-series').style.display = allSeries.length > 12 ? 'block' : 'none';
+        }
+
+        async function performSearch(query) {
+            const searchResults = document.getElementById('search-results');
+            if (!query) {
+                searchResults.innerHTML = '';
+                return;
+            }
+            try {
+                const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+                if (!res.ok) throw new Error('Arama başarısız');
+                const data = await res.json();
+                displaySearchResults(data);
+            } catch (error) {
+                searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
+                showToast('Arama başarısız', 'error');
+            }
+        }
+
+        function displaySearchResults(results) {
+            const searchResults = document.getElementById('search-results');
+            if (!searchResults) return;
+            searchResults.innerHTML = results.length ? '' : '<p>Sonuç bulunamadı.</p>';
+
+            results.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'search-result-item';
+                itemEl.innerHTML = `
+                    <img src="${item.poster || 'https://via.placeholder.com/150'}" alt="${item.title}" class="search-result-poster">
+                    <div class="search-result-info">
+                        <div class="search-result-title">
+                            ${item.title || 'Bilinmeyen İçerik'}
+                            ${item.title2 ? `<span class="search-result-title2">(${item.title2})</span>` : ''}
+                        </div>
+                        <div class="search-result-year">${item.year || 'N/A'}</div>
+                        <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
+                    </div>
+                `;
+                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
+                searchResults.appendChild(itemEl);
+            });
+        }
+
+        function initSlider(sliderId, prevBtnId, nextBtnId) {
+            const container = document.getElementById(sliderId);
+            const prevBtn = document.getElementById(prevBtnId);
+            const nextBtn = document.getElementById(nextBtnId);
+            if (!container || !prevBtn || !nextBtn) {
+                console.error(`Slider elemanları eksik: ${sliderId}, ${prevBtnId}, ${nextBtnId}`);
+                return;
+            }
+            let scrollAmount = 0;
+            const scrollStep = 220;
+
+            function updateButtons() {
+                prevBtn.style.display = scrollAmount <= 0 ? 'none' : 'block';
+                nextBtn.style.display = scrollAmount >= container.scrollWidth - container.clientWidth - 1 ? 'none' : 'block';
+            }
+
+            nextBtn.onclick = () => {
+                scrollAmount = Math.min(scrollAmount + scrollStep, container.scrollWidth - container.clientWidth);
+                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+                setTimeout(updateButtons, 300);
+            };
+
+            prevBtn.onclick = () => {
+                scrollAmount = Math.max(scrollAmount - scrollStep, 0);
+                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+                setTimeout(updateButtons, 300);
+            };
+
+            container.addEventListener('scroll', () => {
+                scrollAmount = container.scrollLeft;
+                updateButtons();
+            });
+
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                scrollAmount = Math.max(0, Math.min(scrollAmount + e.deltaY, container.scrollWidth - container.clientWidth));
+                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+                setTimeout(updateButtons, 300);
+            });
+
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            container.addEventListener('touchstart', e => {
+                touchStartX = e.touches[0].clientX;
+            });
+
+            container.addEventListener('touchmove', e => {
+                touchEndX = e.touches[0].clientX;
+                const diff = touchStartX - touchEndX;
+                container.scrollLeft += diff;
+                touchStartX = touchEndX;
+            });
+
+            container.addEventListener('touchend', () => {
+                scrollAmount = container.scrollLeft;
+                updateButtons();
+            });
+
+            updateButtons();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM yüklendi, updateContent çağrılıyor...');
+            checkAuth();
+            updateContent();
+
+            initSlider('top-films-slider-container', 'top-films-prev', 'top-films-next');
+            initSlider('top-series-slider-container', 'top-series-prev', 'top-series-next');
+            initSlider('new-films-slider-container', 'new-films-prev', 'new-films-next');
+            initSlider('new-series-slider-container', 'new-series-prev', 'new-series-next');
+
+            const searchInput = document.getElementById('search-input');
+            const searchOverlayInput = document.getElementById('search-overlay-input');
+            const searchOverlay = document.getElementById('search-overlay');
+            const closeOverlayBtn = document.getElementById('close-overlay');
+
+            searchInput.addEventListener('focus', () => {
+                searchOverlay.classList.add('active');
+                searchOverlayInput.focus();
+                searchOverlayInput.value = searchInput.value;
+            });
+
+            searchOverlayInput.addEventListener('input', () => {
+                const query = searchOverlayInput.value.trim().toLowerCase();
+                performSearch(query);
+            });
+
+            closeOverlayBtn.addEventListener('click', () => {
+                searchOverlay.classList.remove('active');
+                searchInput.value = '';
+                searchOverlayInput.value = '';
+                document.getElementById('search-results').innerHTML = '';
+            });
+
+            const burgerMenu = document.getElementById('burger-menu');
+            const navContainer = document.getElementById('nav-container');
+            burgerMenu.addEventListener('click', () => {
+                navContainer.classList.toggle('active');
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768 && navContainer.classList.contains('active')) {
+                    navContainer.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

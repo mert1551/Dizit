@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dizi İzle - DİZİT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dizi.css?v=1">
+</head>
+<body>
+    <header id="header">
+        <a href="index.html" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Film veya dizi ara...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="burger-menu" id="burger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+        <div class="nav-container" id="nav-container">
+            <ul class="nav-links">
+                <li><a href="index.html" class="home-link">Anasayfa</a></li>
+                <li><a href="filmler.html?type=film">Filmler</a></li>
+                <li><a href="diziler.html?type=dizi">Diziler</a></li>
+                <li><a href="arama/film-dizi-arama.html">Detaylı Arama</a></li>
+            </ul>
+            <div class="auth-buttons" id="auth-buttons">
+                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
+                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+            </div>
+            <div class="user-info" id="user-info" style="display: none;">
+                <div class="user-profile">
+                    <span class="user-greeting">Merhaba,</span>
+                    <span class="username-display" id="username-display"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="auth-modal" id="auth-modal">
+        <div class="auth-modal-content">
+            <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="login-tab" onclick="switchTab('login')">Giriş Yap</button>
+                <button class="tab-btn" id="signup-tab" onclick="switchTab('signup')">Üye Ol</button>
+                <button class="tab-btn" id="forgot-tab" onclick="switchTab('forgot')">Şifremi Unuttum</button>
+            </div>
+            <div class="auth-form" id="login-form">
+                <h2>Giriş Yap</h2>
+                <form id="login-form-submit" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Kullanıcı Adı</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Parola</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <p class="error-message" id="login-error"></p>
+                    <button type="submit" class="auth-submit">Giriş Yap</button>
+                    <p class="forgot-link" onclick="switchTab('forgot')">Şifrenizi mi unuttunuz?</p>
+                </form>
+            </div>
+            <div class="auth-form" id="signup-form" style="display: none;">
+                <h2>Üye Ol</h2>
+                <form id="signup-form-submit" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signup-username">Kullanıcı Adı</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">E-posta</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Parola</label>
+                        <input type="password" id="signup-password" required oninput="validatePassword()">
+                        <p class="password-hint" id="password-hint">Parola en az 8 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password-confirm">Parola Tekrar</label>
+                        <input type="password" id="signup-password-confirm" required>
+                    </div>
+                    <p class="error-message" id="signup-error"></p>
+                    <button type="submit" class="auth-submit">Üye Ol</button>
+                </form>
+            </div>
+            <div class="auth-form" id="forgot-form" style="display: none;">
+                <h2>Şifremi Unuttum</h2>
+                <form id="forgot-form-submit" onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label for="forgot-email">E-posta</label>
+                        <input type="email" id="forgot-email" required>
+                    </div>
+                    <p class="error-message" id="forgot-error"></p>
+                    <p class="success-message" id="forgot-success"></p>
+                    <button type="submit" class="auth-submit">Şifre Sıfırlama Bağlantısı Gönder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-overlay" id="search-overlay">
+        <div class="search-overlay-header">
+            <input type="text" id="search-overlay-input" placeholder="Film veya dizi ara...">
+            <button id="close-overlay" class="close-overlay-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="search-results" id="search-results"></div>
+    </div>
+
+    <main>
+        <div class="dizi-container" id="dizi-container"></div>
+        <section class="player-container" id="player-container"></section>
+        <section class="season-section" id="season-section"></section>
+        <section class="similar-series" id="similar-series"></section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h2>DİZİT</h2>
+                <p>En iyi film ve dizi izleme platformu.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script>
+        let isLoggedIn = !!localStorage.getItem('token');
+        let currentUser = localStorage.getItem('username') || null;
+        let seriesCache = null;
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                return false;
+            }
+            try {
+                const res = await fetch('http://localhost:3000/api/verify-token', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    isLoggedIn = true;
+                    currentUser = data.username;
+                    localStorage.setItem('username', data.username);
+                    updateAuthUI();
+                    return true;
+                } else {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    isLoggedIn = false;
+                    currentUser = null;
+                    updateAuthUI();
+                    return false;
+                }
+            } catch (error) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                return false;
+            }
+        }
+
+        function updateAuthUI() {
+            document.getElementById('auth-buttons').style.display = isLoggedIn ? 'none' : 'flex';
+            document.getElementById('user-info').style.display = isLoggedIn ? 'flex' : 'none';
+            if (isLoggedIn) document.getElementById('username-display').textContent = currentUser;
+        }
+
+        function openAuthModal(type = 'login') {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.add('active');
+            switchTab(type);
+        }
+
+        function closeAuthModal() {
+    document.getElementById('auth-modal').classList.remove('active');
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('signup-error').textContent = '';
+    document.getElementById('forgot-error').textContent = '';
+    document.getElementById('forgot-success').textContent = '';
+    document.getElementById('login-form-submit').reset();
+    document.getElementById('signup-form-submit').reset();
+    document.getElementById('forgot-form-submit').reset();
+    document.getElementById('password-hint').style.color = '#666';
+}
+
+function switchTab(type) {
+    const loginTab = document.getElementById('login-tab');
+    const signupTab = document.getElementById('signup-tab');
+    const forgotTab = document.getElementById('forgot-tab');
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+    const forgotForm = document.getElementById('forgot-form');
+    const loginError = document.getElementById('login-error');
+    const signupError = document.getElementById('signup-error');
+    const forgotError = document.getElementById('forgot-error');
+    const forgotSuccess = document.getElementById('forgot-success');
+
+    loginTab.classList.toggle('active', type === 'login');
+    signupTab.classList.toggle('active', type === 'signup');
+    forgotTab.classList.toggle('active', type === 'forgot');
+    loginForm.style.display = type === 'login' ? 'block' : 'none';
+    signupForm.style.display = type === 'signup' ? 'block' : 'none';
+    forgotForm.style.display = type === 'forgot' ? 'block' : 'none';
+    loginError.textContent = '';
+    signupError.textContent = '';
+    forgotError.textContent = '';
+    forgotSuccess.textContent = '';
+    document.getElementById('login-form-submit').reset();
+    document.getElementById('signup-form-submit').reset();
+    document.getElementById('forgot-form-submit').reset();
+    document.getElementById('password-hint').style.color = '#666';
+}
+
+function validatePassword() {
+    const password = document.getElementById('signup-password').value;
+    const hint = document.getElementById('password-hint');
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    
+    if (!strongPasswordRegex.test(password) && password.length > 0) {
+        hint.style.color = '#e74c3c';
+    } else {
+        hint.style.color = '#666';
+    }
+}
+
+async function handleLogin(event) {
+    event.preventDefault();
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    try {
+        const res = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('username', data.username);
+            isLoggedIn = true;
+            currentUser = data.username;
+            errorEl.textContent = '';
+            closeAuthModal();
+            updateAuthUI();
+            // Admin ise admin paneline yönlendir
+            if (data.isAdmin) {
+                window.location.href = 'admin/admin-panel.html';
+            } else {
+                // Admin olmayan kullanıcılar için sayfayı yeniden yükle
+                window.location.reload();
+            }
+        } else {
+            errorEl.textContent = data.error || 'Giriş başarısız';
+        }
+    } catch (error) {
+        errorEl.textContent = 'Sunucuyla bağlantı hatası';
+    }
+}
+
+async function handleSignup(event) {
+    event.preventDefault();
+    const username = document.getElementById('signup-username').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const passwordConfirm = document.getElementById('signup-password-confirm').value;
+    const errorEl = document.getElementById('signup-error');
+    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+    if (!strongPasswordRegex.test(password)) {
+        errorEl.textContent = 'Parola en az 8 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.';
+        return;
+    }
+    if (password !== passwordConfirm) {
+        errorEl.textContent = 'Parolalar eşleşmiyor';
+        return;
+    }
+    try {
+        const res = await fetch('http://localhost:3000/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            const loginRes = await fetch('http://localhost:3000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const loginData = await loginRes.json();
+            if (loginRes.ok) {
+                localStorage.setItem('token', loginData.token);
+                localStorage.setItem('username', loginData.username);
+                isLoggedIn = true;
+                currentUser = loginData.username;
+                closeAuthModal();
+                updateAuthUI();
+                window.location.reload();
+            } else {
+                errorEl.textContent = loginData.error || 'Otomatik giriş başarısız';
+            }
+        } else {
+            errorEl.textContent = data.error || 'Kayıt başarısız';
+        }
+    } catch (error) {
+        errorEl.textContent = 'Sunucuyla bağlantı hatası';
+    }
+}
+
+async function handleForgotPassword(event) {
+    event.preventDefault();
+    const email = document.getElementById('forgot-email').value;
+    const errorEl = document.getElementById('forgot-error');
+    const successEl = document.getElementById('forgot-success');
+    try {
+        const res = await fetch('http://localhost:3000/api/forgot-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            successEl.textContent = 'Şifre sıfırlama bağlantısı e-postanıza gönderildi.';
+            errorEl.textContent = '';
+        } else {
+            errorEl.textContent = data.error || 'Şifre sıfırlama başarısız';
+            successEl.textContent = '';
+        }
+    } catch (error) {
+        errorEl.textContent = 'Sunucuyla bağlantı hatası';
+        successEl.textContent = '';
+    }
+}
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            updateAuthUI();
+            window.location.href = 'index.html';
+        }
+
+        function getSeriesIdFromUrl() {
+            return new URLSearchParams(window.location.search).get('id');
+        }
+
+        async function fetchSeriesById(id) {
+            try {
+                const res = await fetch(`http://localhost:3000/api/movies/${id}`);
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Dizi bulunamadı');
+                }
+                return await res.json();
+            } catch (error) {
+                console.error('Fetch series error:', error.message);
+                return null;
+            }
+        }
+
+        function displayErrorPage() {
+            const container = document.getElementById('dizi-container');
+            container.innerHTML = `
+                <div class="error-container">
+                    <i class="fas fa-exclamation-circle error-icon"></i>
+                    <h2>Üzgünüz, Dizi Bulunamadı</h2>
+                    <p>Aradığınız dizi arşivimizde bulunmamıştır.</p>
+                    <a href="index.html" class="home-button">Ana Sayfaya Dön</a>
+                    <p>Veya<br> <a href="istek-form/request-complaint.html" class="home-button">İstekte Bulunun</a></p>
+                </div>
+            `;
+            document.getElementById('player-container').style.display = 'none';
+            document.getElementById('season-section').style.display = 'none';
+            document.getElementById('similar-series').style.display = 'none';
+        }
+
+        function displaySeriesDetails(series) {
+    const container = document.getElementById('dizi-container');
+    const hero = document.createElement('div');
+    hero.className = 'series-hero';
+
+    const poster = document.createElement('img');
+    poster.className = 'series-poster';
+    poster.src = series.poster || 'https://via.placeholder.com/300x450';
+    poster.alt = series.title;
+
+    const info = document.createElement('div');
+    info.className = 'series-info';
+
+    const title = document.createElement('h1');
+    title.className = 'series-title';
+    title.textContent = series.title || 'Bilinmeyen Dizi';
+    if (series.title2) {
+        const title2 = document.createElement('span');
+        title2.className = 'series-title2';
+        title2.textContent = ` (${series.title2})`;
+        title.appendChild(title2);
+    }
+
+    const meta = document.createElement('div');
+    meta.className = 'series-meta';
+    meta.appendChild(createMetaItem('calendar', series.year || 'N/A'));
+
+    // Calculate season count and display as separate meta item
+    const seasonCount = series.episodes 
+        ? [...new Set(series.episodes.map(ep => ep.seasonNumber))].length 
+        : 0;
+    if (seasonCount > 0) {
+        meta.appendChild(createMetaItem('layer-group', `${seasonCount} Sezon`));
+    }
+
+    if (series.runtime) {
+        meta.appendChild(createMetaItem('clock', series.runtime));
+    }
+    meta.appendChild(createMetaItem('star', series.rating || 'N/A'));
+    if (series.country?.[0]) {
+        meta.appendChild(createMetaItem('globe', series.country[0].charAt(0).toUpperCase() + series.country[0].slice(1).toLowerCase()));
+    }
+
+    const genres = document.createElement('div');
+    genres.className = 'series-genres';
+    if (Array.isArray(series.genres)) {
+        series.genres.forEach(genre => {
+            const genreDiv = document.createElement('div');
+            genreDiv.className = 'series-genre';
+            genreDiv.textContent = genre;
+            genreDiv.onclick = () => searchByGenre(genre);
+            genres.appendChild(genreDiv);
+        });
+    }
+
+    const languages = document.createElement('div');
+    languages.className = 'series-languages';
+    if (Array.isArray(series.language)) {
+        series.language.forEach(lang => {
+            const langDiv = document.createElement('div');
+            langDiv.className = 'series-language';
+            if (lang === "Türkçe Dublaj") {
+                langDiv.innerHTML = `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj`;
+            } else if (lang === "Türkçe Altyazı") {
+                langDiv.innerHTML = `<i class="fas fa-closed-captioning"></i> Altyazı`;
+            } else if (lang === "Yerli") {
+                langDiv.innerHTML = `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli`;
+            } else {
+                langDiv.textContent = lang;
+            }
+            languages.appendChild(langDiv);
+        });
+    }
+
+    const plot = document.createElement('div');
+    plot.className = 'series-plot';
+    plot.innerHTML = `<strong>Konusu:</strong> ${series.plot || 'Konu bilgisi mevcut değil.'}`;
+
+    info.append(title, meta, genres, languages, plot);
+    hero.append(poster, info);
+    container.innerHTML = '';
+    container.appendChild(hero);
+
+    document.title = `${series.title || 'Dizi'} (${series.year || 'N/A'}) - DİZİT`;
+}
+
+        function createMetaItem(icon, text) {
+            const item = document.createElement('div');
+            item.className = 'series-meta-item';
+            item.innerHTML = `<i class="fas fa-${icon}"></i> ${text}`;
+            return item;
+        }
+
+        async function watchSeries(seriesId, seriesTitle, seasonNumber = 1, episodeNumber = 1) {
+            const playerContainer = document.getElementById('player-container');
+            playerContainer.innerHTML = '';
+
+            let isLiked = false;
+            let isDisliked = false;
+            let isWatched = false;
+            let isFavorited = false;
+            let likeCount = 0;
+            let dislikeCount = 0;
+
+            if (isLoggedIn) {
+    try {
+        const res = await fetch(`http://localhost:3000/api/status/${seriesId}/${seasonNumber}/${episodeNumber}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            isLiked = data.isLiked;
+            isDisliked = data.isDisliked;
+            isWatched = data.isWatched;
+            likeCount = data.likeCount;
+            dislikeCount = data.dislikeCount;
+        }
+
+        const favRes = await fetch(`http://localhost:3000/api/movie-status/${seriesId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (favRes.ok) {
+            const favData = await favRes.json();
+            isFavorited = favData.isFavorited;
+        }
+    } catch (error) {
+        console.error('Status fetch error:', error);
+    }
+
+            } else {
+                try {
+                    const res = await fetch(`http://localhost:3000/api/public/status/${seriesId}/${seasonNumber}/${episodeNumber}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        likeCount = data.likeCount;
+                        dislikeCount = data.dislikeCount;
+                    }
+                } catch (error) {
+                    console.error('Public status fetch error:', error);
+                }
+            }
+
+            const episode = seriesCache.episodes?.find(ep => ep.seasonNumber === seasonNumber && ep.episodeNumber === episodeNumber);
+            const videoSrc = episode?.videoSrc?.[0]?.src || 'about:blank';
+            const episodeTitle = episode?.title ? `: ${episode.title}` : '';
+
+            playerContainer.innerHTML = `
+                <div class="player-box">
+                    <div class="player-title">
+                        <h2 class="series-name">${seriesTitle || 'Bilinmeyen Dizi'}</h2>
+                        <p class="episode-info">Sezon ${seasonNumber}, Bölüm ${episodeNumber}</p>
+                    </div>
+                    <div class="video-options" id="video-options"></div>
+                    <div class="video-wrapper">
+                        <iframe id="series-player" src="${videoSrc}" allowfullscreen></iframe>
+                    </div>
+                    <div class="player-actions">
+                        <button class="like-btn ${isLoggedIn ? '' : 'disabled'} ${isLiked ? 'active' : ''}" id="like-btn-${seriesId}-${seasonNumber}-${episodeNumber}">
+                            <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> Beğen: ${likeCount}
+                        </button>
+                        <button class="dislike-btn ${isLoggedIn ? '' : 'disabled'} ${isDisliked ? 'active' : ''}" id="dislike-btn-${seriesId}-${seasonNumber}-${episodeNumber}">
+                            <i class="${isDisliked ? 'fas' : 'far'} fa-thumbs-down"></i> Beğenme: ${dislikeCount}
+                        </button>
+                        <button class="favorite-btn ${isLoggedIn ? '' : 'disabled'} ${isFavorited ? 'active' : ''}" id="favorite-btn-${seriesId}">
+                            <i class="${isFavorited ? 'fas' : 'far'} fa-heart"></i> ${isFavorited ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                        </button>
+                        <label class="watched-checkbox ${isLoggedIn ? '' : 'disabled'}">
+                            <input type="checkbox" id="watched-checkbox-${seriesId}-${seasonNumber}-${episodeNumber}" ${isWatched ? 'checked' : ''} ${isLoggedIn ? '' : 'disabled'}>
+                            <span class="checkbox-custom"></span>
+                            İzledim
+                        </label>
+                    </div>
+                </div>
+            `;
+
+            const videoOptions = document.getElementById('video-options');
+            if (episode?.videoSrc && Array.isArray(episode.videoSrc)) {
+                episode.videoSrc.forEach((src, index) => {
+                    const btn = document.createElement('button');
+                    btn.className = `video-option-btn ${index === 0 ? 'active' : ''}`;
+                    if (src.type.includes("Dublaj") && src.type.includes("Altyazı")) {
+                        btn.innerHTML = `<span class="icon-left"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"><i class="fas fa-closed-captioning"></i></span> Dublaj ve Altyazı`;
+                    } else {
+                        btn.innerHTML = src.type.includes("Dublaj") ? `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj` :
+                                        src.type.includes("Altyazı") ? `<i class="fas fa-closed-captioning"></i> Altyazı` :
+                                        src.type.includes("Yerli") ? `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli` : src.type;
+                    }
+                    btn.onclick = () => {
+                        document.querySelectorAll('.video-option-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        document.getElementById('series-player').src = src.src || 'about:blank';
+                    };
+                    videoOptions.appendChild(btn);
+                });
+            }
+
+            const likeBtn = document.getElementById(`like-btn-${seriesId}-${seasonNumber}-${episodeNumber}`);
+            const dislikeBtn = document.getElementById(`dislike-btn-${seriesId}-${seasonNumber}-${episodeNumber}`);
+            const favoriteBtn = document.getElementById(`favorite-btn-${seriesId}`);
+            const watchedCheckbox = document.getElementById(`watched-checkbox-${seriesId}-${seasonNumber}-${episodeNumber}`);
+
+            likeBtn.addEventListener('click', async () => {
+                if (!isLoggedIn) {
+                    openAuthModal('login');
+                    return;
+                }
+                try {
+                    const res = await fetch('http://localhost:3000/api/like', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ seriesId, seasonNumber, episodeNumber })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        likeBtn.classList.toggle('active', data.isLiked);
+                        dislikeBtn.classList.toggle('active', data.isDisliked);
+                        likeBtn.innerHTML = `<i class="${data.isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> Beğen: ${data.likeCount}`;
+                        dislikeBtn.innerHTML = `<i class="${data.isDisliked ? 'fas' : 'far'} fa-thumbs-down"></i> Beğenme: ${data.dislikeCount}`;
+                        showToast(data.isLiked ? 'Bölüm beğenildi!' : 'Beğeni kaldırıldı.', 'success');
+                    } else {
+                        showToast(data.error || 'Beğeni işlemi başarısız', 'error');
+                        if (data.error.includes('token')) logout();
+                    }
+                } catch (error) {
+                    showToast('Sunucuyla bağlantı hatası', 'error');
+                }
+            });
+
+            dislikeBtn.addEventListener('click', async () => {
+                if (!isLoggedIn) {
+                    openAuthModal('login');
+                    return;
+                }
+                try {
+                    const res = await fetch('http://localhost:3000/api/dislike', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ seriesId, seasonNumber, episodeNumber })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        dislikeBtn.classList.toggle('active', data.isDisliked);
+                        likeBtn.classList.toggle('active', data.isLiked);
+                        likeBtn.innerHTML = `<i class="${data.isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> Beğen: ${data.likeCount}`;
+                        dislikeBtn.innerHTML = `<i class="${data.isDisliked ? 'fas' : 'far'} fa-thumbs-down"></i> Beğenme: ${data.dislikeCount}`;
+                        showToast(data.isDisliked ? 'Bölüm beğenilmedi!' : 'Beğenmeme kaldırıldı.', 'success');
+                    } else {
+                        showToast(data.error || 'Beğenmeme işlemi başarısız', 'error');
+                        if (data.error.includes('token')) logout();
+                    }
+                } catch (error) {
+                    showToast('Sunucuyla bağlantı hatası', 'error');
+                }
+            });
+
+            favoriteBtn.addEventListener('click', async () => {
+                if (!isLoggedIn) {
+                    openAuthModal('login');
+                    return;
+                }
+                try {
+                    const res = await fetch('http://localhost:3000/api/favorite', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ movieId: seriesId })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        favoriteBtn.classList.toggle('active', data.isFavorited);
+                        favoriteBtn.innerHTML = `<i class="${data.isFavorited ? 'fas' : 'far'} fa-heart"></i> ${data.isFavorited ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}`;
+                        showToast(data.isFavorited ? 'Dizi favorilere eklendi!' : 'Dizi favorilerden çıkarıldı.', 'success');
+                    } else {
+                        showToast(data.error || 'Favori işlemi başarısız', 'error');
+                        if (data.error.includes('token')) logout();
+                    }
+                } catch (error) {
+                    showToast('Sunucuyla bağlantı hatası', 'error');
+                }
+            });
+
+            watchedCheckbox.addEventListener('change', async () => {
+                if (!isLoggedIn) {
+                    openAuthModal('login');
+                    watchedCheckbox.checked = false;
+                    return;
+                }
+                try {
+                    const res = await fetch('http://localhost:3000/api/watched', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ seriesId, seasonNumber, episodeNumber })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        showToast(data.isWatched ? 'İzledi olarak işaretlendi!' : 'İzlenme durumu kaldırıldı.', 'success');
+                        updateEpisodeCard(seriesId, seasonNumber, episodeNumber, data.isWatched);
+                    } else {
+                        showToast(data.error || 'İzleme durumu güncellenemedi', 'error');
+                        watchedCheckbox.checked = !watchedCheckbox.checked;
+                    }
+                } catch (error) {
+                    showToast('Sunucuyla bağlantı hatası', 'error');
+                    watchedCheckbox.checked = !watchedCheckbox.checked;
+                }
+            });
+
+            window.scrollTo({ top: playerContainer.offsetTop - 100, behavior: 'smooth' });
+        }
+
+        function displaySeasonSelector(series) {
+            const seasonSection = document.getElementById('season-section');
+            if (!series.episodes || !Array.isArray(series.episodes) || series.episodes.length === 0) {
+                seasonSection.style.display = 'none';
+                return;
+            }
+
+            const seasons = {};
+            series.episodes.forEach(episode => {
+                if (!seasons[episode.seasonNumber]) {
+                    seasons[episode.seasonNumber] = [];
+                }
+                seasons[episode.seasonNumber].push(episode);
+            });
+
+            const sortedSeasons = Object.keys(seasons)
+                .map(Number)
+                .sort((a, b) => a - b)
+                .map(seasonNumber => ({
+                    seasonNumber,
+                    episodes: seasons[seasonNumber].sort((a, b) => a.episodeNumber - b.episodeNumber)
+                }));
+
+            seriesCache.seasons = sortedSeasons;
+
+            seasonSection.innerHTML = `
+                <div class="season-selector">
+                    <select id="season-select">
+                        ${sortedSeasons.map((season, index) => `
+                            <option value="${season.seasonNumber}" ${index === 0 ? 'selected' : ''}>Sezon ${season.seasonNumber}</option>
+                        `).join('')}
+                    </select>
+                </div>
+                <div class="episode-list" id="episode-list"></div>
+            `;
+
+            const seasonSelect = document.getElementById('season-select');
+            seasonSelect.addEventListener('change', () => {
+                const selectedSeasonNumber = parseInt(seasonSelect.value);
+                const selectedSeason = sortedSeasons.find(s => s.seasonNumber === selectedSeasonNumber);
+                displayEpisodes(series.id, selectedSeason.episodes, selectedSeasonNumber);
+            });
+
+            displayEpisodes(series.id, sortedSeasons[0]?.episodes, sortedSeasons[0]?.seasonNumber || 1);
+        }
+
+        async function displayEpisodes(seriesId, episodes, seasonNumber) {
+            const episodeList = document.getElementById('episode-list');
+            episodeList.innerHTML = '';
+
+            if (!episodes || episodes.length === 0) {
+                episodeList.innerHTML = '<p>Bu sezona ait bölüm bulunamadı.</p>';
+                return;
+            }
+
+            let batchStatus = [];
+            if (isLoggedIn) {
+                try {
+                    const res = await fetch('http://localhost:3000/api/batch-status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            seriesId,
+                            episodes: episodes.map(ep => ({
+                                seasonNumber: ep.seasonNumber,
+                                episodeNumber: ep.episodeNumber
+                            }))
+                        })
+                    });
+                    if (res.ok) {
+                        batchStatus = await res.json();
+                    }
+                } catch (error) {
+                    console.error('Batch status fetch error:', error);
+                }
+            }
+
+            episodes.forEach((episode, index) => {
+                const episodeNumber = episode.episodeNumber;
+                const status = batchStatus.find(s => s.seasonNumber === seasonNumber && s.episodeNumber === episodeNumber) || {};
+                const isWatched = status.isWatched || false;
+
+                const card = document.createElement('div');
+                card.className = `episode-card ${episodeNumber === 1 ? 'active' : ''}`;
+                card.style.backgroundImage = `url('${seriesCache.poster || 'https://via.placeholder.com/150'}')`;
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
+                card.innerHTML = `
+                    <div class="episode-overlay">
+                        <div class="episode-info">
+                            <span class="episode-number">Sezon ${seasonNumber} Bölüm ${episodeNumber}</span>
+                        </div>
+                        <button class="play-btn"><i class="fas fa-play"></i></button>
+                        ${isWatched ? '<i class="fas fa-check-circle watched-icon"></i>' : ''}
+                    </div>
+                `;
+                card.onclick = () => {
+                    document.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    watchSeries(seriesId, seriesCache.title, seasonNumber, episodeNumber);
+                };
+                episodeList.appendChild(card);
+            });
+        }
+
+        function updateEpisodeCard(seriesId, seasonNumber, episodeNumber, isWatched) {
+            const episodeCard = document.querySelector(`.episode-card:nth-child(${episodeNumber})`);
+            if (episodeCard) {
+                const watchedIcon = episodeCard.querySelector('.watched-icon');
+                if (isWatched && !watchedIcon) {
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-check-circle watched-icon';
+                    episodeCard.querySelector('.episode-overlay').appendChild(icon);
+                } else if (!isWatched && watchedIcon) {
+                    watchedIcon.remove();
+                }
+            }
+        }
+
+        async function displaySimilarSeries(currentSeries) {
+            const container = document.getElementById('similar-series');
+            container.innerHTML = `
+                <h2 class="section-title">Benzer Diziler</h2>
+                <div class="poster-slider" id="similar-slider">
+                    <div class="slider-container" id="similar-slider-container">
+                        <p>Yükleniyor...</p>
+                    </div>
+                    <button class="slider-prev" id="similar-prev"><i class="fas fa-chevron-left"></i></button>
+                    <button class="slider-next" id="similar-next"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            `;
+
+            try {
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch(`http://localhost:3000/api/similar/${currentSeries.id}?type=dizi`, { headers });
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error || 'Benzer diziler alınamadı');
+                }
+                const series = await res.json();
+                if (!Array.isArray(series) || series.length === 0) {
+                    document.getElementById('similar-slider-container').innerHTML = '<p>Benzer dizi bulunamadı.</p>';
+                    return;
+                }
+                displayItems(series, 'similar-slider-container');
+            } catch (error) {
+                console.error('Similar series error:', error.message);
+                document.getElementById('similar-slider-container').innerHTML = '<p>Benzer diziler yüklenemedi.</p>';
+                showToast('Benzer diziler yüklenemedi', 'error');
+            }
+        }
+
+        function displayItems(items, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            items.forEach(item => {
+                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
+                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
+                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
+                             item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
+                const card = document.createElement('div');
+                card.className = 'slider-item';
+                card.innerHTML = `
+                    <div class="poster-wrapper">
+                        <img src="${item.poster || 'https://via.placeholder.com/300x450'}" alt="${item.title}" class="slider-poster">
+                        ${badge}
+                    </div>
+                    <div class="slider-info">
+                        <h3 class="slider-title">${item.title || 'Bilinmeyen Dizi'}</h3>
+                        <div class="slider-meta">
+                            <span>${item.year || 'N/A'}</span>
+                            <div class="imdb-rating"><i class="fas fa-star"></i> ${item.rating || 'N/A'}</div>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => window.location.href = `dizi.html?id=${item.id}`;
+                container.appendChild(card);
+            });
+
+            initSlider('similar-slider-container', 'similar-prev', 'similar-next');
+        }
+
+        function initSlider(sliderId, prevBtnId, nextBtnId) {
+            const container = document.getElementById(sliderId);
+            const prevBtn = document.getElementById(prevBtnId);
+            const nextBtn = document.getElementById(nextBtnId);
+            let scrollAmount = 0;
+            const scrollStep = 220;
+
+            function updateButtons() {
+                prevBtn.style.display = scrollAmount <= 0 ? 'none' : 'block';
+                nextBtn.style.display = scrollAmount >= container.scrollWidth - container.clientWidth - 1 ? 'none' : 'block';
+            }
+
+            nextBtn.onclick = () => {
+                scrollAmount = Math.min(scrollAmount + scrollStep, container.scrollWidth - container.clientWidth);
+                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+                setTimeout(updateButtons, 300);
+            };
+
+            prevBtn.onclick = () => {
+                scrollAmount = Math.max(scrollAmount - scrollStep, 0);
+                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+                setTimeout(updateButtons, 300);
+            };
+
+            container.addEventListener('scroll', () => {
+                scrollAmount = container.scrollLeft;
+                updateButtons();
+            });
+
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                scrollAmount = Math.max(0, Math.min(scrollAmount + e.deltaY, container.scrollWidth - container.clientWidth));
+                container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+                setTimeout(updateButtons, 300);
+            });
+
+            let touchStartX = 0;
+            let touchEndX = 0;
+
+            container.addEventListener('touchstart', e => {
+                touchStartX = e.touches[0].clientX;
+            });
+
+            container.addEventListener('touchmove', e => {
+                touchEndX = e.touches[0].clientX;
+                const diff = touchStartX - touchEndX;
+                container.scrollLeft += diff;
+                touchStartX = touchEndX;
+            });
+
+            container.addEventListener('touchend', () => {
+                scrollAmount = container.scrollLeft;
+                updateButtons();
+            });
+
+            updateButtons();
+        }
+
+        function searchByGenre(genre) {
+            const searchOverlay = document.getElementById('search-overlay');
+            const searchOverlayInput = document.getElementById('search-overlay-input');
+            searchOverlay.classList.add('active');
+            searchOverlayInput.value = genre;
+            searchOverlayInput.focus();
+            performSearch(genre);
+        }
+
+        async function performSearch(query) {
+            const searchResults = document.getElementById('search-results');
+            if (!query) {
+                searchResults.innerHTML = '';
+                return;
+            }
+            try {
+                const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+                if (!res.ok) throw new Error('Arama başarısız');
+                const data = await res.json();
+                displaySearchResults(data);
+            } catch (error) {
+                searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
+            }
+        }
+
+        function displaySearchResults(results) {
+            const searchResults = document.getElementById('search-results');
+            searchResults.innerHTML = results.length ? '' : '<p>Sonuç bulunamadı.</p>';
+            results.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'search-result-item';
+                itemEl.innerHTML = `
+                    <img src="${item.poster || 'https://via.placeholder.com/150'}" alt="${item.title}" class="search-result-poster">
+                    <div class="search-result-info">
+                        <div class="search-result-title">
+                            ${item.title || 'Bilinmeyen İçerik'}
+                            ${item.title2 ? `<span class="search-result-title2">(${item.title2})</span>` : ''}
+                        </div>
+                        <div class="search-result-year">${item.year || 'N/A'}</div>
+                        <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
+                    </div>
+                `;
+                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
+                searchResults.appendChild(itemEl);
+            });
+        }
+
+        async function init() {
+            await checkAuth();
+            const seriesId = getSeriesIdFromUrl();
+            if (!seriesId) {
+                displayErrorPage();
+                return;
+            }
+            const series = await fetchSeriesById(seriesId);
+            if (!series) {
+                displayErrorPage();
+                return;
+            }
+            seriesCache = series;
+            displaySeriesDetails(series);
+            watchSeries(series.id, series.title, 1, 1);
+            displaySeasonSelector(series);
+            displaySimilarSeries(series);
+
+            document.getElementById('search-input').onfocus = () => {
+                const overlay = document.getElementById('search-overlay');
+                overlay.classList.add('active');
+                document.getElementById('search-overlay-input').focus();
+            };
+
+            document.getElementById('search-overlay-input').oninput = async () => {
+                const query = document.getElementById('search-overlay-input').value.trim().toLowerCase();
+                if (!query) {
+                    displaySearchResults([]);
+                    return;
+                }
+                try {
+                    const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+                    displaySearchResults(await res.json());
+                } catch (error) {
+                    displaySearchResults([]);
+                }
+            };
+
+            document.getElementById('close-overlay').onclick = () => {
+                const overlay = document.getElementById('search-overlay');
+                overlay.classList.remove('active');
+                document.getElementById('search-input').value = '';
+                document.getElementById('search-overlay-input').value = '';
+                document.getElementById('search-results').innerHTML = '';
+            };
+
+            document.getElementById('burger-menu').onclick = () => {
+                document.getElementById('nav-container').classList.toggle('active');
+            };
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768 && document.getElementById('nav-container').classList.contains('active')) {
+                    document.getElementById('nav-container').classList.remove('active');
+                }
+            });
+        }
+
+        init();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'932d8ac95c41bd16',t:'MTc0NTA3NzY2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

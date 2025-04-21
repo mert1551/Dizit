@@ -1,0 +1,202 @@
+/* Mevcut form stilleri */
+.request-complaint-section {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 20px; /* padding-top 40px'ten 20px'e düşürüldü */
+}
+
+.form-container {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    outline: none;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: #e6b800;
+}
+
+.form-group textarea {
+    min-height: 120px;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+    background-color: #e6b800;
+}
+
+.form-message {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.form-message.success {
+    color: #4caf50;
+}
+
+.form-message.error {
+    color: #f44336;
+}
+
+/* Header için logo düzeni */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+}
+
+.logo {
+    text-align: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.header-right {
+    margin-left: auto;
+}
+
+/* 768px ve üzeri için logo sola hizalı */
+@media (min-width: 768px) {
+    .logo {
+        position: static;
+        transform: none;
+        margin-left: 20px;
+    }
+
+    .header-right {
+        margin-right: 20px;
+    }
+
+    .burger-menu {
+        display: none; /* Büyük ekranlarda burger menü gizli */
+    }
+
+    .nav-container {
+        display: flex !important; /* Navigasyon her zaman görünür */
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .request-complaint-section {
+        padding: 15px 15px; /* Daha küçük ekranlarda padding daha da azalır */
+    }
+
+    .form-container {
+        padding: 15px;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 0.85rem;
+    }
+
+    .submit-btn {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+
+    .logo {
+        font-size: 2rem;
+    }
+
+    .header-right {
+        display: flex;
+        align-items: center;
+    }
+
+    .burger-menu {
+        display: block;
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .request-complaint-section {
+        padding: 10px 10px;
+    }
+
+    .form-container {
+        padding: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+
+    .submit-btn {
+        font-size: 0.85rem;
+        padding: 8px;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+    }
+
+    .burger-menu {
+        font-size: 1.2rem;
+    }
+}

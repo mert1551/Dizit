@@ -1,0 +1,845 @@
+/* Dizi Sayfası Stilleri */
+.dizi-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.series-hero {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.series-poster {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    object-fit: cover;
+    height: auto;
+}
+
+.series-info {
+    flex: 1;
+    min-width: 300px;
+}
+
+.series-title {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.series-title2 {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.series-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+}
+
+.series-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.series-meta-item i {
+    color: var(--accent-color);
+}
+
+.series-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.series-genre {
+    background-color: rgba(255, 204, 0, 0.2);
+    color: var(--accent-color);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.series-genre:hover {
+    background-color: rgba(255, 204, 0, 0.4);
+}
+
+.series-languages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.series-language {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: rgba(255, 204, 0, 0.1);
+    color: var(--accent-color);
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.series-language .flag-icon {
+    width: 16px;
+    height: 10px;
+}
+
+.series-plot {
+    color: var(--text-color);
+    line-height: 1.6;
+    background-color: var(--secondary-bg);
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.series-plot strong {
+    color: var(--accent-color);
+    margin-right: 5px;
+}
+
+.player-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.player-box {
+    background-color: var(--card-bg);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.player-title {
+    margin-bottom: 15px;
+}
+
+.series-name {
+    font-size: 2.5rem;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.episode-info {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 5px 0 0;
+}
+
+.video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: #000;
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.season-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.season-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.season-btn {
+    padding: 10px 20px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.season-btn.active,
+.season-btn:hover {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+}
+
+.episode-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.episode-card {
+    position: relative;
+    height: 100px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.episode-card::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    background-image: inherit;
+    background-size: cover;
+    background-position: center;
+    filter: blur(5px);
+    z-index: 1;
+}
+
+.episode-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.episode-card.active {
+    border: 2px solid var(--accent-color);
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(255, 204, 0, 0.3);
+}
+
+.episode-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2;
+}
+
+.episode-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.episode-number {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.play-btn {
+    background: var(--accent-color);
+    border: none;
+    color: var(--primary-bg);
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    z-index: 3;
+}
+
+.play-btn:hover {
+    background: #e6b800;
+    transform: scale(1.1);
+}
+
+.play-btn i {
+    font-size: 1.2rem;
+}
+
+.watched-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #28a745;
+    font-size: 1.2rem;
+    z-index: 3;
+}
+
+/* Player Actions */
+.player-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.like-btn, .dislike-btn, .favorite-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--card-bg);
+    border: 2px solid var(--text-secondary);
+    color: var(--text-color);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.like-btn i, .dislike-btn i, .favorite-btn i {
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+.like-btn:hover:not(.active), .dislike-btn:hover:not(.active), .favorite-btn:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.like-btn.active {
+    background-color: transparent;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.like-btn.active i {
+    color: var(--accent-color);
+}
+
+.dislike-btn.active {
+    background-color: transparent;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.dislike-btn.active i {
+    color: var(--accent-color);
+}
+
+.favorite-btn.active {
+    background-color: transparent;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.favorite-btn.active i {
+    color: var(--accent-color);
+    animation: heartbeat 0.5s ease;
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.like-btn.active:hover, .dislike-btn.active:hover, .favorite-btn.active:hover {
+    opacity: 0.9;
+}
+
+.like-btn.disabled, .dislike-btn.disabled, .favorite-btn.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.watched-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.watched-checkbox input {
+    display: none;
+}
+
+.watched-checkbox .checkbox-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--accent-color);
+    border-radius: 4px;
+    margin-right: 8px;
+    position: relative;
+    cursor: pointer;
+}
+
+.watched-checkbox input:checked + .checkbox-custom::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: var(--accent-color);
+    font-size: 14px;
+    position: absolute;
+}
+
+.watched-checkbox.disabled .checkbox-custom {
+    border-color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+/* Video Seçenekleri Stilleri */
+.video-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.video-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 16px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.video-option-btn.active,
+.video-option-btn:hover {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+}
+
+.video-option-btn .flag-icon {
+    width: 16px;
+    height: 10px;
+}
+
+.video-option-btn .fas {
+    font-size: 0.9rem;
+    margin-left: 5px;
+}
+
+/* Error Container */
+.error-container {
+    max-width: 600px;
+    margin: 100px auto;
+    text-align: center;
+    padding: 30px;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.error-container h2 {
+    font-size: 2rem;
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+
+.error-container p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+
+.error-container .home-button, .error-container .request-button {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    margin: 0 10px;
+}
+
+.error-container .home-button {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+}
+
+.error-container .home-button:hover {
+    background-color: var(--text-secondary);
+}
+
+.error-container .request-button {
+    background-color: var(--text-secondary);
+    color: var(--primary-bg);
+}
+
+.error-container .request-button:hover {
+    background-color: var(--accent-color);
+}
+
+.error-container .error-icon {
+    font-size: 3rem;
+    color: var(--accent-color);
+    margin-bottom: 20px;
+}
+
+/* Toast Messages */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: var(--primary-bg);
+    font-size: 0.9rem;
+    font-weight: 500;
+    z-index: 1000;
+    opacity: 0;
+    background: linear-gradient(135deg, var(--accent-color), rgba(255, 204, 0, 0.8));
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+}
+
+.toast.success {
+    background: var(--accent-color);
+}
+
+.toast.error {
+    background: linear-gradient(135deg, #dc3545, #b32d38);
+}
+
+.similar-series {
+    margin-top: 40px;
+    padding: 0 20px;
+}
+
+/* Kullanıcı Bilgisi */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 15px;
+    background: var(--card-bg);
+    border-radius: 25px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.user-greeting {
+    color: var(--accent-color);
+    font-size: 0.9rem;
+}
+
+.username-display {
+    font-size: 1rem;
+    color: var(--text-color);
+    text-transform: capitalize;
+}
+
+.logout-btn {
+    background: var(--accent-color);
+    color: var(--primary-bg);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: #e6b800;
+    transform: scale(1.05);
+}
+
+.logout-btn i {
+    font-size: 1rem;
+}
+
+.nav-container.active .user-info {
+    margin: 10px 0;
+    justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dizi-container, .season-section, .player-container {
+        padding: 15px;
+    }
+
+    .series-hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 15px;
+    }
+
+    .series-poster {
+        max-width: 250px;
+        width: 100%;
+        height: auto;
+    }
+
+    .series-title {
+        font-size: 2rem;
+    }
+
+    .series-title2 {
+        font-size: 1rem;
+    }
+
+    .series-meta, .series-genres, .series-languages {
+        justify-content: center;
+    }
+
+    .season-selector {
+        justify-content: center;
+    }
+
+    .episode-list {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .episode-card {
+        height: 80px;
+    }
+
+    .episode-number {
+        font-size: 0.8rem;
+    }
+
+    .play-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .play-btn i {
+        font-size: 1rem;
+    }
+
+    .watched-icon {
+        font-size: 1rem;
+    }
+
+    .player-actions {
+        gap: 10px;
+    }
+
+    .like-btn, .dislike-btn, .favorite-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+
+    .watched-checkbox {
+        font-size: 0.8rem;
+    }
+
+    .login-prompt {
+        padding: 10px;
+    }
+
+    .login-prompt p {
+        font-size: 0.9rem;
+    }
+
+    .login-prompt .login-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+
+    .similar-series {
+        padding: 0 10px;
+    }
+
+    .series-name {
+        font-size: 2rem;
+    }
+
+    .episode-info {
+        font-size: 0.9rem;
+    }
+
+    .auth-modal-content {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .form-group input {
+        font-size: 0.9rem;
+    }
+
+    .auth-submit {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .series-title {
+        font-size: 1.5rem;
+    }
+
+    .series-title2 {
+        font-size: 0.9rem;
+    }
+
+    .series-meta-item, .series-genre, .series-language {
+        font-size: 0.8rem;
+    }
+
+    .season-btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+    }
+
+    .episode-card {
+        height: 70px;
+    }
+
+    .episode-number {
+        font-size: 0.7rem;
+    }
+
+    .play-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .play-btn i {
+        font-size: 0.9rem;
+    }
+
+    .watched-icon {
+        font-size: 0.9rem;
+    }
+
+    .like-btn, .dislike-btn, .favorite-btn {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+    }
+
+    .watched-checkbox {
+        font-size: 0.7rem;
+    }
+
+    .watched-checkbox input {
+        width: 14px;
+        height: 14px;
+    }
+
+    .login-prompt p {
+        font-size: 0.8rem;
+    }
+
+    .login-prompt .login-btn {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+    }
+
+    .series-name {
+        font-size: 1.5rem;
+    }
+
+    .episode-info {
+        font-size: 0.8rem;
+    }
+
+    .auth-modal-content {
+        padding: 10px;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+    }
+
+    .form-group input {
+        font-size: 0.8rem;
+    }
+
+    .auth-submit {
+        font-size: 0.8rem;
+    }
+
+    .tab-btn {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 365px) {
+    .series-poster {
+        max-width: 180px;
+        width: 100%;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .series-hero {
+        padding: 10px;
+    }
+}
+
+.season-selector select {
+    padding: 10px;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--accent-color);
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 200px;
+    display: block;
+}
