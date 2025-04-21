@@ -702,7 +702,7 @@
             let isValid = true;
             const isFilm = document.getElementById('movie-type').value === 'film';
             const fields = [
-                { id: 'movie-id', errorId: 'movie-id-error', validate: val => /^[a-zA-Z0-9]{3,20}$/.test(val), message: 'ID 3-20 karakter olmalı, sadece harf ve sayı' },
+            { id: 'movie-id', errorId: 'movie-id-error', validate: val => /^[a-zA-Z0-9-]+$/.test(val), message: 'ID sadece harf, sayı ve tire içermeli' },
                 { id: 'movie-title', errorId: 'movie-title-error', validate: val => val.trim().length > 0, message: 'Başlık zorunlu' },
                 { id: 'movie-year', errorId: 'movie-year-error', validate: val => !val || (val >= 1900 && val <= 2100), message: 'Geçerli bir yıl girin' },
                 { id: 'movie-runtime', errorId: 'movie-runtime-error', validate: val => !isFilm || !val || /^\d+\s*dk$|^\d+\s*s\s*\d+\s*dk$/.test(val), message: 'Örn: 2 s 10 dk veya 40 dk' },
