@@ -175,6 +175,7 @@
     </footer>
 
     <script>
+        const API_URL = process.env.REACT_APP_API_URL;
         let isLoggedIn = !!localStorage.getItem('token');
         let currentUser = localStorage.getItem('username') || null;
 
