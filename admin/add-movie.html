@@ -420,7 +420,7 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="movie-id">Film ID (Benzersiz)</label>
-                        <input type="text" id="movie-id" required pattern="[a-zA-Z0-9]+" placeholder="Örn: filmA123">
+                        <input type="text" id="movie-id" required pattern="[a-zA-Z0-9-]+" placeholder="Örn: top-gun">
                         <span class="validation-message" id="movie-id-error"></span>
                     </div>
                     <div class="form-group">
@@ -725,7 +725,7 @@
             let isValid = true;
             const isFilm = document.getElementById('movie-type').value === 'film';
             const fields = [
-                { id: 'movie-id', errorId: 'movie-id-error', validate: val => /^[a-zA-Z0-9]+$/.test(val), message: 'ID sadece harf ve sayı içermeli' },
+            { id: 'movie-id', errorId: 'movie-id-error', validate: val => /^[a-zA-Z0-9-]+$/.test(val), message: 'ID sadece harf, sayı ve tire içermeli' },
                 { id: 'movie-title', errorId: 'movie-title-error', validate: val => val.trim().length > 0, message: 'Başlık zorunlu' },
                 { id: 'movie-year', errorId: 'movie-year-error', validate: val => val && val >= 1900 && val <= 2100, message: 'Geçerli bir yıl girin (1900-2100)' },
                 { id: 'movie-runtime', errorId: 'movie-runtime-error', validate: val => !isFilm || (val && /^\d+\s*dk$|^\d+\s*s\s*\d+\s*dk$/.test(val)), message: 'Örn: 2 s 10 dk veya 40 dk' },
