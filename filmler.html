@@ -138,12 +138,27 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="movies.js"></script>
     <script>
+        // API_URL'yi global olarak tanımla
+        let API_URL = 'http://localhost:3000'; // Varsayılan değer, config'den güncellenecek
+    
+        // API_URL'yi çekme fonksiyonu
+        async function fetchApiUrl() {
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                API_URL = data.apiUrl;
+                console.log('API_URL fetched:', API_URL);
+            } catch (error) {
+                console.error('API_URL alınırken hata:', error);
+                // Hata durumunda varsayılan URL kullanılacak
+            }
+        }
+    
         // Oturum Yönetimi
         let isLoggedIn = !!localStorage.getItem('token');
         let currentUser = localStorage.getItem('username') || null;
-
+    
         async function checkAuth() {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -153,7 +168,7 @@
                 return false;
             }
             try {
-                const res = await fetch('http://localhost:3000/api/status/1/1/1', {
+                const res = await fetch(`${API_URL}/api/status/1/1/1`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -171,7 +186,7 @@
                 return false;
             }
         }
-
+    
         function updateAuthUI() {
             const authButtons = document.getElementById('auth-buttons');
             const userInfo = document.getElementById('user-info');
@@ -185,7 +200,7 @@
                 userInfo.style.display = 'none';
             }
         }
-
+    
         function openAuthModal(type = 'login') {
             const modal = document.getElementById('auth-modal');
             const loginForm = document.getElementById('login-form');
@@ -205,163 +220,163 @@
                 signupTab.classList.add('active');
             }
         }
-
-        function closeAuthModal() {
-    document.getElementById('auth-modal').classList.remove('active');
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('signup-error').textContent = '';
-    document.getElementById('forgot-error').textContent = '';
-    document.getElementById('forgot-success').textContent = '';
-    document.getElementById('login-form-submit').reset();
-    document.getElementById('signup-form-submit').reset();
-    document.getElementById('forgot-form-submit').reset();
-    document.getElementById('password-hint').style.color = '#666';
-}
-
-function switchTab(type) {
-    const loginTab = document.getElementById('login-tab');
-    const signupTab = document.getElementById('signup-tab');
-    const forgotTab = document.getElementById('forgot-tab');
-    const loginForm = document.getElementById('login-form');
-    const signupForm = document.getElementById('signup-form');
-    const forgotForm = document.getElementById('forgot-form');
-    const loginError = document.getElementById('login-error');
-    const signupError = document.getElementById('signup-error');
-    const forgotError = document.getElementById('forgot-error');
-    const forgotSuccess = document.getElementById('forgot-success');
-
-    loginTab.classList.toggle('active', type === 'login');
-    signupTab.classList.toggle('active', type === 'signup');
-    forgotTab.classList.toggle('active', type === 'forgot');
-    loginForm.style.display = type === 'login' ? 'block' : 'none';
-    signupForm.style.display = type === 'signup' ? 'block' : 'none';
-    forgotForm.style.display = type === 'forgot' ? 'block' : 'none';
-    loginError.textContent = '';
-    signupError.textContent = '';
-    forgotError.textContent = '';
-    forgotSuccess.textContent = '';
-    document.getElementById('login-form-submit').reset();
-    document.getElementById('signup-form-submit').reset();
-    document.getElementById('forgot-form-submit').reset();
-    document.getElementById('password-hint').style.color = '#666';
-}
-
-function validatePassword() {
-    const password = document.getElementById('signup-password').value;
-    const hint = document.getElementById('password-hint');
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
     
-    if (!strongPasswordRegex.test(password) && password.length > 0) {
-        hint.style.color = '#e74c3c';
-    } else {
-        hint.style.color = '#666';
-    }
-}
-
-async function handleLogin(event) {
-    event.preventDefault();
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-    const errorEl = document.getElementById('login-error');
-    try {
-        const res = await fetch('http://localhost:3000/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (res.ok) {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('username', data.username);
-            isLoggedIn = true;
-            currentUser = data.username;
-            errorEl.textContent = '';
-            closeAuthModal();
-            updateAuthUI();
-            window.location.reload();
-        } else {
-            errorEl.textContent = data.error || 'Giriş başarısız';
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.remove('active');
+            document.getElementById('login-error').textContent = '';
+            document.getElementById('signup-error').textContent = '';
+            document.getElementById('forgot-error').textContent = '';
+            document.getElementById('forgot-success').textContent = '';
+            document.getElementById('login-form-submit').reset();
+            document.getElementById('signup-form-submit').reset();
+            document.getElementById('forgot-form-submit').reset();
+            document.getElementById('password-hint').style.color = '#666';
         }
-    } catch (error) {
-        errorEl.textContent = 'Sunucuyla bağlantı hatası';
-    }
-}
-
-async function handleSignup(event) {
-    event.preventDefault();
-    const username = document.getElementById('signup-username').value;
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    const passwordConfirm = document.getElementById('signup-password-confirm').value;
-    const errorEl = document.getElementById('signup-error');
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
-
-    if (!strongPasswordRegex.test(password)) {
-        errorEl.textContent = 'Parola en az 8 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.';
-        return;
-    }
-    if (password !== passwordConfirm) {
-        errorEl.textContent = 'Parolalar eşleşmiyor';
-        return;
-    }
-    try {
-        const res = await fetch('http://localhost:3000/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password })
-        });
-        const data = await res.json();
-        if (res.ok) {
-            const loginRes = await fetch('http://localhost:3000/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const loginData = await loginRes.json();
-            if (loginRes.ok) {
-                localStorage.setItem('token', loginData.token);
-                localStorage.setItem('username', loginData.username);
-                isLoggedIn = true;
-                currentUser = loginData.username;
-                closeAuthModal();
-                updateAuthUI();
-                window.location.reload();
+    
+        function switchTab(type) {
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            const forgotTab = document.getElementById('forgot-tab');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const forgotForm = document.getElementById('forgot-form');
+            const loginError = document.getElementById('login-error');
+            const signupError = document.getElementById('signup-error');
+            const forgotError = document.getElementById('forgot-error');
+            const forgotSuccess = document.getElementById('forgot-success');
+    
+            loginTab.classList.toggle('active', type === 'login');
+            signupTab.classList.toggle('active', type === 'signup');
+            forgotTab.classList.toggle('active', type === 'forgot');
+            loginForm.style.display = type === 'login' ? 'block' : 'none';
+            signupForm.style.display = type === 'signup' ? 'block' : 'none';
+            forgotForm.style.display = type === 'forgot' ? 'block' : 'none';
+            loginError.textContent = '';
+            signupError.textContent = '';
+            forgotError.textContent = '';
+            forgotSuccess.textContent = '';
+            document.getElementById('login-form-submit').reset();
+            document.getElementById('signup-form-submit').reset();
+            document.getElementById('forgot-form-submit').reset();
+            document.getElementById('password-hint').style.color = '#666';
+        }
+    
+        function validatePassword() {
+            const password = document.getElementById('signup-password').value;
+            const hint = document.getElementById('password-hint');
+            const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+            
+            if (!strongPasswordRegex.test(password) && password.length > 0) {
+                hint.style.color = '#e74c3c';
             } else {
-                errorEl.textContent = loginData.error || 'Otomatik giriş başarısız';
+                hint.style.color = '#666';
             }
-        } else {
-            errorEl.textContent = data.error || 'Kayıt başarısız';
         }
-    } catch (error) {
-        errorEl.textContent = 'Sunucuyla bağlantı hatası';
-    }
-}
-
-async function handleForgotPassword(event) {
-    event.preventDefault();
-    const email = document.getElementById('forgot-email').value;
-    const errorEl = document.getElementById('forgot-error');
-    const successEl = document.getElementById('forgot-success');
-    try {
-        const res = await fetch('http://localhost:3000/api/forgot-password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        const data = await res.json();
-        if (res.ok) {
-            successEl.textContent = 'Şifre sıfırlama bağlantısı e-postanıza gönderildi.';
-            errorEl.textContent = '';
-        } else {
-            errorEl.textContent = data.error || 'Şifre sıfırlama başarısız';
-            successEl.textContent = '';
+    
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            try {
+                const res = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+                    isLoggedIn = true;
+                    currentUser = data.username;
+                    errorEl.textContent = '';
+                    closeAuthModal();
+                    updateAuthUI();
+                    window.location.reload();
+                } else {
+                    errorEl.textContent = data.error || 'Giriş başarısız';
+                }
+            } catch (error) {
+                errorEl.textContent = 'Sunucuyla bağlantı hatası';
+            }
         }
-    } catch (error) {
-        errorEl.textContent = 'Sunucuyla bağlantı hatası';
-        successEl.textContent = '';
-    }
-}
-
+    
+        async function handleSignup(event) {
+            event.preventDefault();
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const passwordConfirm = document.getElementById('signup-password-confirm').value;
+            const errorEl = document.getElementById('signup-error');
+            const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    
+            if (!strongPasswordRegex.test(password)) {
+                errorEl.textContent = 'Parola en az 8 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.';
+                return;
+            }
+            if (password !== passwordConfirm) {
+                errorEl.textContent = 'Parolalar eşleşmiyor';
+                return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    const loginRes = await fetch(`${API_URL}/api/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const loginData = await loginRes.json();
+                    if (loginRes.ok) {
+                        localStorage.setItem('token', loginData.token);
+                        localStorage.setItem('username', loginData.username);
+                        isLoggedIn = true;
+                        currentUser = loginData.username;
+                        closeAuthModal();
+                        updateAuthUI();
+                        window.location.reload();
+                    } else {
+                        errorEl.textContent = loginData.error || 'Otomatik giriş başarısız';
+                    }
+                } else {
+                    errorEl.textContent = data.error || 'Kayıt başarısız';
+                }
+            } catch (error) {
+                errorEl.textContent = 'Sunucuyla bağlantı hatası';
+            }
+        }
+    
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+            const errorEl = document.getElementById('forgot-error');
+            const successEl = document.getElementById('forgot-success');
+            try {
+                const res = await fetch(`${API_URL}/api/forgot-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    successEl.textContent = 'Şifre sıfırlama bağlantısı e-postanıza gönderildi.';
+                    errorEl.textContent = '';
+                } else {
+                    errorEl.textContent = data.error || 'Şifre sıfırlama başarısız';
+                    successEl.textContent = '';
+                }
+            } catch (error) {
+                errorEl.textContent = 'Sunucuyla bağlantı hatası';
+                successEl.textContent = '';
+            }
+        }
+    
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('username');
@@ -369,11 +384,11 @@ async function handleForgotPassword(event) {
             currentUser = null;
             updateAuthUI();
         }
-
+    
         // Mevcut Fonksiyonlar
         const urlParams = new URLSearchParams(window.location.search);
         const contentType = urlParams.get('type') || 'film';
-
+    
         function displayItems(itemList, containerId) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
@@ -416,39 +431,33 @@ async function handleForgotPassword(event) {
                 container.appendChild(itemCard);
             });
         }
-
-       async function updateContent() {
-    const contentTitle = document.getElementById('content-title');
-    contentTitle.textContent = 'Tüm Filmler';
-
-    try {
-        // API'den type=film olan içerikleri çek
-        const response = await fetch('http://localhost:3000/api/movies?type=film', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    
+        async function updateContent() {
+            const contentTitle = document.getElementById('content-title');
+            contentTitle.textContent = 'Tüm Filmler';
+    
+            try {
+                // API'den type=film olan içerikleri çek
+                const response = await fetch(`${API_URL}/api/movies?type=film`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    }
+                });
+    
+                if (!response.ok) {
+                    throw new Error('Filmler yüklenirken hata oluştu');
+                }
+    
+                const movies = await response.json();
+                displayItems(movies, 'content-grid');
+            } catch (error) {
+                console.error('Filmler çekilirken hata:', error);
+                const container = document.getElementById('content-grid');
+                container.innerHTML = '<p>Filmler yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
             }
-        });
-
-        if (!response.ok) {
-            throw new Error('Filmler yüklenirken hata oluştu');
         }
-
-        const movies = await response.json();
-        displayItems(movies, 'content-grid');
-    } catch (error) {
-        console.error('Filmler çekilirken hata:', error);
-        const container = document.getElementById('content-grid');
-        container.innerHTML = '<p>Filmler yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
-    }
-}
-
-// Sayfa yüklenirken çalışacak kod
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuth();
-    updateContent();
-});
-
-function displaySearchResults(results) {
+    
+        function displaySearchResults(results) {
             const searchResults = document.getElementById('search-results');
             searchResults.innerHTML = results.length ? '' : '<p>Sonuç bulunamadı.</p>';
             results.forEach(item => {
@@ -469,53 +478,54 @@ function displaySearchResults(results) {
                 searchResults.appendChild(itemEl);
             });
         }
-
+    
         // Event Listeners
         const searchInput = document.getElementById('search-input');
         const searchOverlayInput = document.getElementById('search-overlay-input');
         const searchOverlay = document.getElementById('search-overlay');
         const closeOverlayBtn = document.getElementById('close-overlay');
-
+    
         searchInput.addEventListener('focus', () => {
             searchOverlay.classList.add('active');
             searchOverlayInput.focus();
             searchOverlayInput.value = searchInput.value;
         });
-
+    
         searchOverlayInput.addEventListener('input', async () => {
-    const searchTerm = searchOverlayInput.value.trim().toLowerCase();
-    if (searchTerm === '') {
-        displaySearchResults([]);
-        return;
-    }
-    try {
-        const response = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(searchTerm)}`);
-        if (!response.ok) {
-            throw new Error('Arama başarısız');
-        }
-        const results = await response.json();
-        displaySearchResults(results);
-    } catch (error) {
-        console.error('Arama hatası:', error);
-        displaySearchResults([]);
-        searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
-    }
-});
-
+            const searchTerm = searchOverlayInput.value.trim().toLowerCase();
+            if (searchTerm === '') {
+                displaySearchResults([]);
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(searchTerm)}`);
+                if (!response.ok) {
+                    throw new Error('Arama başarısız');
+                }
+                const results = await response.json();
+                displaySearchResults(results);
+            } catch (error) {
+                console.error('Arama hatası:', error);
+                displaySearchResults([]);
+                searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
+            }
+        });
+    
         closeOverlayBtn.addEventListener('click', () => {
             searchOverlay.classList.remove('active');
             searchInput.value = '';
             searchOverlayInput.value = '';
         });
-
+    
         const burgerMenu = document.getElementById('burger-menu');
         const navContainer = document.getElementById('nav-container');
         burgerMenu.addEventListener('click', () => {
             navContainer.classList.toggle('active');
         });
-
+    
         // Sayfa Yüklenmesi
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchApiUrl(); // API_URL'yi çek
             checkAuth();
             updateContent();
         });
