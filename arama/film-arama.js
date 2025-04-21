@@ -1,4 +1,23 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // API_URL'yi global olarak tanımla
+    let API_URL = 'http://localhost:3000'; // Varsayılan değer, config'den güncellenecek
+
+    // API_URL'yi çekme fonksiyonu
+    async function fetchApiUrl() {
+        try {
+            const response = await fetch('/api/config');
+            const data = await response.json();
+            API_URL = data.apiUrl;
+            console.log('API_URL fetched:', API_URL);
+        } catch (error) {
+            console.error('API_URL alınırken hata:', error);
+            // Hata durumunda varsayılan URL kullanılacak
+        }
+    }
+
+    // API_URL'yi sayfa yüklenirken çek
+    await fetchApiUrl();
+
     // DOM Elemanları
     const searchInput = document.getElementById('search-input');
     const searchOverlayInput = document.getElementById('search-overlay-input');
@@ -49,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
             console.log('Gönderilen sorgu:', queryParams.toString());
     
-            const response = await fetch(`http://localhost:3000/api/movies?${queryParams.toString()}`);
+            const response = await fetch(`${API_URL}/api/movies?${queryParams.toString()}`);
             if (!response.ok) throw new Error(`HTTP hatası: ${response.status}`);
             const movies = await response.json();
             console.log('Dönen içerik:', {
@@ -76,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Arama Overlay için veri çekme
     async function fetchSearchResults(query) {
         try {
-            const response = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query)}`);
             if (!response.ok) throw new Error('Arama hatası');
             const results = await response.json();
             return results;
