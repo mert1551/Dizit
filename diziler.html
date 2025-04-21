@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DİZİT - Tüm Filmler</title>
+    <title>DİZİT - Tüm Diziler</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -23,8 +23,8 @@
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
                 <li><a href="index.html">Anasayfa</a></li>
-                <li><a href="#" class="active">Filmler</a></li>
-                <li><a href="diziler.html?type=dizi">Diziler</a></li>
+                <li><a href="filmler.html?type=film">Filmler</a></li>
+                <li><a href="#" class="active">Diziler</a></li>
                 <li><a href="arama/film-dizi-arama.html">Detaylı Arama (Keşfet)</a></li>
             </ul>
             <div class="auth-buttons" id="auth-buttons">
@@ -118,7 +118,7 @@
     <main>
         <div class="home-content">
             <section>
-                <h2 class="section-title" id="content-title">Tüm Filmler</h2>
+                <h2 class="section-title" id="content-title">Tüm Diziler</h2>
                 <div class="movie-grid" id="content-grid"></div>
             </section>
         </div>
@@ -155,7 +155,7 @@
             }
         }
     
-        // Oturum Yönetimi
+        // Oturum yönetimi
         let isLoggedIn = !!localStorage.getItem('token');
         let currentUser = localStorage.getItem('username') || null;
     
@@ -385,9 +385,9 @@
             updateAuthUI();
         }
     
-        // Mevcut Fonksiyonlar
+        // Mevcut fonksiyonlar
         const urlParams = new URLSearchParams(window.location.search);
-        const contentType = urlParams.get('type') || 'film';
+        const contentType = urlParams.get('type') || 'dizi';
     
         function displayItems(itemList, containerId) {
             const container = document.getElementById(containerId);
@@ -427,33 +427,33 @@
                         </div>
                     </div>
                 `;
-                itemCard.onclick = () => window.location.href = `film.html?id=${item.id}`;
+                itemCard.onclick = () => window.location.href = `dizi.html?id=${item.id}`;
                 container.appendChild(itemCard);
             });
         }
     
         async function updateContent() {
             const contentTitle = document.getElementById('content-title');
-            contentTitle.textContent = 'Tüm Filmler';
+            contentTitle.textContent = 'Tüm Diziler';
     
             try {
-                // API'den type=film olan içerikleri çek
-                const response = await fetch(`${API_URL}/api/movies?type=film`, {
+                // API'den type=dizi olan içerikleri çek
+                const response = await fetch(`${API_URL}/api/movies?type=dizi`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
                     }
                 });
     
                 if (!response.ok) {
-                    throw new Error('Filmler yüklenirken hata oluştu');
+                    throw new Error('Diziler yüklenirken hata oluştu');
                 }
     
                 const movies = await response.json();
                 displayItems(movies, 'content-grid');
             } catch (error) {
-                console.error('Filmler çekilirken hata:', error);
+                console.error('Diziler çekilirken hata:', error);
                 const container = document.getElementById('content-grid');
-                container.innerHTML = '<p>Filmler yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
+                container.innerHTML = '<p>Diziler yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
             }
         }
     
@@ -461,9 +461,9 @@
             const searchResults = document.getElementById('search-results');
             searchResults.innerHTML = results.length ? '' : '<p>Sonuç bulunamadı.</p>';
             results.forEach(item => {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'search-result-item';
-                itemEl.innerHTML = `
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.innerHTML = `
                     <img src="${item.poster || 'https://via.placeholder.com/150'}" alt="${item.title}" class="search-result-poster">
                     <div class="search-result-info">
                         <div class="search-result-title">
@@ -474,8 +474,8 @@
                         <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
                     </div>
                 `;
-                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
-                searchResults.appendChild(itemEl);
+                resultItem.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
+                searchResults.appendChild(resultItem);
             });
         }
     
