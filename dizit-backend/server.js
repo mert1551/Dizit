@@ -15,6 +15,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, '../')));
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../index.html'));
+});
 
 // MongoDB bağlantısı
 mongoose.connect(process.env.MONGO_URI)
@@ -647,6 +650,8 @@ app.get('/api/search', async (req, res) => {
 });
 
 // Akıllı Benzer Diziler
+// Akıllı Benzer Diziler
+// Akıllı Benzer Diziler
 app.get('/api/similar/:id', async (req, res) => {
     try {
         console.time(`similar/${req.params.id}`);
@@ -731,7 +736,6 @@ app.get('/api/similar/:id', async (req, res) => {
         res.status(500).json({ error: 'Benzer içerikler getirilirken bir hata oluştu' });
     }
 });
-
 // Film Beğenme
 app.post('/api/movie-like', authMiddleware, async (req, res) => {
     try {
@@ -1329,4 +1333,14 @@ app.get('/api/verify-token', authMiddleware, async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Sunucu ${PORT} portunda çalışıyor`);
+});
+// SEO dostu dizi yönlendirmesi
+app.get('/dizi/:id/sezon-:season/bolum-:episode', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dizi.html'));
+});
+app.get('/film/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../film.html'));
+});
+app.get(['/', '/index.html'], (req, res) => {
+    res.redirect(301, '/anasayfa');
 });
