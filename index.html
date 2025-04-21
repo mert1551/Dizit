@@ -177,6 +177,20 @@
     <script>
         let isLoggedIn = !!localStorage.getItem('token');
         let currentUser = localStorage.getItem('username') || null;
+        let apiUrl = '';
+
+        // API URL'sini dinamik olarak al
+        async function fetchApiUrl() {
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                apiUrl = data.apiUrl;
+                console.log('API URL alındı:', apiUrl);
+            } catch (error) {
+                console.error('API URL alınamadı:', error);
+                apiUrl = 'http://localhost:3000'; // Fallback URL
+            }
+        }
 
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -201,7 +215,7 @@
                 return false;
             }
             try {
-                const res = await fetch('http://localhost:3000/api/verify-token', {
+                const res = await fetch(`${apiUrl}/api/verify-token`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -220,6 +234,7 @@
                     return false;
                 }
             } catch (error) {
+                console.error('Token doğrulama hatası:', error);
                 localStorage.removeItem('token');
                 localStorage.removeItem('username');
                 isLoggedIn = false;
@@ -300,7 +315,7 @@
             const errorEl = document.getElementById('login-error');
             try {
                 console.log('Giriş denemesi:', { username });
-                const res = await fetch('http://localhost:3000/api/login', {
+                const res = await fetch(`${apiUrl}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -350,14 +365,14 @@
                 return;
             }
             try {
-                const res = await fetch('http://localhost:3000/api/register', {
+                const res = await fetch(`${apiUrl}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    const loginRes = await fetch('http://localhost:3000/api/login', {
+                    const loginRes = await fetch(`${apiUrl}/api/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -379,6 +394,7 @@
                 }
             } catch (error) {
                 errorEl.textContent = 'Sunucuyla bağlantı hatası';
+                console.error('Kayıt hatası:', error);
             }
         }
 
@@ -388,7 +404,7 @@
             const errorEl = document.getElementById('forgot-error');
             const successEl = document.getElementById('forgot-success');
             try {
-                const res = await fetch('http://localhost:3000/api/forgot-password', {
+                const res = await fetch(`${apiUrl}/api/forgot-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -403,6 +419,7 @@
                 }
             } catch (error) {
                 errorEl.textContent = 'Sunucuyla bağlantı hatası';
+                console.error('Şifre sıfırlama hatası:', error);
                 successEl.textContent = '';
             }
         }
@@ -490,7 +507,7 @@
         async function fetchMovies() {
             try {
                 console.log('Fetching movies...');
-                const response = await fetch('http://localhost:3000/api/movies');
+                const response = await fetch(`${apiUrl}/api/movies`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
@@ -499,6 +516,7 @@
                 return movies;
             } catch (error) {
                 console.error('Veri çekme hatası:', error);
+                showToast('İçerikler yüklenemedi', 'error');
                 return null;
             }
         }
@@ -545,13 +563,14 @@
                 return;
             }
             try {
-                const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+                const res = await fetch(`${apiUrl}/api/search?q=${encodeURIComponent(query)}`);
                 if (!res.ok) throw new Error('Arama başarısız');
                 const data = await res.json();
                 displaySearchResults(data);
             } catch (error) {
                 searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
                 showToast('Arama başarısız', 'error');
+                console.error('Arama hatası:', error);
             }
         }
 
@@ -641,10 +660,11 @@
             updateButtons();
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM yüklendi, updateContent çağrılıyor...');
-            checkAuth();
-            updateContent();
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('DOM yüklendi, işlemler başlatılıyor...');
+            await fetchApiUrl();
+            await checkAuth();
+            await updateContent();
 
             initSlider('top-films-slider-container', 'top-films-prev', 'top-films-next');
             initSlider('top-series-slider-container', 'top-series-prev', 'top-series-next');
@@ -687,5 +707,6 @@
             });
         });
     </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'933c11066938b078',t:'MTc0NTIyOTk2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

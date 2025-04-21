@@ -54,10 +54,11 @@
             background: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 5px;
-            padding: 10px;
-            font-size: 0.95rem;
+            padding: 12px;
+            font-size: 1rem;
             color: var(--text-color);
             width: 100%;
+            box-sizing: border-box;
             transition: border-color 0.3s;
         }
 
@@ -125,10 +126,10 @@
         .submit-btn, .delete-btn, .fetch-btn {
             background: var(--accent-color);
             color: var(--primary-bg);
-            padding: 12px 20px;
+            padding: 14px;
             border: none;
             border-radius: 5px;
-            font-size: 1rem;
+            font-size: 1.1rem;
             cursor: pointer;
             transition: background 0.3s;
             width: 100%;
@@ -222,13 +223,67 @@
         }
 
         @media (max-width: 768px) {
+            .admin-container {
+                margin-top: 100px;
+                padding: 10px;
+            }
+
+            .edit-movie-section {
+                padding: 15px;
+            }
+
             .form-grid, .video-source-entry, .episode-entry {
                 grid-template-columns: 1fr;
             }
 
-            .submit-btn, .delete-btn {
-                grid-column: span 1;
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 0.95rem;
+                padding: 12px;
             }
+
+            .submit-btn, .delete-btn, .fetch-btn {
+                padding: 12px;
+                font-size: 1rem;
+            }
+        }
+        @media (max-width: 468px) {
+            .form-group label {
+                font-size: 0.7rem;
+            }
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 0.75rem;
+                padding: 8px;
+            }
+            .submit-btn, .delete-btn, .fetch-btn {
+            padding: 8px;
+            font-size: 0.8rem;
+            width: 100%;
+        }
+            .form-group .validation-message {
+            font-size: 0.6rem;
+            bottom: -18px;
+        }
+        }
+        
+        @media (max-width: 319px) {
+            .form-group label {
+                font-size: 0.5rem;
+            }
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 0.65rem;
+                padding: 6px;
+            }
+            .submit-btn, .delete-btn, .fetch-btn {
+            padding: 6px;
+            font-size: 0.6rem;
+            width: 100%;
+        }
         }
     </style>
 </head>
@@ -364,6 +419,11 @@
                             <option value="film">Film</option>
                             <option value="dizi">Dizi</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="movie-related-series">İlgili Seri Filmler (ID’ler, virgülle ayırın)</label>
+                        <input type="text" id="movie-related-series" placeholder="filmTest123, diziTest456">
+                        <span class="validation-message" id="movie-related-series-error"></span>
                     </div>
                     <div class="form-group" style="grid-column: span 2;">
                         <label for="movie-plot">Konu</label>
@@ -616,6 +676,7 @@
             document.getElementById('movie-poster').value = movie.poster || '';
             document.getElementById('movie-plot').value = movie.plot || '';
             document.getElementById('movie-type').value = movie.type || 'film';
+            document.getElementById('movie-related-series').value = movie.relatedSeries?.join(', ') || '';
 
             const videoSourceList = document.getElementById('video-source-list');
             videoSourceList.innerHTML = '';
@@ -646,7 +707,8 @@
                 { id: 'movie-year', errorId: 'movie-year-error', validate: val => !val || (val >= 1900 && val <= 2100), message: 'Geçerli bir yıl girin' },
                 { id: 'movie-runtime', errorId: 'movie-runtime-error', validate: val => !isFilm || !val || /^\d+\s*dk$|^\d+\s*s\s*\d+\s*dk$/.test(val), message: 'Örn: 2 s 10 dk veya 40 dk' },
                 { id: 'movie-rating', errorId: 'movie-rating-error', validate: val => !val || (val >= 0 && val <= 10), message: '0-10 arasında bir puan girin' },
-                { id: 'movie-poster', errorId: 'movie-poster-error', validate: val => !val || /^https?:\/\/.+\.(jpg|png|jpeg)$/.test(val), message: 'Geçerli bir URL girin (jpg/png)' }
+                { id: 'movie-poster', errorId: 'movie-poster-error', validate: val => !val || /^https?:\/\/.+\.(jpg|png|jpeg)$/.test(val), message: 'Geçerli bir URL girin (jpg/png)' },
+                { id: 'movie-related-series', errorId: 'movie-related-series-error', validate: val => !val || val.split(',').every(id => id.trim() === '' || /^[a-zA-Z0-9]{3,20}$/.test(id.trim())), message: 'Geçerli ID’ler girin (3-20 karakter, virgülle ayırın)' }
             ];
 
             fields.forEach(field => {
@@ -791,7 +853,7 @@
                 videoSrc: [],
                 episodes: [],
                 season: null,
-                relatedSeries: []
+                relatedSeries: document.getElementById('movie-related-series').value.split(',').map(s => s.trim()).filter(s => s) || []
             };
 
             if (movieData.type === 'film') {
@@ -831,7 +893,6 @@
 
             try {
                 const token = localStorage.getItem('token');
-                console.log('Gönderilen veri:', JSON.stringify(movieData, null, 2));
                 const res = await fetch(`/api/movies/${originalMovieId || movieData.id}`, {
                     method: 'PUT',
                     headers: {
@@ -846,7 +907,6 @@
                     showToast('Değişiklikler başarıyla kaydedildi!');
                     fetchMovieData();
                 } else {
-                    console.error('Sunucu hatası:', data);
                     showToast(data.error || 'Değişiklikler kaydedilemedi');
                 }
             } catch (error) {

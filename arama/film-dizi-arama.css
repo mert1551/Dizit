@@ -58,7 +58,7 @@
 
 .search-form-group select {
     background-color: var(--secondary-bg);
-    border: 1px solid #444;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 10px;
     font-size: 1rem;
@@ -68,13 +68,85 @@
     width: 100%;
 }
 
-.search-form-group select[multiple] {
-    height: 100px; /* Çoklu seçim için yükseklik */
+.search-form-group select:focus {
+    border-color: var(--accent-color);
+}
+
+/* Choices.js Stilleri (Fallback for other selects) */
+.search-page-container .choices__inner {
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-color);
     padding: 5px;
 }
 
-.search-form-group select:focus {
+.search-page-container .choices__list--dropdown {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+
+.search-page-container .choices__item--selectable {
+    color: var(--text-color);
+    background-color: var(--card-bg);
+}
+
+.search-page-container .choices__item--selectable.is-highlighted {
+    background-color: var(--secondary-bg);
+    color: #e6b800;
+}
+
+.search-page-container .choices__list--multiple .choices__item {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.search-page-container .choices__list--multiple .choices__item.is-highlighted {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+}
+
+/* Genre Checkbox Picker */
+.genre-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.genre-checkbox-container {
+    display: flex;
+}
+
+.genre-checkbox-container input[type="checkbox"] {
+    display: none;
+}
+
+.genre-checkbox-container label {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+.genre-checkbox-container input[type="checkbox"]:checked + label {
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
     border-color: var(--accent-color);
+}
+
+.genre-checkbox-container label:hover {
+    background-color: var(--secondary-bg);
+    border-color: var(--accent-color);
+    color: #e6b800;
 }
 
 .checkbox-group {
@@ -169,24 +241,32 @@
     align-items: center;
 }
 
-.filter-tag {
-    background-color: rgba(255, 204, 0, 0.2);
-    color: var(--accent-color);
+.search-page-container .filter-tag {
+    background-color: var(--card-bg);
+    color: var(--text-color);
     padding: 5px 10px;
     border-radius: 20px;
+    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     gap: 5px;
     transition: all 0.3s;
 }
 
-.filter-tag:hover {
-    background-color: rgba(255, 204, 0, 0.4);
+.search-page-container .filter-tag:hover {
+    background-color: var(--secondary-bg);
+    border-color: var(--accent-color);
+    color: #e6b800;
 }
 
-.filter-tag i {
+.search-page-container .filter-tag i {
     cursor: pointer;
     font-size: 0.8rem;
+    color: var(--text-color);
+}
+
+.search-page-container .filter-tag i:hover {
+    color: var(--accent-color);
 }
 
 .total-results {
@@ -332,7 +412,6 @@
 
 /* No Results Message */
 .no-results {
-
     text-align: center;
     padding: 60px 20px;
     color: var(--text-secondary);
@@ -392,6 +471,10 @@
     .no-results i {
         font-size: 3rem;
     }
+
+    .genre-picker {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
 }
 
 @media (max-width: 480px) {
@@ -421,6 +504,10 @@
 
     .no-results i {
         font-size: 2.5rem;
+    }
+
+    .genre-picker {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     }
 }
 
@@ -461,10 +548,6 @@
     .search-form-group select {
         font-size: 0.9rem;
         padding: 8px;
-    }
-
-    .search-form-group select[multiple] {
-        height: 80px;
     }
 
     .checkbox-group {
@@ -522,10 +605,6 @@
     .search-form-group select {
         font-size: 0.85rem;
         padding: 6px;
-    }
-
-    .search-form-group select[multiple] {
-        height: 60px;
     }
 
     .checkbox-text {

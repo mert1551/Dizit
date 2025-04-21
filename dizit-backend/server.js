@@ -15,6 +15,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static(path.join(__dirname, '../')));
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../index.html'));
+});
 
 // MongoDB bağlantısı
 mongoose.connect(process.env.MONGO_URI)
@@ -80,6 +83,14 @@ const adminMiddleware = async (req, res, next) => {
         res.status(500).json({ error: 'Sunucu hatası' });
     }
 };
+
+// API_URL'yi döndüren endpoint
+app.get('/api/config', (req, res) => {
+    console.log('API_URL istendi:', process.env.API_URL);
+    res.json({
+        apiUrl: process.env.API_URL || 'http://localhost:3000'
+    });
+});
 
 // Kayıt
 app.post('/api/register', async (req, res) => {
@@ -192,7 +203,7 @@ app.post('/api/forgot-password', async (req, res) => {
         user.resetPasswordExpires = new Date(Date.now() + 3600000);
         await user.save();
 
-        const resetUrl = `http://localhost:3000/reset-password.html?token=${resetToken}`;
+        const resetUrl = `${process.env.API_URL}/reset-password.html?token=${resetToken}`;
         await transporter.sendMail({
             to: email,
             subject: 'DİZİT Şifre Sıfırlama',
@@ -486,7 +497,7 @@ app.get('/api/movies', async (req, res) => {
                     query.year = { $gte: start, $lte: end, $type: "number" };
                 }
             } else if (year === 'before-2000') {
-                query.year = { $lte: 2000, $exists: true, $ne: null, $type: "number" }; // 2000 ve öncesi, sadece sayı
+                query.year = { $lte: 2000, $exists: true, $ne: null, $type: "number" };
             } else {
                 const parsedYear = parseInt(year);
                 if (!isNaN(parsedYear)) {
@@ -639,6 +650,8 @@ app.get('/api/search', async (req, res) => {
 });
 
 // Akıllı Benzer Diziler
+// Akıllı Benzer Diziler
+// Akıllı Benzer Diziler
 app.get('/api/similar/:id', async (req, res) => {
     try {
         console.time(`similar/${req.params.id}`);
@@ -723,7 +736,6 @@ app.get('/api/similar/:id', async (req, res) => {
         res.status(500).json({ error: 'Benzer içerikler getirilirken bir hata oluştu' });
     }
 });
-
 // Film Beğenme
 app.post('/api/movie-like', authMiddleware, async (req, res) => {
     try {
@@ -1182,7 +1194,7 @@ app.post('/api/dislike', authMiddleware, async (req, res) => {
         }
         await user.save();
         const totalLikes = await User.countDocuments({
-            likes: { $elemMatch: { seriesId, seasonNumber, episodeNumber } }
+            likes: +{ $elemMatch: { seriesId, seasonNumber, episodeNumber } }
         });
         const totalDislikes = await User.countDocuments({
             dislikes: { $elemMatch: { seriesId, seasonNumber, episodeNumber } }
@@ -1321,4 +1333,14 @@ app.get('/api/verify-token', authMiddleware, async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Sunucu ${PORT} portunda çalışıyor`);
+});
+// SEO dostu dizi yönlendirmesi
+app.get('/dizi/:id/sezon-:season/bolum-:episode', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dizi.html'));
+});
+app.get('/film/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, '../film.html'));
+});
+app.get(['/', '/index.html'], (req, res) => {
+    res.redirect(301, '/anasayfa');
 });

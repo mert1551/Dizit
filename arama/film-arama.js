@@ -1,4 +1,23 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // API_URL'yi global olarak tanımla
+    let API_URL = 'http://localhost:3000'; // Varsayılan değer, config'den güncellenecek
+
+    // API_URL'yi çekme fonksiyonu
+    async function fetchApiUrl() {
+        try {
+            const response = await fetch('/api/config');
+            const data = await response.json();
+            API_URL = data.apiUrl;
+            console.log('API_URL fetched:', API_URL);
+        } catch (error) {
+            console.error('API_URL alınırken hata:', error);
+            // Hata durumunda varsayılan URL kullanılacak
+        }
+    }
+
+    // API_URL'yi sayfa yüklenirken çek
+    await fetchApiUrl();
+
     // DOM Elemanları
     const searchInput = document.getElementById('search-input');
     const searchOverlayInput = document.getElementById('search-overlay-input');
@@ -11,7 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const yearSelect = document.getElementById('year');
-    const genreSelect = document.getElementById('genre');
     const sortSelect = document.getElementById('sort');
     const dublajCheckbox = document.getElementById('dublaj');
     const altyaziCheckbox = document.getElementById('altyazi');
@@ -49,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
             console.log('Gönderilen sorgu:', queryParams.toString());
     
-            const response = await fetch(`http://localhost:3000/api/movies?${queryParams.toString()}`);
+            const response = await fetch(`${API_URL}/api/movies?${queryParams.toString()}`);
             if (!response.ok) throw new Error(`HTTP hatası: ${response.status}`);
             const movies = await response.json();
             console.log('Dönen içerik:', {
@@ -76,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Arama Overlay için veri çekme
     async function fetchSearchResults(query) {
         try {
-            const response = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query)}`);
             if (!response.ok) throw new Error('Arama hatası');
             const results = await response.json();
             return results;
@@ -137,8 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (filterType === 'type') typeSelect.value = '';
                 if (filterType === 'year') yearSelect.value = '';
                 if (filterType === 'genre') {
-                    const options = Array.from(genreSelect.selectedOptions);
-                    genreSelect.value = options.filter(opt => opt.value !== filterValue).map(opt => opt.value);
+                    const checkbox = document.getElementById(`genre-${filterValue.toLowerCase().replace(' ', '-')}`);
+                    if (checkbox) checkbox.checked = false;
                 }
                 if (filterType === 'dublaj') dublajCheckbox.checked = false;
                 if (filterType === 'altyazi') altyaziCheckbox.checked = false;
@@ -173,9 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
         }
 
-        const selectedGenres = Array.from(genreSelect.selectedOptions)
-            .map(option => option.value)
-            .filter(val => val);
+        const selectedGenres = Array.from(document.querySelectorAll('input[name="genre"]:checked'))
+            .map(checkbox => checkbox.value);
 
         return {
             type: typeSelect.value,
@@ -190,18 +207,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sonuçları Gösterme
     function displayContent(contentList, page) {
+        const searchResultsGrid = document.getElementById('search-results-grid');
+        const searchResultsContainer = document.querySelector('.search-results-container');
+        const pagination = document.getElementById('pagination');
         searchResultsGrid.innerHTML = '';
+
+        // Mevcut no-results div'ini temizle
+        const existingNoResults = searchResultsContainer.querySelector('.no-results');
+        if (existingNoResults) {
+            existingNoResults.remove();
+        }
+
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
         const paginatedContent = contentList.slice(start, end);
-    
+
         if (paginatedContent.length === 0) {
-            searchResultsGrid.innerHTML = `
-                <div class="no-results">
-                    <i class="fas fa-film"></i>
-                    <p>Aradığınız kriterlere uygun film veya dizi bulunamadı.</p>
-                </div>
+            const noResultsDiv = document.createElement('div');
+            noResultsDiv.className = 'no-results';
+            noResultsDiv.innerHTML = `
+                <i class="fas fa-film"></i>
+                <p>Aradığınız kriterlere uygun film veya dizi bulunamadı.</p>
             `;
+            searchResultsContainer.insertBefore(noResultsDiv, pagination);
+            pagination.style.display = 'none';
         } else {
             if (yearSelect.value === 'before-2000') {
                 const invalidMovies = paginatedContent.filter(item => item.year > 2000);
@@ -261,14 +290,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 contentCard.onclick = () => window.location.href = item.type === "dizi" ? `../dizi.html?id=${item.id}` : `../film.html?id=${item.id}`;
                 searchResultsGrid.appendChild(contentCard);
             });
+            pagination.style.display = 'flex';
         }
-    
+
         const totalItems = contentList.length;
         const totalPages = Math.ceil(totalItems / itemsPerPage);
         totalResults.textContent = `${totalItems} film veya dizi bulundu`;
         currentPageSpan.textContent = page;
         totalPagesSpan.textContent = totalPages;
-    
+
         prevPageBtn.disabled = page === 1;
         nextPageBtn.disabled = page === totalPages;
     }
@@ -278,15 +308,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchResults = document.getElementById('search-results');
         searchResults.innerHTML = '';
         if (results.length === 0) {
-            searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
+            searchResults.innerHTML = '<p style="color: var(--text-secondary, #b3b3b3); text-align: center;">Sonuç bulunamadı.</p>';
             return;
         }
         results.forEach(item => {
             const resultItem = document.createElement('div');
             resultItem.className = 'search-result-item';
             resultItem.innerHTML = `
-                <img src="${item.poster}" alt="${item.title}" class="search-result-poster">
-                <span>${item.title}${item.title2 ? ` <span class="search-title2">(${item.title2})</span>` : ''} (${item.year})</span>
+                <img src="${item.poster || 'https://via.placeholder.com/150'}" alt="${item.title}" class="search-result-poster">
+                <div class="search-result-info">
+                    <div class="search-result-title">
+                        ${item.title || 'Bilinmeyen İçerik'}
+                        ${item.title2 ? `<span class="search-result-title2">(${item.title2})</span>` : ''}
+                    </div>
+                    <div class="search-result-year">${item.year || 'N/A'}</div>
+                    <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
+                </div>
             `;
             resultItem.onclick = () => window.location.href = item.type === "dizi" ? `../dizi.html?id=${item.id}` : `../film.html?id=${item.id}`;
             searchResults.appendChild(resultItem);
@@ -307,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     resetButton.addEventListener('click', () => {
         yearSelect.value = '';
-        genreSelect.value = '';
+        document.querySelectorAll('input[name="genre"]:checked').forEach(cb => cb.checked = false);
         sortSelect.value = 'year-desc';
         dublajCheckbox.checked = false;
         altyaziCheckbox.checked = false;
@@ -363,7 +400,9 @@ document.addEventListener('DOMContentLoaded', () => {
     performSearch();
 });
 
-// Auth Modal (Örnek)
+// Auth Modal
 function openAuthModal(type = 'login') {
-    alert(type === 'login' ? 'Giriş yapma modalı açılacak.' : 'Üye olma modalı açılacak.');
+    const modal = document.getElementById('auth-modal');
+    modal.classList.add('active');
+    switchTab(type);
 }
