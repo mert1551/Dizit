@@ -135,18 +135,18 @@
         let isLoggedIn = !!localStorage.getItem('token');
         let currentUser = localStorage.getItem('username') || null;
         let seriesCache = null;
-        let apiUrl = '';
+        let API_URL = 'http://localhost:3000'; // Default fallback
 
-        // API URL'sini dinamik olarak al
         async function fetchApiUrl() {
             try {
-                const response = await fetch('/api/config');
-                const data = await response.json();
-                apiUrl = data.apiUrl;
-                console.log('API URL alındı:', apiUrl);
+                const res = await fetch('/api/config');
+                if (res.ok) {
+                    const data = await res.json();
+                    API_URL = data.apiUrl || 'http://localhost:3000';
+                    console.log('API URL fetched:', API_URL);
+                }
             } catch (error) {
-                console.error('API URL alınamadı:', error);
-                apiUrl = 'http://localhost:3000'; // Fallback URL
+                console.error('Failed to fetch API_URL:', error);
             }
         }
 
@@ -173,7 +173,7 @@
                 return false;
             }
             try {
-                const res = await fetch(`${apiUrl}/api/verify-token`, {
+                const res = await fetch(`${API_URL}/api/verify-token`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -271,7 +271,7 @@
             const password = document.getElementById('login-password').value;
             const errorEl = document.getElementById('login-error');
             try {
-                const res = await fetch(`${apiUrl}/api/login`, {
+                const res = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -286,7 +286,7 @@
                     closeAuthModal();
                     updateAuthUI();
                     if (data.isAdmin) {
-                        window.location.href = '/admin/admin-panel.html';
+                        window.location.href = 'admin/admin-panel.html';
                     } else {
                         window.location.reload();
                     }
@@ -316,14 +316,14 @@
                 return;
             }
             try {
-                const res = await fetch(`${apiUrl}/api/register`, {
+                const res = await fetch(`${API_URL}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    const loginRes = await fetch(`${apiUrl}/api/login`, {
+                    const loginRes = await fetch(`${API_URL}/api/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -354,7 +354,7 @@
             const errorEl = document.getElementById('forgot-error');
             const successEl = document.getElementById('forgot-success');
             try {
-                const res = await fetch(`${apiUrl}/api/forgot-password`, {
+                const res = await fetch(`${API_URL}/api/forgot-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -388,7 +388,7 @@
 
         async function fetchSeriesById(id) {
             try {
-                const res = await fetch(`${apiUrl}/api/movies/${id}`);
+                const res = await fetch(`${API_URL}/api/movies/${id}`);
                 if (!res.ok) {
                     const errorData = await res.json();
                     throw new Error(errorData.error || 'Dizi bulunamadı');
@@ -521,7 +521,7 @@
 
             if (isLoggedIn) {
                 try {
-                    const res = await fetch(`${apiUrl}/api/status/${seriesId}/${seasonNumber}/${episodeNumber}`, {
+                    const res = await fetch(`${API_URL}/api/status/${seriesId}/${seasonNumber}/${episodeNumber}`, {
                         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                     });
                     if (res.ok) {
@@ -533,7 +533,7 @@
                         dislikeCount = data.dislikeCount;
                     }
 
-                    const favRes = await fetch(`${apiUrl}/api/movie-status/${seriesId}`, {
+                    const favRes = await fetch(`${API_URL}/api/movie-status/${seriesId}`, {
                         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                     });
                     if (favRes.ok) {
@@ -545,7 +545,7 @@
                 }
             } else {
                 try {
-                    const res = await fetch(`${apiUrl}/api/public/status/${seriesId}/${seasonNumber}/${episodeNumber}`);
+                    const res = await fetch(`${API_URL}/api/public/status/${seriesId}/${seasonNumber}/${episodeNumber}`);
                     if (res.ok) {
                         const data = await res.json();
                         likeCount = data.likeCount;
@@ -564,7 +564,7 @@
                 <div class="player-box">
                     <div class="player-title">
                         <h2 class="series-name">${seriesTitle || 'Bilinmeyen Dizi'}</h2>
-                        <p class="episode-info">Sezon ${seasonNumber}, Bölüm ${episodeNumber}${episodeTitle}</p>
+                        <p class="episode-info">Sezon ${seasonNumber}, Bölüm ${episodeNumber}</p>
                     </div>
                     <div class="video-options" id="video-options"></div>
                     <div class="video-wrapper">
@@ -621,7 +621,7 @@
                     return;
                 }
                 try {
-                    const res = await fetch(`${apiUrl}/api/like`, {
+                    const res = await fetch(`${API_URL}/api/like`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -651,7 +651,7 @@
                     return;
                 }
                 try {
-                    const res = await fetch(`${apiUrl}/api/dislike`, {
+                    const res = await fetch(`${API_URL}/api/dislike`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -681,7 +681,7 @@
                     return;
                 }
                 try {
-                    const res = await fetch(`${apiUrl}/api/favorite`, {
+                    const res = await fetch(`${API_URL}/api/favorite`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -710,7 +710,7 @@
                     return;
                 }
                 try {
-                    const res = await fetch(`${apiUrl}/api/watched`, {
+                    const res = await fetch(`${API_URL}/api/watched`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -720,11 +720,11 @@
                     });
                     const data = await res.json();
                     if (res.ok) {
-                        showToast(data.isWatched ? 'Bölüm izlendi olarak işaretlendi!' : 'İzlenme durumu kaldırıldı.', 'success');
+                        showToast(data.isWatched ? 'İzledi olarak işaretlendi!' : 'İzlenme durumu kaldırıldı.', 'success');
+                        updateEpisodeCard(seriesId, seasonNumber, episodeNumber, data.isWatched);
                     } else {
                         showToast(data.error || 'İzleme durumu güncellenemedi', 'error');
                         watchedCheckbox.checked = !watchedCheckbox.checked;
-                        if (data.error.includes('token')) logout();
                     }
                 } catch (error) {
                     showToast('Sunucuyla bağlantı hatası', 'error');
@@ -735,52 +735,126 @@
             window.scrollTo({ top: playerContainer.offsetTop - 100, behavior: 'smooth' });
         }
 
-        function displaySeasonSection(series) {
+        function displaySeasonSelector(series) {
             const seasonSection = document.getElementById('season-section');
-            if (!series.episodes || series.episodes.length === 0) {
+            if (!series.episodes || !Array.isArray(series.episodes) || series.episodes.length === 0) {
                 seasonSection.style.display = 'none';
                 return;
             }
 
-            const seasons = [...new Set(series.episodes.map(ep => ep.seasonNumber))].sort((a, b) => a - b);
+            const seasons = {};
+            series.episodes.forEach(episode => {
+                if (!seasons[episode.seasonNumber]) {
+                    seasons[episode.seasonNumber] = [];
+                }
+                seasons[episode.seasonNumber].push(episode);
+            });
+
+            const sortedSeasons = Object.keys(seasons)
+                .map(Number)
+                .sort((a, b) => a - b)
+                .map(seasonNumber => ({
+                    seasonNumber,
+                    episodes: seasons[seasonNumber].sort((a, b) => a.episodeNumber - b.episodeNumber)
+                }));
+
+            seriesCache.seasons = sortedSeasons;
+
             seasonSection.innerHTML = `
-                <h2 class="section-title">Sezonlar ve Bölümler</h2>
-                <div class="season-tabs" id="season-tabs"></div>
+                <div class="season-selector">
+                    <select id="season-select">
+                        ${sortedSeasons.map((season, index) => `
+                            <option value="${season.seasonNumber}" ${index === 0 ? 'selected' : ''}>Sezon ${season.seasonNumber}</option>
+                        `).join('')}
+                    </select>
+                </div>
                 <div class="episode-list" id="episode-list"></div>
             `;
 
-            const tabsContainer = document.getElementById('season-tabs');
-            seasons.forEach((season, index) => {
-                const tab = document.createElement('button');
-                tab.className = `season-tab ${index === 0 ? 'active' : ''}`;
-                tab.textContent = `Sezon ${season}`;
-                tab.onclick = () => {
-                    document.querySelectorAll('.season-tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    displayEpisodes(series, season);
-                };
-                tabsContainer.appendChild(tab);
+            const seasonSelect = document.getElementById('season-select');
+            seasonSelect.addEventListener('change', () => {
+                const selectedSeasonNumber = parseInt(seasonSelect.value);
+                const selectedSeason = sortedSeasons.find(s => s.seasonNumber === selectedSeasonNumber);
+                displayEpisodes(series.id, selectedSeason.episodes, selectedSeasonNumber);
             });
 
-            displayEpisodes(series, seasons[0]);
+            displayEpisodes(series.id, sortedSeasons[0]?.episodes, sortedSeasons[0]?.seasonNumber || 1);
         }
 
-        function displayEpisodes(series, seasonNumber) {
+        async function displayEpisodes(seriesId, episodes, seasonNumber) {
             const episodeList = document.getElementById('episode-list');
-            const episodes = series.episodes.filter(ep => ep.seasonNumber === seasonNumber).sort((a, b) => a.episodeNumber - b.episodeNumber);
             episodeList.innerHTML = '';
 
-            episodes.forEach(episode => {
-                const episodeItem = document.createElement('div');
-                episodeItem.className = 'episode-item';
-                episodeItem.innerHTML = `
-                    <div class="episode-number">Bölüm ${episode.episodeNumber}</div>
-                    <div class="episode-title">${episode.title || `Bölüm ${episode.episodeNumber}`}</div>
-                    <div class="episode-duration">${episode.runtime || 'N/A'}</div>
+            if (!episodes || episodes.length === 0) {
+                episodeList.innerHTML = '<p>Bu sezona ait bölüm bulunamadı.</p>';
+                return;
+            }
+
+            let batchStatus = [];
+            if (isLoggedIn) {
+                try {
+                    const res = await fetch(`${API_URL}/api/batch-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            seriesId,
+                            episodes: episodes.map(ep => ({
+                                seasonNumber: ep.seasonNumber,
+                                episodeNumber: ep.episodeNumber
+                            }))
+                        })
+                    });
+                    if (res.ok) {
+                        batchStatus = await res.json();
+                    }
+                } catch (error) {
+                    console.error('Batch status fetch error:', error);
+                }
+            }
+
+            episodes.forEach((episode, index) => {
+                const episodeNumber = episode.episodeNumber;
+                const status = batchStatus.find(s => s.seasonNumber === seasonNumber && s.episodeNumber === episodeNumber) || {};
+                const isWatched = status.isWatched || false;
+
+                const card = document.createElement('div');
+                card.className = `episode-card ${episodeNumber === 1 ? 'active' : ''}`;
+                card.style.backgroundImage = `url('${seriesCache.poster || 'https://via.placeholder.com/150'}')`;
+                card.style.backgroundSize = 'cover';
+                card.style.backgroundPosition = 'center';
+                card.innerHTML = `
+                    <div class="episode-overlay">
+                        <div class="episode-info">
+                            <span class="episode-number">Sezon ${seasonNumber} Bölüm ${episodeNumber}</span>
+                        </div>
+                        <button class="play-btn"><i class="fas fa-play"></i></button>
+                        ${isWatched ? '<i class="fas fa-check-circle watched-icon"></i>' : ''}
+                    </div>
                 `;
-                episodeItem.onclick = () => watchSeries(series.id, series.title, episode.seasonNumber, episode.episodeNumber);
-                episodeList.appendChild(episodeItem);
+                card.onclick = () => {
+                    document.querySelectorAll('.episode-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    watchSeries(seriesId, seriesCache.title, seasonNumber, episodeNumber);
+                };
+                episodeList.appendChild(card);
             });
+        }
+
+        function updateEpisodeCard(seriesId, seasonNumber, episodeNumber, isWatched) {
+            const episodeCard = document.querySelector(`.episode-card:nth-child(${episodeNumber})`);
+            if (episodeCard) {
+                const watchedIcon = episodeCard.querySelector('.watched-icon');
+                if (isWatched && !watchedIcon) {
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-check-circle watched-icon';
+                    episodeCard.querySelector('.episode-overlay').appendChild(icon);
+                } else if (!isWatched && watchedIcon) {
+                    watchedIcon.remove();
+                }
+            }
         }
 
         async function displaySimilarSeries(currentSeries) {
@@ -799,13 +873,17 @@
             try {
                 const token = localStorage.getItem('token');
                 const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const res = await fetch(`${apiUrl}/api/similar/${currentSeries.id}?type=${currentSeries.type}`, { headers });
+                console.log('Fetching similar series for ID:', currentSeries.id, 'Type: dizi');
+                const res = await fetch(`${API_URL}/api/similar/${currentSeries.id}?type=dizi`, { headers });
                 if (!res.ok) {
                     const errorData = await res.json();
+                    console.error('API error response:', errorData);
                     throw new Error(errorData.error || 'Benzer diziler alınamadı');
                 }
                 const series = await res.json();
+                console.log('Similar series fetched:', series);
                 if (!Array.isArray(series) || series.length === 0) {
+                    console.warn('No similar series found');
                     document.getElementById('similar-slider-container').innerHTML = '<p>Benzer dizi bulunamadı.</p>';
                     return;
                 }
@@ -813,7 +891,7 @@
             } catch (error) {
                 console.error('Similar series error:', error.message);
                 document.getElementById('similar-slider-container').innerHTML = '<p>Benzer diziler yüklenemedi.</p>';
-                showToast('Benzer diziler yüklenemedi', 'error');
+                showToast('Benzer diziler yüklenemedi: ' + error.message, 'error');
             }
         }
 
@@ -921,13 +999,12 @@
                 return;
             }
             try {
-                const res = await fetch(`${apiUrl}/api/search?q=${encodeURIComponent(query)}`);
+                const res = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query)}`);
                 if (!res.ok) throw new Error('Arama başarısız');
                 const data = await res.json();
                 displaySearchResults(data);
             } catch (error) {
                 searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
-                showToast('Arama başarısız', 'error');
             }
         }
 
@@ -969,7 +1046,7 @@
             seriesCache = series;
             displaySeriesDetails(series);
             watchSeries(series.id, series.title, 1, 1);
-            displaySeasonSection(series);
+            displaySeasonSelector(series);
             displaySimilarSeries(series);
 
             document.getElementById('search-input').onfocus = () => {
@@ -980,7 +1057,16 @@
 
             document.getElementById('search-overlay-input').oninput = async () => {
                 const query = document.getElementById('search-overlay-input').value.trim().toLowerCase();
-                await performSearch(query);
+                if (!query) {
+                    displaySearchResults([]);
+                    return;
+                }
+                try {
+                    const res = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(query)}`);
+                    displaySearchResults(await res.json());
+                } catch (error) {
+                    displaySearchResults([]);
+                }
             };
 
             document.getElementById('close-overlay').onclick = () => {
@@ -1004,6 +1090,5 @@
 
         init();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'933c20bddde3ed88',t:'MTc0NTIzMDYwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
