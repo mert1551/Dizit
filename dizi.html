@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dizi İzle - DİZİT</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="dizi.css?v=1">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/dizi.css?v=1">
 </head>
 <body>
     <header id="header">
-        <a href="index.html" class="logo">DİZİT</a>
+        <a href="/index.html" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="Film veya dizi ara...">
@@ -22,10 +22,10 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="index.html" class="home-link">Anasayfa</a></li>
-                <li><a href="filmler.html?type=film">Filmler</a></li>
-                <li><a href="diziler.html?type=dizi">Diziler</a></li>
-                <li><a href="arama/film-dizi-arama.html">Detaylı Arama</a></li>
+                <li><a href="/index.html" class="home-link">Anasayfa</a></li>
+                <li><a href="/filmler.html?type=film">Filmler</a></li>
+                <li><a href="/diziler.html?type=dizi">Diziler</a></li>
+                <li><a href="/arama/film-dizi-arama.html">Detaylı Arama</a></li>
             </ul>
             <div class="auth-buttons" id="auth-buttons">
                 <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
@@ -247,7 +247,7 @@
             signupError.textContent = '';
             forgotError.textContent = '';
             forgotSuccess.textContent = '';
-            document.getElementById('login-form-submit').reset();
+            document.getElementByicast('login-form-submit').reset();
             document.getElementById('signup-form-submit').reset();
             document.getElementById('forgot-form-submit').reset();
             document.getElementById('password-hint').style.color = '#666';
@@ -379,11 +379,17 @@
             isLoggedIn = false;
             currentUser = null;
             updateAuthUI();
-            window.location.href = 'index.html';
+            window.location.href = '/index.html';
         }
 
-        function getSeriesIdFromUrl() {
-            return new URLSearchParams(window.location.search).get('id');
+        function getSeriesIdFromDynamicUrl() {
+            const match = window.location.pathname.match(/^\/dizi\/([^\/]+)(?:\/sezon-(\d+)\/bolum-(\d+))?/);
+            if (!match) return null;
+            return {
+                id: match[1],
+                season: parseInt(match[2]) || 1,
+                episode: parseInt(match[3]) || 1
+            };
         }
 
         async function fetchSeriesById(id) {
@@ -477,11 +483,11 @@
                     const langDiv = document.createElement('div');
                     langDiv.className = 'series-language';
                     if (lang === "Türkçe Dublaj") {
-                        langDiv.innerHTML = `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj`;
+                        langDiv.innerHTML = `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj`;
                     } else if (lang === "Türkçe Altyazı") {
                         langDiv.innerHTML = `<i class="fas fa-closed-captioning"></i> Altyazı`;
                     } else if (lang === "Yerli") {
-                        langDiv.innerHTML = `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli`;
+                        langDiv.innerHTML = `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli`;
                     } else {
                         langDiv.textContent = lang;
                     }
@@ -595,11 +601,11 @@
                     const btn = document.createElement('button');
                     btn.className = `video-option-btn ${index === 0 ? 'active' : ''}`;
                     if (src.type.includes("Dublaj") && src.type.includes("Altyazı")) {
-                        btn.innerHTML = `<span class="icon-left"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"><i class="fas fa-closed-captioning"></i></span> Dublaj ve Altyazı`;
+                        btn.innerHTML = `<span class="icon-left"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"><i class="fas fa-closed-captioning"></i></span> Dublaj ve Altyazı`;
                     } else {
-                        btn.innerHTML = src.type.includes("Dublaj") ? `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj` :
+                        btn.innerHTML = src.type.includes("Dublaj") ? `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj` :
                                         src.type.includes("Altyazı") ? `<i class="fas fa-closed-captioning"></i> Altyazı` :
-                                        src.type.includes("Yerli") ? `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli` : src.type;
+                                        src.type.includes("Yerli") ? `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli` : src.type;
                     }
                     btn.onclick = () => {
                         document.querySelectorAll('.video-option-btn').forEach(b => b.classList.remove('active'));
@@ -733,6 +739,12 @@
             });
 
             window.scrollTo({ top: playerContainer.offsetTop - 100, behavior: 'smooth' });
+
+            // URL'yi güncelle
+            const newUrl = `/dizi/${seriesId}/sezon-${seasonNumber}/bolum-${episodeNumber}`;
+            if (window.location.pathname !== newUrl) {
+                history.pushState({ seriesId, seasonNumber, episodeNumber }, '', newUrl);
+            }
         }
 
         function displaySeasonSelector(series) {
@@ -778,7 +790,11 @@
                 displayEpisodes(series.id, selectedSeason.episodes, selectedSeasonNumber);
             });
 
-            displayEpisodes(series.id, sortedSeasons[0]?.episodes, sortedSeasons[0]?.seasonNumber || 1);
+            const urlData = getSeriesIdFromDynamicUrl();
+            const initialSeason = urlData?.season || sortedSeasons[0]?.seasonNumber || 1;
+            seasonSelect.value = initialSeason;
+            const selectedSeason = sortedSeasons.find(s => s.seasonNumber === initialSeason);
+            displayEpisodes(series.id, selectedSeason.episodes, initialSeason);
         }
 
         async function displayEpisodes(seriesId, episodes, seasonNumber) {
@@ -815,13 +831,16 @@
                 }
             }
 
+            const urlData = getSeriesIdFromDynamicUrl();
+            const currentEpisode = urlData?.episode || 1;
+
             episodes.forEach((episode, index) => {
                 const episodeNumber = episode.episodeNumber;
                 const status = batchStatus.find(s => s.seasonNumber === seasonNumber && s.episodeNumber === episodeNumber) || {};
                 const isWatched = status.isWatched || false;
 
                 const card = document.createElement('div');
-                card.className = `episode-card ${episodeNumber === 1 ? 'active' : ''}`;
+                card.className = `episode-card ${episodeNumber === currentEpisode ? 'active' : ''}`;
                 card.style.backgroundImage = `url('${seriesCache.poster || 'https://via.placeholder.com/150'}')`;
                 card.style.backgroundSize = 'cover';
                 card.style.backgroundPosition = 'center';
@@ -844,17 +863,21 @@
         }
 
         function updateEpisodeCard(seriesId, seasonNumber, episodeNumber, isWatched) {
-            const episodeCard = document.querySelector(`.episode-card:nth-child(${episodeNumber})`);
-            if (episodeCard) {
-                const watchedIcon = episodeCard.querySelector('.watched-icon');
-                if (isWatched && !watchedIcon) {
-                    const icon = document.createElement('i');
-                    icon.className = 'fas fa-check-circle watched-icon';
-                    episodeCard.querySelector('.episode-overlay').appendChild(icon);
-                } else if (!isWatched && watchedIcon) {
-                    watchedIcon.remove();
+            const episodeCards = document.querySelectorAll('.episode-card');
+            episodeCards.forEach(card => {
+                const episodeInfo = card.querySelector('.episode-number').textContent;
+                const match = episodeInfo.match(/Sezon (\d+) Bölüm (\d+)/);
+                if (match && parseInt(match[1]) === seasonNumber && parseInt(match[2]) === episodeNumber) {
+                    const watchedIcon = card.querySelector('.watched-icon');
+                    if (isWatched && !watchedIcon) {
+                        const icon = document.createElement('i');
+                        icon.className = 'fas fa-check-circle watched-icon';
+                        card.querySelector('.episode-overlay').appendChild(icon);
+                    } else if (!isWatched && watchedIcon) {
+                        watchedIcon.remove();
+                    }
                 }
-            }
+            });
         }
 
         async function displaySimilarSeries(currentSeries) {
@@ -899,9 +922,9 @@
             const container = document.getElementById(containerId);
             container.innerHTML = '';
             items.forEach(item => {
-                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
-                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
-                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
+                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
+                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
+                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
                              item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
                 const card = document.createElement('div');
                 card.className = 'slider-item';
@@ -918,7 +941,7 @@
                         </div>
                     </div>
                 `;
-                card.onclick = () => window.location.href = `dizi.html?id=${item.id}`;
+                card.onclick = () => window.location.href = `/dizi/${item.id}/sezon-1/bolum-1`;
                 container.appendChild(card);
             });
 
@@ -1025,7 +1048,7 @@
                         <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
                     </div>
                 `;
-                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
+                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `/dizi/${item.id}/sezon-1/bolum-1` : `/film/${item.id}`;
                 searchResults.appendChild(itemEl);
             });
         }
@@ -1033,21 +1056,32 @@
         async function init() {
             await fetchApiUrl();
             await checkAuth();
-            const seriesId = getSeriesIdFromUrl();
-            if (!seriesId) {
+
+            const urlData = getSeriesIdFromDynamicUrl();
+            if (!urlData?.id) {
+                // Geri uyumluluk için query parametresini kontrol et
+                const urlParams = new URLSearchParams(window.location.search);
+                const seriesId = urlParams.get('id');
+                if (seriesId) {
+                    // Eski URL'den gelen id ile yeni URL'ye yönlendir
+                    window.location.replace(`/dizi/${seriesId}/sezon-1/bolum-1`);
+                    return;
+                }
                 displayErrorPage();
                 return;
             }
-            const series = await fetchSeriesById(seriesId);
+
+            const series = await fetchSeriesById(urlData.id);
             if (!series) {
                 displayErrorPage();
                 return;
             }
+
             seriesCache = series;
             displaySeriesDetails(series);
-            watchSeries(series.id, series.title, 1, 1);
             displaySeasonSelector(series);
             displaySimilarSeries(series);
+            watchSeries(series.id, series.title, urlData.season, urlData.episode);
 
             document.getElementById('search-input').onfocus = () => {
                 const overlay = document.getElementById('search-overlay');
@@ -1086,9 +1120,23 @@
                     document.getElementById('nav-container').classList.remove('active');
                 }
             });
+
+            // URL değişikliklerini dinle
+            window.addEventListener('popstate', () => {
+                const newUrlData = getSeriesIdFromDynamicUrl();
+                if (newUrlData && newUrlData.id === series.id) {
+                    watchSeries(series.id, series.title, newUrlData.season, newUrlData.episode);
+                    const seasonSelect = document.getElementById('season-select');
+                    if (seasonSelect) {
+                        seasonSelect.value = newUrlData.season;
+                        const selectedSeason = seriesCache.seasons.find(s => s.seasonNumber === newUrlData.season);
+                        displayEpisodes(series.id, selectedSeason.episodes, newUrlData.season);
+                    }
+                }
+            });
         }
 
         init();
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'933ee61c5d0c49f2',t:'MTc0NTI1OTY2Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
