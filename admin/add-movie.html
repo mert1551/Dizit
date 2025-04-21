@@ -167,7 +167,7 @@
             background: #cc4444;
         }
 
-        #add-video-btn, #add-episode-btn, #add-season-btn,#add-genre-btn {
+        #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn {
             background: var(--accent-color);
             color: var(--primary-bg);
             padding: 10px;
@@ -177,7 +177,7 @@
             margin-top: 10px;
         }
 
-        #add-video-btn:hover, #add-episode-btn:hover, #add-season-btn:hover {
+        #add-video-btn:hover, .add-episode-btn:hover, .add-episode-video-btn:hover, #add-season-btn:hover, #add-genre-btn:hover {
             background: #e6b800;
         }
 
@@ -208,13 +208,135 @@
             padding: 0;
         }
 
+        .video-type-custom {
+            display: none;
+        }
+
+        .video-source-entry .video-type-select option[value="Diğer"]:selected ~ .video-type-custom,
+        .video-source-entry .video-type-select option[value="Özel Başlık"]:selected ~ .video-type-custom {
+            display: block;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast-notification.show {
+            display: block;
+        }
+
         @media (max-width: 768px) {
+            .admin-container {
+                margin-top: 100px;
+                padding: 10px;
+            }
+
+            .add-movie-section {
+                padding: 15px;
+            }
+
             .form-grid, .video-source-entry, .episode-entry {
                 grid-template-columns: 1fr;
             }
 
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 0.9rem;
+                padding: 10px;
+            }
+
             .submit-btn {
                 grid-column: span 1;
+                padding: 10px;
+                font-size: 0.95rem;
+            }
+
+            .form-group label {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 468px) {
+            .form-group label {
+                font-size: 0.7rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 0.75rem;
+                padding: 8px;
+            }
+
+            .submit-btn, #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn {
+                padding: 8px;
+                font-size: 0.8rem;
+            }
+
+            .remove-video, .remove-episode, .remove-season {
+                padding: 6px;
+                font-size: 0.7rem;
+            }
+
+            .form-group .validation-message {
+                font-size: 0.6rem;
+                bottom: -18px;
+            }
+
+            .genre-item {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+
+            .genre-item button {
+                font-size: 0.6rem;
+            }
+        }
+
+        @media (max-width: 319px) {
+            .form-group label {
+                font-size: 0.5rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 0.65rem;
+                padding: 6px;
+            }
+
+            .submit-btn, #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn {
+                padding: 6px;
+                font-size: 0.6rem;
+            }
+
+            .remove-video, .remove-episode, .remove-season {
+                padding: 5px;
+                font-size: 0.6rem;
+            }
+
+            .form-group .validation-message {
+                font-size: 0.5rem;
+                bottom: -15px;
+            }
+
+            .genre-item {
+                font-size: 0.6rem;
+                padding: 3px 6px;
+            }
+
+            .genre-item button {
+                font-size: 0.5rem;
             }
         }
     </style>
@@ -572,6 +694,7 @@
         }
 
         function showToast(message) {
+            console.log('Toast gösteriliyor:', message);
             const toast = document.getElementById('toast-notification');
             toast.textContent = message;
             toast.classList.add('show');
@@ -581,6 +704,7 @@
         }
 
         function addGenre() {
+            console.log('Tür ekleniyor');
             const genreSelect = document.getElementById('movie-genres');
             const genresList = document.getElementById('genres-list');
             const selectedGenre = genreSelect.value;
@@ -597,6 +721,7 @@
         }
 
         function validateForm() {
+            console.log('Form doğrulanıyor');
             let isValid = true;
             const isFilm = document.getElementById('movie-type').value === 'film';
             const fields = [
@@ -699,6 +824,7 @@
         }
 
         function updatePreview() {
+            console.log('Önizleme güncelleniyor');
             const title = document.getElementById('movie-title').value;
             const poster = document.getElementById('movie-poster').value;
             const year = document.getElementById('movie-year').value;
@@ -724,6 +850,7 @@
 
         async function handleAddMovie(event) {
             event.preventDefault();
+            console.log('Film/Dizi ekleme formu gönderiliyor');
             if (!isLoggedIn || !isAdmin) {
                 showToast('Yönetici girişi yapmalısınız');
                 openAuthModal('login');
@@ -840,26 +967,151 @@
             }
         }
 
+        function addVideoSource(videoList, defaultType = 'Dublaj') {
+            console.log('Video kaynağı ekleniyor, varsayılan tür:', defaultType);
+            const videoDiv = document.createElement('div');
+            videoDiv.className = 'video-source-entry';
+            videoDiv.innerHTML = `
+                <select class="video-type-select">
+                    <option value="Dublaj" ${defaultType === 'Dublaj' ? 'selected' : ''}>Dublaj</option>
+                    <option value="Altyazı" ${defaultType === 'Altyazı' ? 'selected' : ''}>Altyazı</option>
+                    <option value="Türkçe Dublaj & Altyazı" ${defaultType === 'Türkçe Dublaj & Altyazı' ? 'selected' : ''}>Türkçe Dublaj & Altyazı</option>
+                    <option value="Yerli" ${defaultType === 'Yerli' ? 'selected' : ''}>Yerli</option>
+                    <option value="Özel Başlık" ${defaultType === 'Özel Başlık' ? 'selected' : ''}>Özel Başlık</option>
+                    <option value="Diğer" ${defaultType === 'Diğer' ? 'selected' : ''}>Diğer (özel tür girin)</option>
+                </select>
+                <input type="text" class="video-type-custom" placeholder="Özel tür veya başlık">
+                <input type="url" class="video-src" placeholder="Video URL (örn: https://ornek.com/video.mp4)" required>
+                <button type="button" class="remove-video">Kaldır</button>
+                <span class="validation-message video-error"></span>
+            `;
+            videoList.appendChild(videoDiv);
+            videoDiv.querySelector('.remove-video').addEventListener('click', () => {
+                console.log('Video kaynağı kaldırılıyor');
+                videoDiv.remove();
+            });
+            videoDiv.querySelector('.video-type-select').addEventListener('change', function () {
+                const customInput = videoDiv.querySelector('.video-type-custom');
+                customInput.style.display = this.value === 'Diğer' || this.value === 'Özel Başlık' ? 'block' : 'none';
+                console.log('Video türü değiştirildi:', this.value);
+            });
+        }
+
+        function addEpisode(episodeList, episodeNumber = 1) {
+            console.log('Bölüm ekleniyor, bölüm numarası:', episodeNumber);
+            const episodeDiv = document.createElement('div');
+            episodeDiv.className = 'episode-entry';
+            episodeDiv.innerHTML = `
+                <input type="number" class="episode-number" placeholder="Bölüm (örn: ${episodeNumber})" value="${episodeNumber}" min="1" required>
+                <div class="video-source-list" style="grid-column: span 2;"></div>
+                <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
+                <button type="button" class="remove-episode">Bölüm Kaldır</button>
+                <span class="validation-message episode-error"></span>
+            `;
+            episodeList.appendChild(episodeDiv);
+
+            const videoList = episodeDiv.querySelector('.video-source-list');
+            addVideoSource(videoList, getDefaultVideoType());
+
+            episodeDiv.querySelector('.remove-episode').addEventListener('click', () => {
+                console.log('Bölüm kaldırılıyor');
+                episodeDiv.remove();
+            });
+
+            episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', () => {
+                console.log('Bölüm için video kaynağı ekleniyor');
+                addVideoSource(videoList, getDefaultVideoType());
+            });
+        }
+
+        function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1) {
+            console.log('Sezon ekleniyor, sezon numarası:', seasonNumber);
+            const seasonList = document.getElementById('season-list');
+            const seasonDiv = document.createElement('div');
+            seasonDiv.className = 'season-container';
+            seasonDiv.innerHTML = `
+                <h3>Sezon ${seasonNumber}</h3>
+                <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
+                <span class="validation-message season-error"></span>
+                <div class="episode-list"></div>
+                <button type="button" class="add-episode-btn">Bölüm Ekle</button>
+                <button type="button" class="remove-season">Sezonu Kaldır</button>
+            `;
+            seasonList.appendChild(seasonDiv);
+
+            const episodeList = seasonDiv.querySelector('.episode-list');
+            addEpisode(episodeList, 1);
+
+            seasonDiv.querySelector('.remove-season').addEventListener('click', () => {
+                console.log('Sezon kaldırılıyor');
+                seasonDiv.remove();
+                updateSeasonNumbers();
+            });
+
+            seasonDiv.querySelector('.add-episode-btn').addEventListener('click', () => {
+                const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
+                console.log('Yeni bölüm ekleniyor, bölüm numarası:', episodeCount);
+                addEpisode(episodeList, episodeCount);
+            });
+        }
+
+        function updateSeasonNumbers() {
+            console.log('Sezon numaraları güncelleniyor');
+            const seasons = document.querySelectorAll('.season-container');
+            seasons.forEach((season, index) => {
+                const seasonNumber = index + 1;
+                season.querySelector('h3').textContent = `Sezon ${seasonNumber}`;
+                season.querySelector('.season-number').value = seasonNumber;
+            });
+        }
+
+        function getDefaultVideoType() {
+            console.log('Varsayılan video türü belirleniyor');
+            const languages = document.getElementById('movie-language').value
+                .split(',')
+                .map(s => s.trim().toLowerCase())
+                .filter(s => s);
+            if (languages.includes('yerli')) {
+                return 'Yerli';
+            } else if (languages.includes('dublaj')) {
+                return 'Dublaj';
+            } else if (languages.includes('altyazı')) {
+                return 'Altyazı';
+            } else if (languages.includes('türkçe dublaj') || languages.includes('türkçe altyazı')) {
+                return 'Türkçe Dublaj & Altyazı';
+            } else if (languages.length > 0) {
+                return 'Diğer';
+            }
+            return 'Dublaj';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('Sayfa yüklendi, admin durumu kontrol ediliyor');
             checkAdminStatus();
 
             const burgerMenu = document.getElementById('burger-menu');
             const navContainer = document.getElementById('nav-container');
             burgerMenu.addEventListener('click', () => {
+                console.log('Burger menü tıklandı');
                 navContainer.classList.toggle('active');
             });
 
-            document.getElementById('add-genre-btn').addEventListener('click', addGenre);
+            document.getElementById('add-genre-btn').addEventListener('click', () => {
+                console.log('Tür ekle butonuna tıklandı');
+                addGenre();
+            });
 
             const inputs = document.querySelectorAll('#movie-form input, #movie-form textarea, #movie-form select');
             inputs.forEach(input => {
                 input.addEventListener('input', () => {
+                    console.log('Form girdisi değişti:', input.id);
                     validateForm();
                     updatePreview();
                 });
             });
 
             document.getElementById('movie-type').addEventListener('change', function() {
+                console.log('Film/Dizi türü değiştirildi:', this.value);
                 const episodesSection = document.getElementById('episodes-section');
                 const runtimeSection = document.getElementById('runtime-section');
                 const videoSourcesSection = document.getElementById('video-sources-section');
@@ -869,57 +1121,26 @@
                 if (this.value === 'dizi') {
                     document.getElementById('movie-runtime').value = '';
                     document.getElementById('video-source-list').innerHTML = '';
+                    document.getElementById('season-list').innerHTML = '';
                     addSeason();
                 } else {
                     document.getElementById('season-list').innerHTML = '';
                 }
+                updatePreview();
             });
 
-            function getDefaultVideoType() {
-                const languages = document.getElementById('movie-language').value
-                    .split(',')
-                    .map(s => s.trim().toLowerCase())
-                    .filter(s => s);
-                if (languages.includes('yerli')) {
-                    return 'Yerli';
-                } else if (languages.includes('dublaj')) {
-                    return 'Dublaj';
-                } else if (languages.includes('altyazı')) {
-                    return 'Altyazı';
-                } else if (languages.includes('türkçe dublaj') || languages.includes('türkçe altyazı')) {
-                    return 'Türkçe Dublaj & Altyazı';
-                } else if (languages.length > 0) {
-                    return 'Diğer';
-                }
-                return 'Dublaj';
-            }
+            document.getElementById('add-video-btn').addEventListener('click', () => {
+                console.log('Video kaynağı ekle butonuna tıklandı');
+                addVideoSource(document.getElementById('video-source-list'), getDefaultVideoType());
+            });
 
-            document.getElementById('add-video-btn').addEventListener('click', function() {
-                const videoList = document.getElementById('video-source-list');
-                const videoDiv = document.createElement('div');
-                videoDiv.className = 'video-source-entry';
-                const defaultType = getDefaultVideoType();
-                videoDiv.innerHTML = `
-                    <select class="video-type-select">
-                        <option value="Dublaj" ${defaultType === 'Dublaj' ? 'selected' : ''}>Dublaj</option>
-                        <option value="Altyazı" ${defaultType === 'Altyazı' ? 'selected' : ''}>Altyazı</option>
-                        <option value="Türkçe Dublaj & Altyazı" ${defaultType === 'Türkçe Dublaj & Altyazı' ? 'selected' : ''}>Türkçe Dublaj & Altyazı</option>
-                        <option value="Yerli" ${defaultType === 'Yerli' ? 'selected' : ''}>Yerli</option>
-                        <option value="Özel Başlık" ${defaultType === 'Özel Başlık' ? 'selected' : ''}>Özel Başlık</option>
-                        <option value="Diğer" ${defaultType === 'Diğer' ? 'selected' : ''}>Diğer (özel tür girin)</option>
-                    </select>
-                    <input type="text" class="video-type-custom" placeholder="Özel tür veya başlık">
-                    <input type="url" class="video-src" placeholder="Video URL (örn: https://ornek.com/video.mp4)" required>
-                    <button type="button" class="remove-video">Kaldır</button>
-                    <span class="validation-message video-error"></span>
-                `;
-                videoList.appendChild(videoDiv);
-                videoDiv.querySelector('.remove-video').addEventListener('click', function() {
-                    videoDiv.remove();
-                });
+            document.getElementById('add-season-btn').addEventListener('click', () => {
+                console.log('Yeni sezon ekle butonuna tıklandı');
+                addSeason();
             });
 
             document.getElementById('movie-language').addEventListener('input', function() {
+                console.log('Dil alanı değiştirildi:', this.value);
                 const videoSources = document.querySelectorAll('.video-source-entry');
                 const defaultType = getDefaultVideoType();
                 videoSources.forEach(entry => {
@@ -929,84 +1150,8 @@
                     }
                 });
             });
-
-            function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1) {
-                const seasonList = document.getElementById('season-list');
-                const seasonDiv = document.createElement('div');
-                seasonDiv.className = 'season-container';
-                seasonDiv.innerHTML = `
-                    <h3>Sezon ${seasonNumber}</h3>
-                    <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
-                    <span class="validation-message season-error"></span>
-                    <div class="episode-list"></div>
-                    <button type="button" class="add-episode-btn">Bölüm Ekle</button>
-                    <button type="button" class="remove-season">Sezonu Kaldır</button>
-                `;
-                seasonList.appendChild(seasonDiv);
-
-                seasonDiv.querySelector('.remove-season').addEventListener('click', function() {
-                    seasonDiv.remove();
-                    updateSeasonNumbers();
-                });
-
-                seasonDiv.querySelector('.add-episode-btn').addEventListener('click', function() {
-                    const episodeList = seasonDiv.querySelector('.episode-list');
-                    const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
-                    const episodeDiv = document.createElement('div');
-                    episodeDiv.className = 'episode-entry';
-                    episodeDiv.innerHTML = `
-                        <input type="number" class="episode-number" placeholder="Bölüm (örn: ${episodeCount})" value="${episodeCount}" min="1" required>
-                        <div class="video-source-list" style="grid-column: span 2;"></div>
-                        <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
-                        <button type="button" class="remove-episode">Bölüm Kaldır</button>
-                        <span class="validation-message episode-error"></span>
-                    `;
-                    episodeList.appendChild(episodeDiv);
-
-                    episodeDiv.querySelector('.remove-episode').addEventListener('click', function() {
-                        episodeDiv.remove();
-                    });
-
-                    episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', function() {
-                        const videoList = episodeDiv.querySelector('.video-source-list');
-                        const videoDiv = document.createElement('div');
-                        videoDiv.className = 'video-source-entry';
-                        const defaultType = getDefaultVideoType();
-                        videoDiv.innerHTML = `
-                            <select class="video-type-select">
-                                <option value="Dublaj" ${defaultType === 'Dublaj' ? 'selected' : ''}>Dublaj</option>
-                                <option value="Altyazı" ${defaultType === 'Altyazı' ? 'selected' : ''}>Altyazı</option>
-                                <option value="Türkçe Dublaj & Altyazı" ${defaultType === 'Türkçe Dublaj & Altyazı' ? 'selected' : ''}>Türkçe Dublaj & Altyazı</option>
-                                <option value="Yerli" ${defaultType === 'Yerli' ? 'selected' : ''}>Yerli</option>
-                                <option value="Özel Başlık" ${defaultType === 'Özel Başlık' ? 'selected' : ''}>Özel Başlık</option>
-                                <option value="Diğer" ${defaultType === 'Diğer' ? 'selected' : ''}>Diğer (özel tür girin)</option>
-                            </select>
-                            <input type="text" class="video-type-custom" placeholder="Özel tür veya başlık">
-                            <input type="url" class="video-src" placeholder="Video URL (örn: https://ornek.com/video.mp4)" required>
-                            <button type="button" class="remove-video">Kaldır</button>
-                            <span class="validation-message video-error"></span>
-                        `;
-                        videoList.appendChild(videoDiv);
-                        videoDiv.querySelector('.remove-video').addEventListener('click', function() {
-                            videoDiv.remove();
-                        });
-                    });
-                });
-            }
-
-            document.getElementById('add-season-btn').addEventListener('click', function() {
-                addSeason();
-            });
-
-            function updateSeasonNumbers() {
-                const seasons = document.querySelectorAll('.season-container');
-                seasons.forEach((season, index) => {
-                    const seasonNumber = index + 1;
-                    season.querySelector('h3').textContent = `Sezon ${seasonNumber}`;
-                    season.querySelector('.season-number').value = seasonNumber;
-                });
-            }
         });
     </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'933e6b88ad88afa4',t:'MTc0NTI1NDY0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
