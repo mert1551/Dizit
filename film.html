@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>İçerik İzle - DİZİT</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="film.css">
+    <link rel="stylesheet" href="/style.css?v=1">
+    <link rel="stylesheet" href="/film.css?v=1">
 </head>
 <body>
     <header id="header">
-        <a href="index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="Film veya dizi ara...">
@@ -22,10 +22,10 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="index.html" class="home-link">Anasayfa</a></li>
-                <li><a href="filmler.html?type=film">Filmler</a></li>
-                <li><a href="diziler.html?type=dizi">Diziler</a></li>
-                <li><a href="arama/film-dizi-arama.html">Detaylı Arama</a></li>
+                <li><a href="/" class="home-link">Anasayfa</a></li>
+                <li><a href="/filmler.html?type=film">Filmler</a></li>
+                <li><a href="/diziler.html?type=dizi">Diziler</a></li>
+                <li><a href="/arama/film-dizi-arama.html">Detaylı Arama</a></li>
             </ul>
             <div class="auth-buttons" id="auth-buttons">
                 <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
@@ -384,11 +384,15 @@
             isLoggedIn = false;
             currentUser = null;
             updateAuthUI();
-            window.location.href = 'index.html';
+            window.location.href = '/';
         }
 
-        function getMovieIdFromUrl() {
-            return new URLSearchParams(window.location.search).get('id');
+        function getMovieIdFromDynamicUrl() {
+            const match = window.location.pathname.match(/^\/film\/([^\/]+)/);
+            if (match) {
+                return match[1];
+            }
+            return null;
         }
 
         async function fetchMovieById(id) {
@@ -412,8 +416,8 @@
                     <i class="fas fa-exclamation-circle error-icon"></i>
                     <h2>Üzgünüz, İçerik Bulunamadı</h2>
                     <p>Aradığınız içerik arşivimizde bulunmamıştır.</p>
-                    <a href="index.html" class="home-button">Ana Sayfaya Dön</a>
-                    <p>Veya<br> <a href="istek-form/request-complaint.html" class="home-button">İstekte Bulunun</a></p>
+                    <a href="/" class="home-button">Ana Sayfaya Dön</a>
+                    <p>Veya<br> <a href="/istek-form/request-complaint.html" class="home-button">İstekte Bulunun</a></p>
                 </div>
             `;
             document.getElementById('player-container').style.display = 'none';
@@ -471,11 +475,11 @@
                     const langDiv = document.createElement('div');
                     langDiv.className = 'film-language';
                     if (lang === "Türkçe Dublaj") {
-                        langDiv.innerHTML = `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj`;
+                        langDiv.innerHTML = `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj`;
                     } else if (lang === "Türkçe Altyazı") {
                         langDiv.innerHTML = `<i class="fas fa-closed-captioning"></i> Altyazı`;
                     } else if (lang === "Yerli") {
-                        langDiv.innerHTML = `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli`;
+                        langDiv.innerHTML = `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli`;
                     } else {
                         langDiv.textContent = lang;
                     }
@@ -578,11 +582,11 @@
                     const btn = document.createElement('button');
                     btn.className = `video-option-btn ${index === 0 ? 'active' : ''}`;
                     if (src.type.includes("Dublaj") && src.type.includes("Altyazı")) {
-                        btn.innerHTML = `<span class="icon-left"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"><i class="fas fa-closed-captioning"></i></span> Dublaj ve Altyazı`;
+                        btn.innerHTML = `<span class="icon-left"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"><i class="fas fa-closed-captioning"></i></span> Dublaj ve Altyazı`;
                     } else {
-                        btn.innerHTML = src.type.includes("Dublaj") ? `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj` :
+                        btn.innerHTML = src.type.includes("Dublaj") ? `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj` :
                                         src.type.includes("Altyazı") ? `<i class="fas fa-closed-captioning"></i> Altyazı` :
-                                        src.type.includes("Yerli") ? `<img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli` : src.type;
+                                        src.type.includes("Yerli") ? `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli` : src.type;
                     }
                     btn.onclick = () => {
                         document.querySelectorAll('.video-option-btn').forEach(b => b.classList.remove('active'));
@@ -749,7 +753,6 @@
 
         async function displaySimilarMovies(currentMovie) {
             const container = document.getElementById('similar-movies');
-            const similarMoviesContainer = document.getElementById('similar-movies-container');
             container.innerHTML = `
                 <h2 class="section-title">Benzer ${currentMovie.type === 'film' ? 'Filmler' : 'Diziler'}</h2>
                 <div class="poster-slider" id="similar-slider">
@@ -786,9 +789,9 @@
             const container = document.getElementById(containerId);
             container.innerHTML = '';
             items.forEach(item => {
-                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
-                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
-                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
+                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
+                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
+                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
                              item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
                 const card = document.createElement('div');
                 card.className = 'slider-item';
@@ -805,7 +808,7 @@
                         </div>
                     </div>
                 `;
-                card.onclick = () => window.location.href = `film.html?id=${item.id}`;
+                card.onclick = () => window.location.href = `/film/${item.id}`;
                 container.appendChild(card);
             });
 
@@ -912,7 +915,7 @@
                         <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
                     </div>
                 `;
-                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
+                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `/dizi/${item.id}/sezon-1/bolum-1` : `/film/${item.id}`;
                 searchResults.appendChild(itemEl);
             });
         }
@@ -931,9 +934,9 @@
             relatedSeriesContainer.innerHTML = '';
 
             movie.relatedSeriesDetails.forEach(item => {
-                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
-                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
-                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
+                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
+                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
+                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
                              item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
                 const card = document.createElement('div');
                 card.className = 'slider-item';
@@ -950,7 +953,7 @@
                         </div>
                     </div>
                 `;
-                card.onclick = () => window.location.href = `film.html?id=${item.id}`;
+                card.onclick = () => window.location.href = `/film/${item.id}`;
                 relatedSeriesContainer.appendChild(card);
             });
 
@@ -960,8 +963,14 @@
         async function init() {
             await fetchApiUrl();
             await checkAuth();
-            const movieId = getMovieIdFromUrl();
+            let movieId = getMovieIdFromDynamicUrl();
             if (!movieId) {
+                const urlParams = new URLSearchParams(window.location.search);
+                movieId = urlParams.get('id');
+                if (movieId) {
+                    window.location.replace(`/film/${movieId}`);
+                    return;
+                }
                 displayErrorPage();
                 return;
             }
@@ -1017,6 +1026,6 @@
 
         init();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'933c20bddde3ed88',t:'MTc0NTIzMDYwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'933c20bddde3ed88',t:'MTc0NTIzMDYwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
