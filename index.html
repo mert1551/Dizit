@@ -201,7 +201,7 @@
                 return false;
             }
             try {
-                const res = await fetch('http://localhost:3000/api/verify-token', {
+                const res = await fetch('${API_URL}/api/verify-token', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -300,7 +300,7 @@
             const errorEl = document.getElementById('login-error');
             try {
                 console.log('Giriş denemesi:', { username });
-                const res = await fetch('http://localhost:3000/api/login', {
+                const res = await fetch('${API_URL}/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -350,14 +350,14 @@
                 return;
             }
             try {
-                const res = await fetch('http://localhost:3000/api/register', {
+                const res = await fetch('${API_URL}/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, email, password })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    const loginRes = await fetch('http://localhost:3000/api/login', {
+                    const loginRes = await fetch('${API_URL}/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ username, password })
@@ -388,7 +388,7 @@
             const errorEl = document.getElementById('forgot-error');
             const successEl = document.getElementById('forgot-success');
             try {
-                const res = await fetch('http://localhost:3000/api/forgot-password', {
+                const res = await fetch('${API_URL}/api/forgot-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -490,7 +490,7 @@
         async function fetchMovies() {
             try {
                 console.log('Fetching movies...');
-                const response = await fetch('http://localhost:3000/api/movies');
+                const response = await fetch('${API_URL}/api/movies');
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
