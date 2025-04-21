@@ -135,6 +135,20 @@
         let isLoggedIn = !!localStorage.getItem('token');
         let currentUser = localStorage.getItem('username') || null;
         let seriesCache = null;
+        let apiUrl = '';
+
+        // API URL'sini dinamik olarak al
+        async function fetchApiUrl() {
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                apiUrl = data.apiUrl;
+                console.log('API URL alındı:', apiUrl);
+            } catch (error) {
+                console.error('API URL alınamadı:', error);
+                apiUrl = 'http://localhost:3000'; // Fallback URL
+            }
+        }
 
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -159,7 +173,7 @@
                 return false;
             }
             try {
-                const res = await fetch('http://localhost:3000/api/verify-token', {
+                const res = await fetch('${apiUrl}/api/verify-token', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -257,7 +271,7 @@ async function handleLogin(event) {
     const password = document.getElementById('login-password').value;
     const errorEl = document.getElementById('login-error');
     try {
-        const res = await fetch('http://localhost:3000/api/login', {
+        const res = await fetch('${apiUrl}/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -304,14 +318,14 @@ async function handleSignup(event) {
         return;
     }
     try {
-        const res = await fetch('http://localhost:3000/api/register', {
+        const res = await fetch('${apiUrl}/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, email, password })
         });
         const data = await res.json();
         if (res.ok) {
-            const loginRes = await fetch('http://localhost:3000/api/login', {
+            const loginRes = await fetch('${apiUrl}/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
@@ -342,7 +356,7 @@ async function handleForgotPassword(event) {
     const errorEl = document.getElementById('forgot-error');
     const successEl = document.getElementById('forgot-success');
     try {
-        const res = await fetch('http://localhost:3000/api/forgot-password', {
+        const res = await fetch('${apiUrl}/api/forgot-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
@@ -376,7 +390,7 @@ async function handleForgotPassword(event) {
 
         async function fetchSeriesById(id) {
             try {
-                const res = await fetch(`http://localhost:3000/api/movies/${id}`);
+                const res = await fetch(`${apiUrl}/api/movies/${id}`);
                 if (!res.ok) {
                     const errorData = await res.json();
                     throw new Error(errorData.error || 'Dizi bulunamadı');
@@ -510,7 +524,7 @@ async function handleForgotPassword(event) {
 
             if (isLoggedIn) {
     try {
-        const res = await fetch(`http://localhost:3000/api/status/${seriesId}/${seasonNumber}/${episodeNumber}`, {
+        const res = await fetch(`${apiUrl}/api/status/${seriesId}/${seasonNumber}/${episodeNumber}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if (res.ok) {
@@ -522,7 +536,7 @@ async function handleForgotPassword(event) {
             dislikeCount = data.dislikeCount;
         }
 
-        const favRes = await fetch(`http://localhost:3000/api/movie-status/${seriesId}`, {
+        const favRes = await fetch(`${apiUrl}/api/movie-status/${seriesId}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         if (favRes.ok) {
@@ -535,7 +549,7 @@ async function handleForgotPassword(event) {
 
             } else {
                 try {
-                    const res = await fetch(`http://localhost:3000/api/public/status/${seriesId}/${seasonNumber}/${episodeNumber}`);
+                    const res = await fetch(`${apiUrl}/api/public/status/${seriesId}/${seasonNumber}/${episodeNumber}`);
                     if (res.ok) {
                         const data = await res.json();
                         likeCount = data.likeCount;
@@ -611,7 +625,7 @@ async function handleForgotPassword(event) {
                     return;
                 }
                 try {
-                    const res = await fetch('http://localhost:3000/api/like', {
+                    const res = await fetch('${apiUrl}/api/like', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -641,7 +655,7 @@ async function handleForgotPassword(event) {
                     return;
                 }
                 try {
-                    const res = await fetch('http://localhost:3000/api/dislike', {
+                    const res = await fetch('${apiUrl}/api/dislike', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -671,7 +685,7 @@ async function handleForgotPassword(event) {
                     return;
                 }
                 try {
-                    const res = await fetch('http://localhost:3000/api/favorite', {
+                    const res = await fetch('${apiUrl}/api/favorite', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -700,7 +714,7 @@ async function handleForgotPassword(event) {
                     return;
                 }
                 try {
-                    const res = await fetch('http://localhost:3000/api/watched', {
+                    const res = await fetch('${apiUrl}/api/watched', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -783,7 +797,7 @@ async function handleForgotPassword(event) {
             let batchStatus = [];
             if (isLoggedIn) {
                 try {
-                    const res = await fetch('http://localhost:3000/api/batch-status', {
+                    const res = await fetch('${apiUrl}/api/batch-status', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -863,7 +877,7 @@ async function handleForgotPassword(event) {
             try {
                 const token = localStorage.getItem('token');
                 const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-                const res = await fetch(`http://localhost:3000/api/similar/${currentSeries.id}?type=dizi`, { headers });
+                const res = await fetch(`${apiUrl}/api/similar/${currentSeries.id}?type=dizi`, { headers });
                 if (!res.ok) {
                     const errorData = await res.json();
                     throw new Error(errorData.error || 'Benzer diziler alınamadı');
@@ -985,7 +999,7 @@ async function handleForgotPassword(event) {
                 return;
             }
             try {
-                const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+                const res = await fetch(`${apiUrl}/api/search?q=${encodeURIComponent(query)}`);
                 if (!res.ok) throw new Error('Arama başarısız');
                 const data = await res.json();
                 displaySearchResults(data);
@@ -1047,7 +1061,7 @@ async function handleForgotPassword(event) {
                     return;
                 }
                 try {
-                    const res = await fetch(`http://localhost:3000/api/search?q=${encodeURIComponent(query)}`);
+                    const res = await fetch(`${apiUrl}/api/search?q=${encodeURIComponent(query)}`);
                     displaySearchResults(await res.json());
                 } catch (error) {
                     displaySearchResults([]);
