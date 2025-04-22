@@ -116,13 +116,9 @@
         <div class="film-container" id="film-container"></div>
         <section class="player-container" id="player-container"></section>
         <section class="related-series" id="related-series">
-            <h2 class="section-title">Serinin Diğer Filmleri</h2>
-            <div class="poster-slider" id="related-series-slider">
-                <div class="slider-container" id="related-series-container">
-                    <p>Yükleniyor...</p>
-                </div>
-                <button class="slider-prev" id="related-series-prev"><i class="fas fa-chevron-left"></i></button>
-                <button class="slider-next" id="related-series-next"><i class="fas fa-chevron-right"></i></button>
+            <h2 class="related-series-title">Serinin Diğer Filmleri</h2>
+            <div class="related-series-list" id="related-series-list">
+                <p>Yükleniyor...</p>
             </div>
         </section>
         <section class="similar-movies" id="similar-movies"></section>
@@ -172,6 +168,102 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+        // Mobil cihazlarda dinamik parmakla kaydırma
+function enableDynamicTouchSwipe() {
+    const sliderContainer = document.getElementById('similar-movies-container');
+    if (!sliderContainer) return;
+
+    let startX = 0;
+    let scrollLeftStart = 0;
+    let isDragging = false;
+    let velocity = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let animationFrame = null;
+
+    // Touch başlangıcı
+    sliderContainer.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        scrollLeftStart = sliderContainer.scrollLeft;
+        isDragging = true;
+        velocity = 0;
+        lastX = startX;
+        lastTime = Date.now();
+        if (animationFrame) cancelAnimationFrame(animationFrame); // Mevcut animasyonu durdur
+    });
+
+    // Touch hareketi
+    sliderContainer.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault(); // Varsayılan kaydırmayı engelle
+        const x = e.touches[0].clientX;
+        const currentTime = Date.now();
+        const deltaX = x - lastX;
+        const deltaTime = currentTime - lastTime || 1;
+
+        // Hız hesapla (pixel/saniye)
+        velocity = (deltaX / deltaTime) * 1000;
+        lastX = x;
+        lastTime = currentTime;
+
+        const walk = (startX - x) * 2; // Daha hassas kaydırma için katsayı artırıldı
+        sliderContainer.scrollLeft = scrollLeftStart + walk;
+    });
+
+    // Touch sonu (momentum efekti)
+    sliderContainer.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+
+        // Momentum animasyonu
+        const momentum = () => {
+            if (Math.abs(velocity) < 0.1) return; // Hız çok düşükse dur
+            sliderContainer.scrollLeft += velocity * 0.016; // 60fps için çerçeve süresi
+            velocity *= 0.95; // Sürtünme etkisi (yavaşlama)
+            animationFrame = requestAnimationFrame(momentum);
+        };
+
+        animationFrame = requestAnimationFrame(momentum);
+    });
+
+    // Fareyle sürüklemeyi engelle (sadece touch için)
+    sliderContainer.addEventListener('mousedown', (e) => {
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+        }
+    });
+}
+
+// Sayfayı başlatırken dinamik kaydırmayı etkinleştir
+document.addEventListener('DOMContentLoaded', enableDynamicTouchSwipe);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         async function checkAuth() {
             const token = localStorage.getItem('token');
@@ -921,44 +1013,41 @@
         }
 
         async function displayRelatedSeries(movie) {
-            const relatedSeriesSection = document.getElementById('related-series');
-            const relatedSeriesContainer = document.getElementById('related-series-container');
-            const relatedSeriesSlider = document.getElementById('related-series-slider');
+    const relatedSeriesSection = document.getElementById('related-series');
+    const relatedSeriesList = document.getElementById('related-series-list');
 
-            if (!movie.relatedSeriesDetails || movie.relatedSeriesDetails.length === 0) {
-                relatedSeriesSection.style.display = 'none';
-                return;
-            }
+    if (!movie.relatedSeriesDetails || movie.relatedSeriesDetails.length === 0) {
+        relatedSeriesSection.style.display = 'none';
+        return;
+    }
 
-            relatedSeriesSection.style.display = 'block';
-            relatedSeriesContainer.innerHTML = '';
+    relatedSeriesSection.style.display = 'block';
+    relatedSeriesList.innerHTML = '';
 
-            movie.relatedSeriesDetails.forEach(item => {
-                const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
-                             item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
-                             item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
-                             item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
-                const card = document.createElement('div');
-                card.className = 'slider-item';
-                card.innerHTML = `
-                    <div class="poster-wrapper">
-                        <img src="${item.poster || 'https://via.placeholder.com/300x450'}" alt="${item.title}" class="slider-poster">
-                        ${badge}
-                    </div>
-                    <div class="slider-info">
-                        <h3 class="slider-title">${item.title || 'Bilinmeyen İçerik'}</h3>
-                        <div class="slider-meta">
-                            <span>${item.year || 'N/A'}</span>
-                            <div class="imdb-rating"><i class="fas fa-star"></i> ${item.rating || 'N/A'}</div>
-                        </div>
-                    </div>
-                `;
-                card.onclick = () => window.location.href = `/film/${item.id}`;
-                relatedSeriesContainer.appendChild(card);
-            });
+    movie.relatedSeriesDetails.forEach(item => {
+        const isActive = item.id === movie.id; // Şu anda oynatılan film mi?
+        const badge = item.language?.includes("Yerli") ? `<span class="related-series-item-language"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>` :
+                     item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? `<span class="related-series-item-language"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>` :
+                     item.language?.includes("Türkçe Dublaj") ? `<span class="related-series-item-language"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>` :
+                     item.language?.includes("Türkçe Altyazı") ? `<span class="related-series-item-language"><i class="fas fa-closed-captioning"></i> Altyazı</span>` : '';
 
-            initSlider('related-series-container', 'related-series-prev', 'related-series-next');
-        }
+        const card = document.createElement('div');
+        card.className = `related-series-item ${isActive ? 'active' : ''}`;
+        card.innerHTML = `
+            <h3 class="related-series-item-title"><i class="fas fa-film"></i> ${item.title || 'Bilinmeyen İçerik'}</h3>
+            <div class="related-series-item-meta">
+                <span><i class="fas fa-calendar"></i> ${item.year || 'N/A'}</span>
+                <span><i class="fas fa-star"></i> ${item.rating || 'N/A'}</span>
+                ${badge}
+            </div>
+        `;
+        card.onclick = () => {
+            // Seçilen filme yönlendir
+            window.location.href = `/film/${item.id}`;
+        };
+        relatedSeriesList.appendChild(card);
+    });
+}
 
         async function init() {
             await fetchApiUrl();
