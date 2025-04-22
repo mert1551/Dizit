@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const sanitizeHtml = require('sanitize-html');
 
 dotenv.config();
 const app = express();
@@ -27,6 +28,8 @@ mongoose.connect(process.env.MONGO_URI)
 // Modeller
 const User = require('./models/User');
 const Movie = require('./models/Movie');
+const Request = require('./models/Request');
+const BannedUser = require('./models/BannedUser');
 
 // İndeks oluşturma
 Movie.createIndexes({ 
@@ -59,7 +62,29 @@ const authMiddleware = async (req, res, next) => {
             return res.status(500).json({ error: 'Sunucu yapılandırma hatası' });
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log('Token doğrulandı, decoded:', decoded);
+        if (!decoded.userId) {
+            console.error('Token payload\'ında userId eksik');
+            return res.status(401).json({ error: 'Geçersiz token yapısı' });
+        }
+
+        // Kullanıcıyı bul ve tokenVersion ile isBanned kontrolü yap
+        const user = await User.findById(decoded.userId).select('username isBanned tokenVersion');
+        if (!user) {
+            console.log('Kullanıcı bulunamadı:', decoded.userId);
+            return res.status(401).json({ error: 'Kullanıcı bulunamadı' });
+        }
+        if (user.isBanned) {
+            console.log('Yasaklı kullanıcı istek yaptı:', user.username);
+            return res.status(403).json({ error: 'Hesabınız yasaklanmıştır. Lütfen destek ekibiyle iletişime geçin.' });
+        }
+        if (decoded.tokenVersion !== user.tokenVersion) {
+            console.log('Geçersiz token version:', { username: user.username, tokenVersion: decoded.tokenVersion, current: user.tokenVersion });
+            return res.status(401).json({ error: 'Oturumunuz geçersiz. Lütfen yeniden giriş yapın.' });
+        }
+
         req.user = decoded;
+        req.userDocument = user;
         next();
     } catch (error) {
         console.error('Auth middleware hatası:', error.message);
@@ -92,7 +117,205 @@ app.get('/api/config', (req, res) => {
     });
 });
 
-// Kayıt
+// Kullanıcı Detaylarını Getirme
+app.get('/api/users/:username', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { username } = req.params;
+        console.log('Kullanıcı detayları isteniyor:', username);
+        const user = await User.findOne({ username })
+            .select('username email isAdmin isBanned loginAttempts lockUntil likes favorites')
+            .lean();
+        if (!user) {
+            console.log('Kullanıcı bulunamadı:', username);
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+        console.log('Kullanıcı detayları gönderildi:', username);
+        res.json(user);
+    } catch (error) {
+        console.error('Kullanıcı detayları getirme hatası:', error.message);
+        res.status(500).json({ error: 'Kullanıcı detayları getirilirken bir hata oluştu' });
+    }
+});
+
+// İstek/Şikayet Formu Gönderimi (Giriş zorunlu)
+app.post('/api/requests', authMiddleware, async (req, res) => {
+    try {
+        const { type, title, message } = req.body;
+        if (!type || !title || !message) {
+            return res.status(400).json({ error: 'Tüm alanlar zorunludur' });
+        }
+        const sanitizedMessage = sanitizeHtml(message, {
+            allowedTags: [],
+            allowedAttributes: {}
+        });
+        const sanitizedTitle = sanitizeHtml(title, {
+            allowedTags: [],
+            allowedAttributes: {}
+        });
+        const request = new Request({
+            type,
+            userId: req.user.userId,
+            title: sanitizedTitle,
+            messages: [{ sender: 'user', content: sanitizedMessage }]
+        });
+        await request.save();
+        console.log('Yeni istek/şikayet oluşturuldu:', request._id);
+        res.status(201).json({ message: 'Mesajınız başarıyla gönderildi!', requestId: request._id });
+    } catch (error) {
+        console.error('İstek/Şikayet oluşturma hatası:', error.message);
+        res.status(500).json({ error: 'Mesaj gönderilirken bir hata oluştu' });
+    }
+});
+
+// İstek/Şikayet Mesajına Yanıt Verme
+app.post('/api/requests/:id/reply', authMiddleware, async (req, res) => {
+    try {
+        const { message } = req.body;
+        const requestId = req.params.id;
+        if (!message) {
+            return res.status(400).json({ error: 'Yanıt içeriği zorunludur' });
+        }
+        const request = await Request.findById(requestId);
+        if (!request) {
+            return res.status(404).json({ error: 'İstek/şikayet bulunamadı' });
+        }
+        if (request.isClosed) {
+            return res.status(403).json({ error: 'Bu konu kapatılmış, yeni yanıt eklenemez' });
+        }
+        const sanitizedMessage = sanitizeHtml(message, {
+            allowedTags: [],
+            allowedAttributes: {}
+        });
+        const user = await User.findById(req.user.userId);
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+        const sender = user.isAdmin ? 'admin' : 'user';
+        request.messages.push({ sender, content: sanitizedMessage });
+        await request.save();
+        console.log('Yanıt eklendi:', requestId);
+        res.json({ message: 'Yanıtınız başarıyla gönderildi!' });
+    } catch (error) {
+        console.error('Yanıt ekleme hatası:', error.message);
+        res.status(500).json({ error: 'Yanıt gönderilirken bir hata oluştu' });
+    }
+});
+
+// Konu Kapatma (Yalnızca admin)
+app.post('/api/requests/:id/close', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const requestId = req.params.id;
+        const request = await Request.findById(requestId);
+        if (!request) {
+            return res.status(404).json({ error: 'İstek/şikayet bulunamadı' });
+        }
+        if (request.isClosed) {
+            return res.status(400).json({ error: 'Bu konu zaten kapatılmış' });
+        }
+        request.isClosed = true;
+        await request.save();
+        console.log('Konu kapatıldı:', requestId);
+        res.json({ message: 'Konu başarıyla kapatıldı' });
+    } catch (error) {
+        console.error('Konu kapatma hatası:', error.message);
+        res.status(500).json({ error: 'Konu kapatılırken bir hata oluştu' });
+    }
+});
+
+// Kullanıcı Admin Yapma/Kaldırma
+app.put('/api/users/:username/admin', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { username } = req.params;
+        const { isAdmin } = req.body;
+        console.log('Kullanıcı admin işlemi:', { username, isAdmin });
+        if (typeof isAdmin !== 'boolean') {
+            return res.status(400).json({ error: 'isAdmin değeri boolean olmalı' });
+        }
+        const user = await User.findOne({ username });
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+        if (req.user.username === username && !isAdmin) {
+            return res.status(403).json({ error: 'Kendi yönetici statünüzü kaldıramazsınız' });
+        }
+        user.isAdmin = isAdmin;
+        await user.save();
+        console.log(`Kullanıcı ${isAdmin ? 'yönetici yapıldı' : 'yönetici statüsü kaldırıldı'}:`, username);
+        res.json({ message: `Kullanıcı ${isAdmin ? 'yönetici yapıldı' : 'yönetici statüsü kaldırıldı'}` });
+    } catch (error) {
+        console.error('Kullanıcı admin işlemi hatası:', error.message);
+        res.status(500).json({ error: 'Kullanıcı admin işlemi sırasında bir hata oluştu' });
+    }
+});
+
+// İstek Silme (Yalnızca admin)
+app.delete('/api/requests/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const requestId = req.params.id;
+        const request = await Request.findById(requestId);
+        if (!request) {
+            return res.status(404).json({ error: 'İstek/şikayet bulunamadı' });
+        }
+        await Request.deleteOne({ _id: requestId });
+        console.log('İstek silindi:', requestId);
+        res.json({ message: 'İstek başarıyla silindi' });
+    } catch (error) {
+        console.error('İstek silme hatası:', error.message);
+        res.status(500).json({ error: 'İstek silinirken bir hata oluştu' });
+    }
+});
+
+// Konu Yeniden Açma (Yalnızca admin)
+app.post('/api/requests/:id/reopen', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const requestId = req.params.id;
+        const request = await Request.findById(requestId);
+        if (!request) {
+            return res.status(404).json({ error: 'İstek/şikayet bulunamadı' });
+        }
+        if (!request.isClosed) {
+            return res.status(400).json({ error: 'Bu konu zaten açık' });
+        }
+        request.isClosed = false;
+        await request.save();
+        console.log('Konu yeniden açıldı:', requestId);
+        res.json({ message: 'Konu başarıyla yeniden açıldı' });
+    } catch (error) {
+        console.error('Konu yeniden açma hatası:', error.message);
+        res.status(500).json({ error: 'Konu yeniden açılırken bir hata oluştu' });
+    }
+});
+
+// Kullanıcının İstek/Şikayetlerini Listeleme
+app.get('/api/requests/user', authMiddleware, async (req, res) => {
+    try {
+        const requests = await Request.find({ userId: req.user.userId })
+            .sort({ createdAt: -1 })
+            .lean();
+        console.log('Kullanıcı istek/şikayetleri listelendi');
+        res.json(requests);
+    } catch (error) {
+        console.error('Kullanıcı istek/şikayet listeleme hatası:', error.message);
+        res.status(500).json({ error: 'İstek/şikayet listeleme sırasında bir hata oluştu' });
+    }
+});
+
+// Admin: Tüm İstek/Şikayetleri Listeleme
+app.get('/api/requests', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const requests = await Request.find()
+            .populate('userId', 'username email')
+            .sort({ createdAt: -1 })
+            .lean();
+        console.log('Tüm istek/şikayetler listelendi');
+        res.json(requests);
+    } catch (error) {
+        console.error('İstek/Şikayet listeleme hatası:', error.message);
+        res.status(500).json({ error: 'İstek/şikayet listeleme sırasında bir hata oluştu' });
+    }
+});
+
+// Kayıt endpoint'inde yasaklı kullanıcı kontrolü
 app.post('/api/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -105,6 +328,10 @@ app.post('/api/register', async (req, res) => {
         }
         if (!/^\S+@\S+\.\S+$/.test(email)) {
             return res.status(400).json({ error: 'Geçerli bir e-posta adresi girin' });
+        }
+        const bannedUser = await BannedUser.findOne({ $or: [{ username }, { email }] });
+        if (bannedUser) {
+            return res.status(400).json({ error: 'Bu kullanıcı adı veya e-posta yasaklanmıştır ve tekrar kullanılamaz' });
         }
         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
         if (existingUser) {
@@ -134,24 +361,37 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        console.log('Giriş isteği:', { username, password: '[HIDDEN]' });
+        console.log('Giriş isteği alındı:', { username, password: '[HIDDEN]' });
+        
         if (!username || !password) {
+            console.log('Eksik giriş bilgileri:', { username, password });
             return res.status(400).json({ error: 'Kullanıcı adı ve parola zorunlu' });
         }
-        const user = await User.findOne({ username });
+
+        const user = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' } });
         if (!user) {
             console.log('Kullanıcı bulunamadı:', username);
             return res.status(401).json({ error: 'Kullanıcı adı veya parola yanlış' });
         }
+        console.log('Kullanıcı bulundu:', { username, isBanned: user.isBanned, tokenVersion: user.tokenVersion });
+
         if (user.isBanned) {
-            console.log('Kullanıcı yasaklı:', username);
+            console.log('Yasaklı kullanıcı giriş denemesi:', username);
             return res.status(403).json({ error: 'Hesabınız yasaklanmıştır. Lütfen destek ekibiyle iletişime geçin.' });
         }
+
+        const bannedUser = await BannedUser.findOne({ username: user.username });
+        if (bannedUser) {
+            console.log('BannedUser kaydı bulundu:', username);
+            return res.status(403).json({ error: 'Hesabınız yasaklanmıştır ve giriş yapamazsınız.' });
+        }
+
         if (user.lockUntil && user.lockUntil > new Date()) {
             const minutesLeft = Math.ceil((user.lockUntil - new Date()) / 60000);
-            console.log('Hesap kilitli:', username);
+            console.log('Hesap kilitli:', { username, minutesLeft });
             return res.status(403).json({ error: `Hesap kilitli. ${minutesLeft} dakika sonra tekrar deneyin.` });
         }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             user.loginAttempts = (user.loginAttempts || 0) + 1;
@@ -164,6 +404,7 @@ app.post('/api/login', async (req, res) => {
             console.log('Parola eşleşmedi:', username);
             return res.status(401).json({ error: 'Kullanıcı adı veya parola yanlış' });
         }
+
         user.loginAttempts = 0;
         user.lockUntil = null;
         await user.save();
@@ -171,8 +412,12 @@ app.post('/api/login', async (req, res) => {
             console.error('JWT_SECRET tanımlı değil');
             return res.status(500).json({ error: 'Sunucu yapılandırma hatası' });
         }
-        const token = jwt.sign({ userId: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        console.log('Giriş başarılı:', username, 'isAdmin:', user.isAdmin);
+        const token = jwt.sign(
+            { userId: user._id, username: user.username, tokenVersion: user.tokenVersion || 0 },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+        console.log('Giriş başarılı:', { username, isAdmin: user.isAdmin, tokenVersion: user.tokenVersion });
         res.json({ 
             token, 
             username: user.username, 
@@ -208,12 +453,45 @@ app.post('/api/forgot-password', async (req, res) => {
             to: email,
             subject: 'DİZİT Şifre Sıfırlama',
             html: `
-                <p>Merhaba ${user.username},</p>
-                <p>Şifrenizi sıfırlamak için aşağıdaki bağlantıya tıklayın:</p>
-                <a href="${resetUrl}">${resetUrl}</a>
-                <p>Bu bağlantı 1 saat boyunca geçerlidir.</p>
-                <p>Eğer bu isteği siz yapmadıysanız, lütfen bu e-postayı dikkate almayın.</p>
-                <p>DİZİT Ekibi</p>
+                <!DOCTYPE html>
+                <html lang="tr">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Şifre Sıfırlama</title>
+                </head>
+                <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121212; color: #ffffff;">
+                    <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 20px auto; background-color: #1e1e1e; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);">
+                        <!-- Header -->
+                        <tr>
+                            <td style="background-color: #252525; padding: 20px; text-align: center;">
+                                <img src="https://via.placeholder.com/150x50?text=D%C4%B0Z%C4%B0T+Logo" alt="DİZİT Logo" style="max-width: 150px; height: auto;">
+                            </td>
+                        </tr>
+                        <!-- Content -->
+                        <tr>
+                            <td style="padding: 30px; text-align: center;">
+                                <h1 style="font-size: 24px; margin: 0 0 20px; color: #ffffff;">Şifrenizi Sıfırlayın</h1>
+                                <p style="font-size: 16px; line-height: 1.5; margin: 0 0 20px; color: #aaaaaa;">Merhaba ${user.username},</p>
+                                <p style="font-size: 16px; line-height: 1.5; margin: 0 0 20px; color: #aaaaaa;">Şifrenizi sıfırlamak için aşağıdaki butona tıklayın. Bu bağlantı 10 dakika boyunca geçerlidir.</p>
+                                <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #ffcc00; color: #121212; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 5px; transition: background-color 0.3s;">Şifreyi Sıfırla</a>
+                                <p style="font-size: 14px; color: #aaaaaa; margin-top: 20px;">Eğer bu isteği siz yapmadıysanız, lütfen bu e-postayı dikkate almayın.</p>
+                            </td>
+                        </tr>
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #252525; padding: 20px; text-align: center; font-size: 12px; color: #aaaaaa;">
+                                <p style="margin: 0 0 10px;">DİZİT Ekibi</p>
+                                <p style="margin: 0;">
+                                    <a href="${process.env.API_URL}" style="color: #ffcc00; text-decoration: none;">dizit.com</a> | 
+                                    <a href="mailto:destek@dizit.com" style="color: #ffcc00; text-decoration: none;">destek@dizit.com</a>
+                                </p>
+                                <p style="margin: 10px 0 0;">© ${new Date().getFullYear()} DİZİT. Tüm hakları saklıdır.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
             `
         });
 
@@ -270,27 +548,62 @@ app.get('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
 
 // Kullanıcıyı Yasaklama/Yasağı Kaldırma
 app.put('/api/users/:username/ban', authMiddleware, adminMiddleware, async (req, res) => {
+    const { username } = req.params;
+    const { isBanned } = req.body;
+
     try {
-        const { username } = req.params;
-        const { isBanned } = req.body;
-        console.log('Kullanıcı ban işlemi:', { username, isBanned });
         if (typeof isBanned !== 'boolean') {
             return res.status(400).json({ error: 'isBanned değeri boolean olmalı' });
         }
+
         const user = await User.findOne({ username });
         if (!user) {
             return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
         }
+
         if (user.isAdmin && isBanned) {
-            return res.status(403).json({ error: 'Yönetici kullanıcılar yasaklanamaz' });
+            return res.status(400).json({ error: 'Yönetici kullanıcılar yasaklanamaz' });
         }
-        user.isBanned = isBanned;
+
+        if (isBanned === user.isBanned) {
+            return res.status(400).json({ error: `Kullanıcı zaten ${isBanned ? 'yasaklı' : 'yasaklı değil'}` });
+        }
+
+        if (isBanned) {
+            user.isBanned = true;
+            user.likes = [];
+            user.dislikes = [];
+            user.watched = [];
+            user.favorites = [];
+            user.tokenVersion = (user.tokenVersion || 0) + 1;
+
+            // Önceki BannedUser kaydını sil ve yenisini oluştur
+            await BannedUser.deleteOne({ username });
+            const bannedUser = new BannedUser({ username, email: user.email });
+            await bannedUser.save();
+        } else {
+            user.isBanned = false;
+            user.tokenVersion = (user.tokenVersion || 0) + 1;
+            await BannedUser.deleteOne({ username });
+        }
+
         await user.save();
-        console.log(`Kullanıcı ${isBanned ? 'yasaklandı' : 'yasağı kaldırıldı'}:`, username);
-        res.json({ message: `Kullanıcı ${isBanned ? 'yasaklandı' : 'yasağı kaldırıldı'}` });
+
+        // Güncellenmiş kullanıcı verisini döndür
+        const updatedUser = await User.findOne({ username })
+            .select('username email isAdmin isBanned loginAttempts lockUntil likes favorites')
+            .lean();
+
+        return res.status(200).json({
+            message: isBanned ? 'Kullanıcı başarıyla yasaklandı' : 'Kullanıcı yasağı başarıyla kaldırıldı',
+            user: updatedUser
+        });
     } catch (error) {
-        console.error('Kullanıcı ban hatası:', error.message);
-        res.status(500).json({ error: 'Kullanıcı ban işlemi sırasında bir hata oluştu' });
+        console.error('Yasaklama hatası:', error);
+        if (error.code === 11000) {
+            return res.status(400).json({ error: 'Kullanıcı zaten yasaklı (tekrarlanan kayıt)' });
+        }
+        return res.status(500).json({ error: 'Sunucu hatası: ' + error.message });
     }
 });
 
@@ -323,7 +636,7 @@ app.post('/api/movies', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const movieData = req.body;
         console.log('Gelen movieData:', movieData);
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(movieData.id)) {
+        if (!/^[a-zA-Z0-9-$]{3,20}$/.test(movieData.id)) {
             return res.status(400).json({ error: 'ID 3-20 karakter olmalı, sadece harf ve sayı içermeli' });
         }
         const existingMovie = await Movie.findOne({ id: movieData.id });
@@ -405,7 +718,7 @@ app.put('/api/movies/:id', authMiddleware, adminMiddleware, async (req, res) => 
     try {
         const movieData = req.body;
         console.log('Güncelleme isteği:', movieData.id);
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(movieData.id)) {
+        if (!/^[a-zA-Z0-9-$]{3,20}$/.test(movieData.id)) {
             return res.status(400).json({ error: 'ID 3-20 karakter olmalı, sadece harf ve sayı içermeli' });
         }
         if (movieData.poster && !/^https?:\/\/.+\.(jpg|png|jpeg)$/.test(movieData.poster)) {
@@ -650,8 +963,6 @@ app.get('/api/search', async (req, res) => {
 });
 
 // Akıllı Benzer Diziler
-// Akıllı Benzer Diziler
-// Akıllı Benzer Diziler
 app.get('/api/similar/:id', async (req, res) => {
     try {
         console.time(`similar/${req.params.id}`);
@@ -736,6 +1047,7 @@ app.get('/api/similar/:id', async (req, res) => {
         res.status(500).json({ error: 'Benzer içerikler getirilirken bir hata oluştu' });
     }
 });
+
 // Film Beğenme
 app.post('/api/movie-like', authMiddleware, async (req, res) => {
     try {
@@ -1194,7 +1506,7 @@ app.post('/api/dislike', authMiddleware, async (req, res) => {
         }
         await user.save();
         const totalLikes = await User.countDocuments({
-            likes: +{ $elemMatch: { seriesId, seasonNumber, episodeNumber } }
+            likes: { $elemMatch: { seriesId, seasonNumber, episodeNumber } }
         });
         const totalDislikes = await User.countDocuments({
             dislikes: { $elemMatch: { seriesId, seasonNumber, episodeNumber } }
@@ -1334,6 +1646,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Sunucu ${PORT} portunda çalışıyor`);
 });
+
 // SEO dostu dizi yönlendirmesi
 app.get('/dizi/:id/sezon-:season/bolum-:episode', (req, res) => {
     res.sendFile(path.join(__dirname, '../dizi.html'));
