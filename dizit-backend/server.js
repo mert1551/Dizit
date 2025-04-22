@@ -636,8 +636,8 @@ app.post('/api/movies', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const movieData = req.body;
         console.log('Gelen movieData:', movieData);
-        if (!/^[a-zA-Z0-9-$]{3,20}$/.test(movieData.id)) {
-            return res.status(400).json({ error: 'ID 3-20 karakter olmalı, sadece harf ve sayı içermeli' });
+        if (!/^[a-zA-Z0-9-$]{1,20}$/.test(movieData.id)) {
+            return res.status(400).json({ error: 'ID 1-20 karakter olmalı, sadece harf ve sayı içermeli' });
         }
         const existingMovie = await Movie.findOne({ id: movieData.id });
         if (existingMovie) {
@@ -718,8 +718,8 @@ app.put('/api/movies/:id', authMiddleware, adminMiddleware, async (req, res) => 
     try {
         const movieData = req.body;
         console.log('Güncelleme isteği:', movieData.id);
-        if (!/^[a-zA-Z0-9-$]{3,20}$/.test(movieData.id)) {
-            return res.status(400).json({ error: 'ID 3-20 karakter olmalı, sadece harf ve sayı içermeli' });
+        if (!/^[a-zA-Z0-9-$]{1,20}$/.test(movieData.id)) {
+            return res.status(400).json({ error: 'ID 1-20 karakter olmalı, sadece harf ve sayı içermeli' });
         }
         if (movieData.poster && !/^https?:\/\/.+\.(jpg|png|jpeg)$/.test(movieData.poster)) {
             return res.status(400).json({ error: 'Poster URL’si geçerli bir jpg/png resmi olmalı' });
