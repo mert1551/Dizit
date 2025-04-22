@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
     watched: [{ seriesId: String, seasonNumber: Number, episodeNumber: Number }],
     favorites: [{ seriesId: String, seasonNumber: Number, episodeNumber: Number }],
     loginAttempts: { type: Number, default: 0 },
+    tokenVersion: { type: Number, default: 0 }, 
+    isBanned: { type: Boolean, default: false }, 
     lockUntil: { type: Date, default: null },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date }
