@@ -601,64 +601,69 @@
     const container = document.getElementById(sliderId);
     const prevBtn = document.getElementById(prevBtnId);
     const nextBtn = document.getElementById(nextBtnId);
-    if (!container || !prevBtn || !nextBtn) return;
-    let scrollAmount = 0;
-    const scrollStep = 220;
-
-    // Touch variables
-    let touchStartX = 0;
-    let touchEndX = 0;
     let isDragging = false;
+    let startX = 0;
+    let scrollLeft = 0;
 
+    // Butonları güncelle
     function updateButtons() {
-        prevBtn.style.display = scrollAmount <= 0 ? 'none' : 'block';
-        nextBtn.style.display = scrollAmount >= container.scrollWidth - container.clientWidth - 1 ? 'none' : 'block';
+        prevBtn.style.display = container.scrollLeft <= 0 ? 'none' : 'block';
+        nextBtn.style.display = container.scrollLeft >= container.scrollWidth - container.clientWidth - 1 ? 'none' : 'block';
     }
 
+    // Buton tıklama olayları
+    const scrollStep = 220;
     nextBtn.onclick = () => {
-        scrollAmount = Math.min(scrollAmount + scrollStep, container.scrollWidth - container.clientWidth);
-        container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+        container.scrollTo({
+            left: container.scrollLeft + scrollStep,
+            behavior: 'smooth'
+        });
         setTimeout(updateButtons, 300);
     };
 
     prevBtn.onclick = () => {
-        scrollAmount = Math.max(scrollAmount - scrollStep, 0);
-        container.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+        container.scrollTo({
+            left: container.scrollLeft - scrollStep,
+            behavior: 'smooth'
+        });
         setTimeout(updateButtons, 300);
     };
 
-    container.addEventListener('scroll', () => {
-        scrollAmount = container.scrollLeft;
-        updateButtons();
-    });
-
-    // Touch event listeners
-    container.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
+    // Dokunma başlangıcı
+    container.addEventListener('touchstart', e => {
         isDragging = true;
-        container.style.scrollBehavior = 'auto'; // Disable smooth scrolling during touch
+        startX = e.touches[0].clientX;
+        scrollLeft = container.scrollLeft;
     });
 
-    container.addEventListener('touchmove', (e) => {
+    // Dokunma hareketi
+    container.addEventListener('touchmove', e => {
         if (!isDragging) return;
-        touchEndX = e.touches[0].clientX;
-        const deltaX = touchStartX - touchEndX;
-        container.scrollLeft = scrollAmount + deltaX;
+        e.preventDefault(); // Sayfanın kaymasını engelle
+        const x = e.touches[0].clientX;
+        const deltaX = x - startX;
+        container.scrollLeft = scrollLeft - deltaX;
     });
 
+    // Dokunma bitişi (ivme efekti)
     container.addEventListener('touchend', () => {
-        if (!isDragging) return;
         isDragging = false;
-        scrollAmount = container.scrollLeft;
-        container.style.scrollBehavior = 'smooth'; // Re-enable smooth scrolling
-        updateButtons();
-        // Snap to nearest item
-        const itemWidth = 100; // Adjust based on your slider-item width + margin
-        const snapPosition = Math.round(scrollAmount / itemWidth) * itemWidth;
-        scrollAmount = snapPosition;
-        container.scrollTo({ left: snapPosition, behavior: 'smooth' });
     });
 
+    // Fare tekerleği ile kaydırma
+    container.addEventListener('wheel', e => {
+        e.preventDefault();
+        container.scrollTo({
+            left: container.scrollLeft + e.deltaY * 2,
+            behavior: 'smooth'
+        });
+        setTimeout(updateButtons, 200);
+    });
+
+    // Scroll olayında butonları güncelle
+    container.addEventListener('scroll', updateButtons);
+
+    // İlk yüklemede butonları güncelle
     updateButtons();
 }
 
