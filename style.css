@@ -296,20 +296,25 @@ main {
 
 .slider-container {
     display: flex;
-    gap: 1px;
-    overflow-x: hidden;
+    gap: 15px; /* Öğeler arası boşluk */
+    overflow-x: auto;
     scroll-behavior: smooth;
     padding-bottom: 10px;
+    scroll-snap-type: x mandatory; /* Öğe hizalaması için */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .slider-item {
+    flex: 0 0 auto;
     width: 185px;
     background-color: var(--card-bg);
     border-radius: 5px;
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    flex-shrink: 0;
+    scroll-snap-align: start; /* Öğe hizalaması */
 }
 
 .slider-item:hover {
