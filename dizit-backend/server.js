@@ -31,15 +31,6 @@ const Movie = require('./models/Movie');
 const Request = require('./models/Request');
 const BannedUser = require('./models/BannedUser');
 
-// İndeks oluşturma
-Movie.createIndexes({ 
-    id: 1, 
-    title: 'text', 
-    title2: 'text', 
-    genres: 'text', 
-    type: 1 
-}).then(() => console.log('İndeksler oluşturuldu'));
-
 // Nodemailer yapılandırması
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -669,7 +660,7 @@ app.post('/api/movies', authMiddleware, adminMiddleware, async (req, res) => {
             movieData.videoSrc = [];
         }
         if (movieData.episodes && Array.isArray(movieData.episodes)) {
-            movieData.episodes.forEach((ep, index) => {
+            movieData.episodes = movieData.episodes.map((ep, index) => {
                 if (!ep.seasonNumber || !ep.episodeNumber) {
                     throw new Error(`Geçersiz bölüm: episodes[${index}]`);
                 }
@@ -682,6 +673,20 @@ app.post('/api/movies', authMiddleware, adminMiddleware, async (req, res) => {
                 } else {
                     ep.videoSrc = [];
                 }
+                // addedDate kontrolü
+                let addedDate = ep.addedDate;
+                if (addedDate) {
+                    const parsedDate = new Date(addedDate);
+                    if (isNaN(parsedDate.getTime())) {
+                        console.warn(`Geçersiz addedDate formatı, varsayılan kullanılıyor: episodes[${index}]`, addedDate);
+                        addedDate = new Date();
+                    } else {
+                        addedDate = parsedDate;
+                    }
+                } else {
+                    addedDate = new Date();
+                }
+                return { ...ep, addedDate };
             });
         } else {
             movieData.episodes = [];
@@ -702,7 +707,8 @@ app.post('/api/movies', authMiddleware, adminMiddleware, async (req, res) => {
             relatedSeries: movieData.relatedSeries,
             type: movieData.type,
             episodes: movieData.episodes,
-            season: movieData.season
+            season: movieData.season,
+            premium: movieData.premium || false
         });
         await newMovie.save();
         console.log('Film kaydedildi:', newMovie.id);
@@ -722,7 +728,7 @@ app.put('/api/movies/:id', authMiddleware, adminMiddleware, async (req, res) => 
             return res.status(400).json({ error: 'ID 1-20 karakter olmalı, sadece harf ve sayı içermeli' });
         }
         if (movieData.poster && !/^https?:\/\/.+\.(jpg|png|jpeg)$/.test(movieData.poster)) {
-            return res.status(400).json({ error: 'Poster URL’si geçerli bir jpg/png resmi olmalı' });
+            return res.status(400).json({ error: 'Poster URL’si geçerli birjpg/png resmi olmalı' });
         }
         if (movieData.id !== req.params.id) {
             const existingMovie = await Movie.findOne({ id: movieData.id });
@@ -743,6 +749,39 @@ app.put('/api/movies/:id', authMiddleware, adminMiddleware, async (req, res) => 
         } else {
             movieData.relatedSeries = [];
         }
+        if (movieData.episodes && Array.isArray(movieData.episodes)) {
+            movieData.episodes = movieData.episodes.map((ep, index) => {
+                if (!ep.seasonNumber || !ep.episodeNumber) {
+                    throw new Error(`Geçersiz bölüm: episodes[${index}]`);
+                }
+                if (ep.videoSrc && Array.isArray(ep.videoSrc)) {
+                    ep.videoSrc.forEach((src, srcIndex) => {
+                        if (!src.type || typeof src.type !== 'string' || !src.src || typeof src.src !== 'string' || !/^https?:\/\/.+/.test(src.src)) {
+                            throw new Error(`Geçersiz bölüm video kaynağı: episodes[${index}].videoSrc[${srcIndex}]`);
+                        }
+                    });
+                } else {
+                    ep.videoSrc = [];
+                }
+                // addedDate kontrolü
+                let addedDate = ep.addedDate;
+                if (addedDate) {
+                    // Eğer addedDate gönderilmişse, geçerli bir tarih mi kontrol et
+                    const parsedDate = new Date(addedDate);
+                    if (isNaN(parsedDate.getTime())) {
+                        console.warn(`Geçersiz addedDate formatı, varsayılan kullanılıyor: episodes[${index}]`, addedDate);
+                        addedDate = new Date(); // Geçersizse şu anki tarih
+                    } else {
+                        addedDate = parsedDate; // Geçerliyse kullan
+                    }
+                } else {
+                    addedDate = new Date(); // Yeni bölüm için varsayılan tarih
+                }
+                return { ...ep, addedDate };
+            });
+        } else {
+            movieData.episodes = [];
+        }
         const updatedMovie = await Movie.findOneAndUpdate(
             { id: req.params.id },
             {
@@ -761,7 +800,8 @@ app.put('/api/movies/:id', authMiddleware, adminMiddleware, async (req, res) => 
                 relatedSeries: movieData.relatedSeries,
                 type: movieData.type,
                 episodes: movieData.episodes,
-                season: movieData.season
+                season: movieData.season,
+                premium: movieData.premium || false
             },
             { new: true, runValidators: true }
         );
@@ -869,7 +909,7 @@ app.get('/api/movies/:id', async (req, res) => {
     console.time(`movies/${req.params.id}`);
     try {
         const movie = await Movie.findOne({ id: req.params.id })
-            .select('id title title2 year runtime rating country language genres plot poster videoSrc type episodes season relatedSeries')
+            .select('id title title2 year runtime rating country language genres plot poster videoSrc type episodes season relatedSeries premium')
             .lean();
         if (!movie) {
             console.timeEnd(`movies/${req.params.id}`);
@@ -892,7 +932,7 @@ app.get('/api/movie-details/:id', authMiddleware, async (req, res) => {
     console.time(`movie-details/${req.params.id}`);
     try {
         const movie = await Movie.findOne({ id: req.params.id })
-            .select('id title title2 year runtime rating country language genres plot poster videoSrc type episodes season relatedSeries')
+            .select('id title title2 year runtime rating country language genres plot poster videoSrc type episodes season relatedSeries premium')
             .lean();
         if (!movie) {
             console.timeEnd(`movie-details/${req.params.id}`);
@@ -1555,7 +1595,6 @@ app.post('/api/watched', authMiddleware, async (req, res) => {
         res.status(500).json({ error: 'İzleme durumu güncellenirken bir hata oluştu' });
     }
 });
-
 // Durum Kontrol
 app.get('/api/status/:seriesId/:seasonNumber/:episodeNumber', authMiddleware, async (req, res) => {
     try {
@@ -1641,6 +1680,118 @@ app.get('/api/verify-token', authMiddleware, async (req, res) => {
     }
 });
 
+// Premium Üyelik Kontrolü
+app.get('/api/check-premium', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId);
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+        res.json({ isPremium: user.isPremium || false });
+    } catch (error) {
+        console.error('Premium kontrol hatası:', error.message);
+        res.status(500).json({ error: 'Premium durumu kontrol edilirken bir hata oluştu' });
+    }
+});
+
+
+// Video Erişim Endpoint'i (Yeni)
+app.get('/api/video/:seriesId/:seasonNumber/:episodeNumber', authMiddleware, async (req, res) => {
+    try {
+        const { seriesId, seasonNumber, episodeNumber } = req.params;
+        const user = await User.findById(req.user.userId);
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+        const movie = await Movie.findOne({ id: seriesId });
+        if (!movie) {
+            return res.status(404).json({ error: 'Dizi bulunamadı' });
+        }
+        if (movie.premium && !user.isPremium) {
+            return res.status(403).json({ error: 'Bu içerik için premium üyelik gerekli' });
+        }
+        const episode = movie.episodes.find(ep => ep.seasonNumber == seasonNumber && ep.episodeNumber == episodeNumber);
+        if (!episode || !episode.videoSrc?.[0]?.src) {
+            return res.status(404).json({ error: 'Bölüm veya video kaynağı bulunamadı' });
+        }
+        res.json({ videoSrc: episode.videoSrc[0].src });
+    } catch (error) {
+        console.error('Video erişim hatası:', error.message);
+        res.status(500).json({ error: 'Video kaynağına erişilirken bir hata oluştu' });
+    }
+});
+
+// Yeni Eklenen Bölümler
+app.get('/api/recent-episodes', async (req, res) => {
+    try {
+        console.log('Yeni bölümler sorgulanıyor');
+        const series = await Movie.find({ type: 'dizi' })
+            .select('id title poster episodes year language rating')
+            .lean();
+
+        const episodesBySeries = {};
+
+        // Dizileri ve bölümleri gruplandır
+        series.forEach(serie => {
+            if (serie.episodes && Array.isArray(serie.episodes)) {
+                episodesBySeries[serie.id] = {
+                    seriesId: serie.id,
+                    seriesTitle: serie.title,
+                    poster: serie.poster || 'https://via.placeholder.com/300x450',
+                    year: serie.year || 'N/A',
+                    language: serie.language || [],
+                    rating: serie.rating || 'N/A',
+                    episodes: serie.episodes.map(episode => ({
+                        seasonNumber: episode.seasonNumber,
+                        episodeNumber: episode.episodeNumber,
+                        episodeTitle: episode.title || `Bölüm ${episode.episodeNumber}`,
+                        addedDate: episode.addedDate,
+                        poster: episode.poster || serie.poster || 'https://via.placeholder.com/300x450'
+                    }))
+                };
+            }
+        });
+
+        // Tüm bölümleri birleştir ve sırala
+        const allEpisodes = [];
+        Object.values(episodesBySeries).forEach(series => {
+            series.episodes.forEach(episode => {
+                allEpisodes.push({
+                    seriesId: series.seriesId,
+                    seriesTitle: series.seriesTitle,
+                    poster: episode.poster,
+                    seasonNumber: episode.seasonNumber,
+                    episodeNumber: episode.episodeNumber,
+                    episodeTitle: episode.episodeTitle,
+                    year: series.year,
+                    language: series.language,
+                    rating: series.rating,
+                    addedDate: episode.addedDate
+                });
+            });
+        });
+
+        // Bölümleri önce addedDate'e göre (en yeni en üstte), sonra sezon ve bölüm numarasına göre tersten sırala
+        const finalSortedEpisodes = allEpisodes
+            .sort((a, b) => {
+                // Önce addedDate'e göre tersten sırala
+                const dateDiff = new Date(b.addedDate) - new Date(a.addedDate);
+                if (dateDiff !== 0) return dateDiff;
+
+                // Aynı addedDate ise, önce diziye göre (seriesId), sonra sezon (büyükten küçüğe), sonra bölüm (büyükten küçüğe)
+                if (a.seriesId !== b.seriesId) return a.seriesId.localeCompare(b.seriesId);
+                if (b.seasonNumber !== a.seasonNumber) return b.seasonNumber - a.seasonNumber;
+                return b.episodeNumber - a.episodeNumber;
+            })
+            .slice(0, req.query.limit ? parseInt(req.query.limit) : 12); // Varsayılan 12 bölüm
+
+        console.log('Yeni bölümler döndü:', finalSortedEpisodes.length);
+        res.json(finalSortedEpisodes);
+    } catch (error) {
+        console.error('Yeni bölümler getirme hatası:', error.message);
+        res.status(500).json({ error: 'Yeni bölümler getirilirken bir hata oluştu' });
+    }
+});
 // Sunucu Başlatma
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
