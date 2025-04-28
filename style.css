@@ -262,8 +262,10 @@ main {
     display: flex;
     overflow-x: auto;
     scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch; /* iOS cihazlarda akıcı kaydırma */
+    scrollbar-width: none; /* Firefox için scrollbar gizleme */
+    -ms-overflow-style: none; /* IE/Edge için scrollbar gizleme */
+    padding-bottom: 10px;
 }
 
 .slider-container::-webkit-scrollbar {
@@ -274,6 +276,7 @@ main {
     flex: 0 0 auto;
     margin-right: 15px;
     cursor: pointer;
+    scroll-snap-align: start;
 }
 
 .slider-container p,
@@ -733,6 +736,34 @@ footer {
     justify-content: center;
 }
 
+/* Toast Notification */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(20px);
+    z-index: 2000;
+}
+
+.toast.success {
+    background-color: #2ecc71;
+}
+
+.toast.error {
+    background-color: #e74c3c;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* Responsive Design */
 @media (max-width: 905px) {
     header {
@@ -907,13 +938,14 @@ footer {
     }
 
     .user-info {
-        flex-direction: column;
+        flex-direction:row;
         text-align: center;
         padding: 10px;
     }
     .user-profile {
-        flex-direction: column;
+        flex-direction: row;
         gap: 2px;
+        text-align: center;
     }
     .user-greeting {
         font-size: 0.7rem;
@@ -1046,4 +1078,97 @@ footer {
 
 .auth-tabs .tab-btn {
     flex: 1;
+}
+
+
+.episode-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Büyük ekranlar için 3 sütun */
+    gap: 15px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px;
+}
+.episode-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    height: 100px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.episode-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+.episode-poster {
+    width: 50px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin: 5px;
+}
+.episode-info {
+    flex: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.episode-series-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 5px;
+}
+.episode-details {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.show-all {
+    text-align: center;
+    margin: 10px 0;
+}
+.show-all button {
+    background: var(--accent-color);
+    color: var(--primary-bg);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.show-all button:hover {
+    background: #e6b800;
+}
+/* Orta ekranlar (768px - 1200px) */
+@media (min-width: 768px) and (max-width: 1200px) {
+    .episode-list {
+        grid-template-columns: repeat(2, 1fr); /* 2 sütun */
+        gap: 15px;
+        max-width: 100%;
+        padding: 10px 20px;
+    }
+}
+/* Mobil ekranlar (767px ve altı) */
+@media (max-width: 767px) {
+    .episode-list {
+        grid-template-columns: 1fr; /* 1 sütun */
+        max-width: 100%;
+        padding: 10px;
+    }
+}
+/* Büyük ekranlar (1201px ve üzeri) */
+@media (min-width: 1201px) {
+    .episode-list {
+        grid-template-columns: repeat(3, 1fr); /* 3 sütun */
+        max-width: 1200px;
+    }
 }
