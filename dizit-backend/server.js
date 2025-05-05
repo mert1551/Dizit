@@ -639,8 +639,8 @@ app.post('/api/movies', authMiddleware, adminMiddleware, async (req, res) => {
         }
         if (movieData.relatedSeries && Array.isArray(movieData.relatedSeries)) {
             for (const seriesId of movieData.relatedSeries) {
-                if (!/^[a-zA-Z0-9]{3,20}$/.test(seriesId)) {
-                    return res.status(400).json({ error: 'İlgili seri ID’leri 3-20 karakter olmalı, sadece harf ve sayı' });
+                if (!/^[a-zA-Z0-9]{3,50}$/.test(seriesId)) {
+                    return res.status(400).json({ error: 'İlgili seri ID’leri 3-50 karakter olmalı, sadece harf ve sayı' });
                 }
                 const relatedMovie = await Movie.findOne({ id: seriesId });
                 if (!relatedMovie) {
@@ -738,8 +738,8 @@ app.put('/api/movies/:id', authMiddleware, adminMiddleware, async (req, res) => 
         }
         if (movieData.relatedSeries && Array.isArray(movieData.relatedSeries)) {
             for (const seriesId of movieData.relatedSeries) {
-                if (!/^[a-zA-Z0-9]{3,20}$/.test(seriesId)) {
-                    return res.status(400).json({ error: 'İlgili seri ID’leri 3-20 karakter olmalı, sadece harf ve sayı' });
+                if (!/^[a-zA-Z0-9]{3,50}$/.test(seriesId)) {
+                    return res.status(400).json({ error: 'İlgili seri ID’leri 3-50 karakter olmalı, sadece harf ve sayı' });
                 }
                 const relatedMovie = await Movie.findOne({ id: seriesId });
                 if (!relatedMovie) {
