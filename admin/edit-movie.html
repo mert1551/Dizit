@@ -638,8 +638,8 @@
 
         async function fetchMovieData() {
             const movieId = document.getElementById('movie-id').value.trim();
-            if (!movieId || !/^[a-zA-Z0-9]{3,20}$/.test(movieId)) {
-                showToast('Geçerli bir ID girin (3-20 karakter, harf ve sayı)');
+            if (!movieId || !/^[a-zA-Z0-9-$]{3,50}$/.test(movieId)) {
+                showToast('Geçerli bir ID girin (3-50 karakter, harf ve sayı)');
                 return;
             }
 
@@ -708,7 +708,7 @@
                 { id: 'movie-runtime', errorId: 'movie-runtime-error', validate: val => !isFilm || !val || /^\d+\s*dk$|^\d+\s*s\s*\d+\s*dk$/.test(val), message: 'Örn: 2 s 10 dk veya 40 dk' },
                 { id: 'movie-rating', errorId: 'movie-rating-error', validate: val => !val || (val >= 0 && val <= 10), message: '0-10 arasında bir puan girin' },
                 { id: 'movie-poster', errorId: 'movie-poster-error', validate: val => !val || /^https?:\/\/.+\.(jpg|png|jpeg)$/.test(val), message: 'Geçerli bir URL girin (jpg/png)' },
-                { id: 'movie-related-series', errorId: 'movie-related-series-error', validate: val => !val || val.split(',').every(id => id.trim() === '' || /^[a-zA-Z0-9]{3,20}$/.test(id.trim())), message: 'Geçerli ID’ler girin (3-20 karakter, virgülle ayırın)' }
+                { id: 'movie-related-series', errorId: 'movie-related-series-error', validate: val => !val || val.split(',').every(id => id.trim() === '' || /^[a-zA-Z0-9-$]{3,50}$/.test(id.trim())), message: 'Geçerli ID’ler girin (3-50 karakter, virgülle ayırın)' }
             ];
 
             fields.forEach(field => {
