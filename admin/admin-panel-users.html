@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Detayları - DİZİT</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .user-actions select {
+    background: var(--input-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    flex: 1;
+    max-width: 200px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.user-actions select:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-color);
+}
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #1e1e1e;
+            --accent-color: #ffcc00;
+            --text-color: #ffffff;
+            --text-secondary: #aaaaaa;
+            --card-bg: #1a1a1a;
+            --header-height: 70px;
+            --input-bg: #333;
+            --border-color: #444;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --neon-color: #00ff88;
+            --shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--secondary-bg);
+            height: var(--header-height);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .burger-menu {
+            display: none;
+            font-size: 1.8rem;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .auth-buttons button {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .login-btn {
+            background-color: transparent;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+        }
+
+        .login-btn:hover {
+            background-color: rgba(255, 204, 0, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 15px;
+            background: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .user-greeting {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+        }
+
+        .username-display {
+            font-size: 1rem;
+            color: var(--text-color);
+            text-transform: capitalize;
+        }
+
+        .logout-btn {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #e6b800;
+            transform: scale(1.05);
+        }
+
+        .container {
+            margin-top: calc(var(--header-height) + 30px);
+            width: 100%;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .container h1 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            text-align: center;
+        }
+
+        .user-details {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            animation: slideIn 0.5s ease;
+            border: 1px solid var(--accent-color);
+        }
+
+        .user-details h2 {
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: var(--accent-color);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 10px var(--accent-color);
+        }
+
+        .user-info-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            transition: transform 0.3s ease, background 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-item i {
+            color: var(--accent-color);
+            margin-right: 20px;
+            font-size: 1.3rem;
+        }
+
+        .info-item strong {
+            color: var(--text-color);
+            font-weight: 600;
+            width: 200px;
+        }
+
+        .info-item span {
+            color: var(--text-secondary);
+            font-weight: 400;
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 5px;
+            background: var(--input-bg);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .action-btn {
+            padding: 12px 30px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            max-width: 200px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .delete-btn {
+            background: var(--danger-color);
+            color: var(--text-color);
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .edit-btn {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .edit-btn:hover {
+            background: #e6b800;
+        }
+
+        .ban-btn {
+            background: #34495e;
+            color: var(--text-color);
+        }
+
+        .ban-btn:hover {
+            background: #2c3e50;
+        }
+
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .auth-modal.active {
+            display: flex;
+        }
+
+        .auth-modal-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--accent-color);
+        }
+
+        .auth-form h2 {
+            margin-bottom: 25px;
+            color: var(--text-color);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        .auth-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-color);
+            border: none;
+            border-radius: 5px;
+            color: var(--primary-bg);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .auth-submit:hover {
+            background: #e6b800;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(20px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toast-notification.error {
+            background: var(--danger-color);
+        }
+
+        .toast-notification.success {
+            background: var(--success-color);
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        footer {
+            background: var(--secondary-bg);
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-column h3 {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-bottom {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 905px) {
+            .burger-menu {
+                display: block;
+                margin-right: 10px;
+                margin-left: 10px;
+            }
+
+            .nav-container {
+                display: none;
+                position: fixed;
+                top: var(--header-height);
+                left: 0;
+                width: 100%;
+                background: var(--secondary-bg);
+                flex-direction: column;
+                padding: 20px;
+                z-index: 999;
+            }
+
+            .nav-container.active {
+                display: flex;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .nav-links a {
+                font-size: 1.2rem;
+                padding: 10px 0;
+            }
+
+            .auth-buttons {
+                flex-direction: row;
+                width: 100%;
+                gap: 15px;
+            }
+
+            .auth-buttons button {
+                width: 100%;
+                padding: 12px;
+            }
+
+            .container {
+                margin-top: calc(var(--header-height) + 20px);
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container h1 {
+                font-size: 1.7rem;
+            }
+
+            .user-details h2 {
+                font-size: 1.5rem;
+            }
+
+            .info-item strong {
+                width: 160px;
+            }
+
+            .actions {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .action-btn {
+                max-width: none;
+                justify-content: center;
+            }
+
+            .user-info {
+                padding: 8px 12px;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container h1 {
+                font-size: 1.5rem;
+            }
+
+            .user-details h2 {
+                font-size: 1.3rem;
+            }
+
+            .user-details {
+                padding: 15px;
+            }
+
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .info-item strong {
+                width: 100%;
+            }
+
+            .info-item i {
+                margin-right: 10px;
+            }
+
+            .user-info {
+                flex-direction: column;
+                text-align: center;
+                padding: 10px;
+            }
+
+            .user-profile {
+                flex-direction: column;
+                gap: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <a href="/index.html" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="burger-menu" id="burger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+        <div class="nav-container" id="nav-container">
+            <ul class="nav-links">
+                <li><a href="/admin-panel.html">Anasayfa</a></li>
+                <li><a href="/add-movie.html">Ekle</a></li>
+                <li><a href="/edit-movie.html">Düzenle</a></li>
+                <li><a href="/admin-requests.html">İstek/Şikayet</a></li>
+            </ul>
+            <div class="auth-buttons" id="auth-buttons">
+                <button class="login-btn" onclick="openAuthModal()">Giriş Yap</button>
+            </div>
+            <div class="user-info" id="user-info" style="display: none;">
+                <div class="user-profile">
+                    <span class="user-greeting">Merhaba,</span>
+                    <span class="username-display" id="username-display"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="auth-modal" id="auth-modal">
+        <div class="auth-modal-content">
+            <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+            <div class="auth-form" id="login-form">
+                <h2>Giriş Yap</h2>
+                <form id="login-form-submit" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Kullanıcı Adı</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Parola</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <p class="error-message" id="login-error"></p>
+                    <button type="submit" class="auth-submit">Giriş Yap</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Kullanıcı Detayları</h1>
+        <div class="user-details" id="user-details">
+            <h2 id="username-title"></h2>
+            <div class="user-info-content" id="user-info-content"></div>
+            <div class="actions" id="user-actions"></div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>DİZİT</h3>
+                <p>En iyi film ve dizi izleme platformu.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <div class="toast-notification" id="toast-notification"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let isLoggedIn = !!localStorage.getItem('token');
+        let currentUser = localStorage.getItem('username') || null;
+        let isAdmin = false;
+
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast-notification');
+            toast.textContent = message;
+            toast.className = `toast-notification ${type} show`;
+            toast.innerHTML = type === 'success'
+                ? `<i class="fas fa-check-circle"></i> ${message}`
+                : `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function updateAuthUI() {
+            const authButtons = document.getElementById('auth-buttons');
+            const userInfo = document.getElementById('user-info');
+            const usernameDisplay = document.getElementById('username-display');
+            if (isLoggedIn && currentUser) {
+                authButtons.style.display = 'none';
+                userInfo.style.display = 'flex';
+                usernameDisplay.textContent = currentUser;
+            } else {
+                authButtons.style.display = 'flex';
+                userInfo.style.display = 'none';
+            }
+        }
+
+        async function checkAdminStatus() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                openAuthModal();
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/check-admin`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await response.json();
+                if (response.ok && result.isAdmin) {
+                    isAdmin = true;
+                    return true;
+                } else {
+                    showToast('Bu sayfayı görüntülemek için yönetici yetkisi gerekli.', 'error');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    isLoggedIn = false;
+                    currentUser = null;
+                    updateAuthUI();
+                    openAuthModal();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Admin kontrol hatası:', error.message);
+                showToast('Bağlantı hatası, lütfen daha sonra tekrar deneyin.', 'error');
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                openAuthModal();
+                return false;
+            }
+        }
+
+        async function loadUserDetails() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        if (!username) {
+            throw new Error('Kullanıcı adı belirtilmedi');
+        }
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('Giriş yapılmadı');
+        }
+
+        console.log('Kullanıcı detayları yükleniyor:', { username, token });
+
+        const userResponse = await fetch(`${API_URL}/api/users/${username}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const user = await userResponse.json();
+        console.log('Kullanıcı API yanıtı:', user);
+
+        if (!userResponse.ok) {
+            if (userResponse.status === 404) {
+                throw new Error('Kullanıcı bulunamadı');
+            } else if (userResponse.status === 401) {
+                throw new Error('Yetkisiz erişim: Lütfen tekrar giriş yapın');
+            } else {
+                throw new Error(`Kullanıcı API hatası: ${userResponse.status} - ${user.error || 'Bilinmeyen hata'}`);
+            }
+        }
+
+        if (!user || !user.username) {
+            throw new Error('Kullanıcı verisi alınamadı');
+        }
+
+        const isBanned = user.isBanned !== undefined ? user.isBanned : false;
+
+        // Premium üyelik türünü ve süresini formatla
+        const premiumStatus = user.isPremium ? 
+            `${user.premiumType.replace('-', ' ')} (Bitiş: ${user.premiumExpires ? new Date(user.premiumExpires).toLocaleString('tr-TR') : 'Bilinmiyor'})` : 
+            'Yok';
+
+        // Üye olma tarihini formatla
+        const createdAt = user.createdAt ? new Date(user.createdAt).toLocaleString('tr-TR') : 'Bilinmiyor';
+
+        document.getElementById('username-title').textContent = user.username;
+        document.getElementById('user-info-content').innerHTML = `
+            <div class="info-item">
+                <i class="fas fa-envelope"></i>
+                <strong>E-posta:</strong>
+                <span>${user.email}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-user-shield"></i>
+                <strong>Admin mi?:</strong>
+                <span>${user.isAdmin ? 'Evet' : 'Hayır'}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-ban"></i>
+                <strong>Yasaklı mı?:</strong>
+                <span>${isBanned ? 'Evet' : 'Hayır'}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-calendar-alt"></i>
+                <strong>Kayıt Olma Tarihi:</strong>
+                <span>${createdAt}</span>
+            </div>
+            <div class="info-item">
+                <i class="fas fa-crown"></i>
+                <strong>Premium Üyelik:</strong>
+                <span>${premiumStatus}</span>
+            </div>
+        `;
+        document.getElementById('user-actions').innerHTML = `
+            <button class="action-btn delete-btn" onclick="deleteUser('${user.username}')"><i class="fas fa-trash-alt"></i> Kullanıcıyı Sil</button>
+            <button class="action-btn edit-btn" onclick="toggleAdmin('${user.username}', ${user.isAdmin})"><i class="fas fa-user-shield"></i> ${user.isAdmin ? 'Yönetici Kaldır' : 'Yönetici Yap'}</button>
+            ${isBanned ? 
+                `<button class="action-btn ban-btn" onclick="unbanUser('${user.username}')"><i class="fas fa-unlock"></i> Yasağı Kaldır</button>` : 
+                `<button class="action-btn ban-btn" onclick="banUser('${user.username}')"><i class="fas fa-ban"></i> Yasakla</button>`
+            }
+            <select onchange="updatePremiumType('${user.username}', this.value)" class="action-btn" style="padding: 12px; border-radius: 10px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color);">
+                <option value="none" ${user.premiumType === 'none' ? 'selected' : ''}>Premium Yok</option>
+                <option value="1-minute" ${user.premiumType === '1-minute' ? 'selected' : ''}>1 Dakika</option>
+                <option value="1-week" ${user.premiumType === '1-week' ? 'selected' : ''}>1 Hafta</option>
+                <option value="1-month" ${user.premiumType === '1-month' ? 'selected' : ''}>1 Ay</option>
+                <option value="1-year" ${user.premiumType === '1-year' ? 'selected' : ''}>1 Yıl</option>
+                <option value="unlimited" ${user.premiumType === 'unlimited' ? 'selected' : ''}>Sınırsız</option>
+            </select>
+        `;
+        console.log('UI güncellendi:', { isBanned });
+    } catch (error) {
+        console.error('Kullanıcı detayları yükleme hatası:', error.message);
+        showToast(error.message, 'error');
+        if (error.message === 'Kullanıcı bulunamadı') {
+            showToast('Kullanıcı bulunamadı, ana panele yönlendiriliyorsunuz.', 'error');
+            setTimeout(() => window.location.href = '/admin-panel.html', 2000);
+        }
+    }
+}
+async function updatePremiumType(username, premiumType) {
+    if (!confirm(`"${username}" kullanıcısının premium üyeliğini "${premiumType.replace('-', ' ')}" olarak güncellemek istediğinize emin misiniz?`)) return;
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/api/users/${username}/premium`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ premiumType })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            showToast(data.message, 'success');
+            await loadUserDetails(); // UI'yi güncelle
+        } else {
+            showToast(data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Premium üyelik güncelleme hatası:', error.message);
+        showToast('Premium üyelik güncellenirken bir hata oluştu.', 'error');
+    }
+}
+
+        async function deleteUser(username) {
+            if (!confirm(`"${username}" kullanıcısını silmek istediğinize emin misiniz?`)) return;
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/api/users/${username}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast(data.message, 'success');
+                    window.location.href = '/admin-panel.html';
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Kullanıcı silme hatası:', error.message);
+                showToast('Kullanıcı silinirken bir hata oluştu.', 'error');
+            }
+        }
+
+        async function toggleAdmin(username, isAdmin) {
+            if (!confirm(`"${username}" kullanıcısını ${isAdmin ? 'yönetici statüsünden çıkarmak' : 'yönetici yapmak'} istediğinize emin misiniz?`)) return;
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/api/users/${username}/admin`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ isAdmin: !isAdmin })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showToast(data.message, 'success');
+                    await loadUserDetails();
+                } else {
+                    showToast(data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Yönetici değiştirme hatası:', error.message);
+                showToast('Yönetici statüsü değiştirilirken bir hata oluştu.', 'error');
+            }
+        }
+
+        async function banUser(username) {
+            if (!confirm(`"${username}" kullanıcısını yasaklamak istediğinize emin misiniz? Tüm içerikleri silinecek ve tekrar kayıt olamayacak.`)) return;
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/api/users/${username}/ban`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ isBanned: true })
+                });
+                const data = await response.json();
+                console.log('Yasaklama API yanıtı:', data);
+                if (response.ok) {
+                    showToast(data.message || 'Kullanıcı başarıyla yasaklandı!', 'success');
+                    await loadUserDetails();
+                } else {
+                    showToast(data.error || 'Kullanıcı yasaklanırken bir hata oluştu.', 'error');
+                }
+            } catch (error) {
+                console.error('Kullanıcı yasaklama hatası:', error.message);
+                showToast('Kullanıcı yasaklanırken bir hata oluştu: ' + error.message, 'error');
+            }
+        }
+
+        async function unbanUser(username) {
+            if (!confirm(`"${username}" kullanıcısının yasağını kaldırmak istediğinize emin misiniz?`)) return;
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${API_URL}/api/users/${username}/ban`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ isBanned: false })
+                });
+                const data = await response.json();
+                console.log('Yasağı kaldırma API yanıtı:', data);
+                if (response.ok) {
+                    showToast(data.message || 'Kullanıcı yasağı başarıyla kaldırıldı!', 'success');
+                    await loadUserDetails();
+                } else {
+                    showToast(data.error || 'Kullanıcı yasağı kaldırılırken bir hata oluştu.', 'error');
+                }
+            } catch (error) {
+                console.error('Kullanıcı yasağı kaldırma hatası:', error.message);
+                showToast('Kullanıcı yasağı kaldırılırken bir hata oluştu: ' + error.message, 'error');
+            }
+        }
+
+        function openAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.add('active');
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('active');
+            document.getElementById('login-error').textContent = '';
+            document.getElementById('login-form-submit').reset();
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            try {
+                const res = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.error || 'Giriş başarısız';
+                    return;
+                }
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('username', data.username);
+                isLoggedIn = true;
+                currentUser = data.username;
+                closeAuthModal();
+                showToast(`Hoşgeldiniz, ${username}!`, 'success');
+                await checkAdminStatus();
+                if (isAdmin) {
+                    await loadUserDetails();
+                }
+            } catch (error) {
+                console.error('Giriş hatası:', error);
+                errorEl.textContent = 'Sunucu hatası';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            isAdmin = false;
+            updateAuthUI();
+            showToast('Çıkış yapıldı', 'success');
+            openAuthModal();
+        }
+
+        const burgerMenu = document.getElementById('burger-menu');
+        const navContainer = document.getElementById('nav-container');
+        if (burgerMenu && navContainer) {
+            burgerMenu.addEventListener('click', () => {
+                navContainer.classList.toggle('active');
+            });
+        }
+
+        // Initial Check
+        (async () => {
+            const isAdmin = await checkAdminStatus();
+            if (isAdmin) {
+                await loadUserDetails();
+            }
+        })();
+    </script>
+</body>
+</html>

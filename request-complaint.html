@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DİZİT - İstek ve Şikayet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<style>
+    /* Request and Complaint Form Styles */
+    .request-complaint-section .form-container {
+        background-color: var(--card-bg);
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .request-complaint-section .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .request-complaint-section .form-group label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 5px;
+    }
+    
+    .request-complaint-section .form-group input,
+    .request-complaint-section .form-group textarea,
+    .request-complaint-section .form-group select {
+        width: 100%;
+        padding: 8px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        color: var(--text-color);
+        font-size: 0.85rem;
+        outline: none;
+        resize: vertical;
+    }
+    
+    .request-complaint-section .form-group input:focus,
+    .request-complaint-section .form-group textarea:focus,
+    .request-complaint-section .form-group select:focus {
+        border-color: var(--accent-color);
+    }
+    
+    .request-complaint-section .form-group textarea {
+        min-height: 100px;
+    }
+    
+    .request-complaint-section .submit-btn {
+        width: 100%;
+        padding: 10px;
+        background-color: var(--accent-color);
+        color: var(--primary-bg);
+        border: none;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .request-complaint-section .submit-btn:hover {
+        background-color: #e6b800;
+    }
+    
+    .request-complaint-section .form-message {
+        margin-top: 15px;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+    
+    .request-complaint-section .form-message.success {
+        color: #4caf50;
+    }
+    
+    .request-complaint-section .form-message.error {
+        color: #f44336;
+    }
+    
+    /* Messaging Area Styles */
+    .request-complaint-section .messages-container {
+        margin-top: 30px;
+        background: var(--card-bg);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    .request-complaint-section .messages-container h2 {
+        font-size: 1.2rem;
+        color: var(--accent-color);
+        margin-bottom: 15px;
+    }
+    
+    .request-complaint-section .request-item {
+        margin-bottom: 10px;
+    }
+    
+    .request-complaint-section .request-item details {
+        background: var(--secondary-bg);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    
+    .request-complaint-section .request-item summary {
+        padding: 15px;
+        cursor: pointer;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        font-size: 0.95rem;
+        color: var(--text-color);
+        background: var(--secondary-bg);
+        transition: background 0.3s;
+    }
+    
+    .request-complaint-section .request-item summary:hover {
+        background: var(--card-bg);
+    }
+    
+    .request-complaint-section .request-item summary .request-title {
+        font-weight: 500;
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .request-complaint-section .request-item summary .request-meta {
+        display: flex;
+        gap: 15px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+    }
+    
+    .request-complaint-section .request-item summary .request-status {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+    }
+    
+    .request-complaint-section .request-item summary .request-status.answered {
+        background: #55ff55;
+        color: var(--primary-bg);
+    }
+    
+    .request-complaint-section .request-item summary .request-status.not-answered {
+        background: #ff5555;
+        color: var(--text-color);
+    }
+    
+    .request-complaint-section .request-item .closed-icon {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        margin-left: 10px;
+    }
+    
+    .request-complaint-section .request-content {
+        padding: 15px;
+        background: var(--primary-bg);
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .request-complaint-section .message-list {
+        max-height: 200px;
+        overflow-y: auto;
+        background: var(--card-bg);
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+    
+    .request-complaint-section .message-item {
+        padding: 8px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+    
+    .request-complaint-section .message-item.user {
+        background: var(--accent-color);
+        color: var(--primary-bg);
+        margin-left: 25px;
+        margin-right: auto;
+        border-radius: 12px 12px 0 12px;
+    }
+    
+    .request-complaint-section .message-item.admin {
+        background: var(--secondary-bg);
+        border: 1px solid var(--accent-color);
+        color: var(--text-color);
+        margin-right: 25px;
+        margin-left: auto;
+        border-radius: 12px 12px 12px 0;
+    }
+    
+    .request-complaint-section .message-content {
+        line-height: 1.4;
+    }
+    
+    .request-complaint-section .message-date {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        margin-top: 3px;
+    }
+    
+    .request-complaint-section .reply-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .request-complaint-section .reply-form textarea {
+        flex: 1;
+        padding: 10px;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        color: var(--text-color);
+        font-size: 0.9rem;
+        resize: none;
+        min-height: 60px;
+    }
+    
+    .request-complaint-section .reply-form button {
+        background: var(--accent-color);
+        color: var(--primary-bg);
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+    
+    .request-complaint-section .reply-form button:hover {
+        background: #e6c200;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .request-complaint-section {
+            padding: 15px;
+            margin: 80px auto 15px;
+        }
+    
+        .request-complaint-section .form-container {
+            padding: 12px;
+        }
+    
+        .request-complaint-section .form-group label {
+            font-size: 0.85rem;
+        }
+    
+        .request-complaint-section .form-group input,
+        .request-complaint-section .form-group textarea,
+        .request-complaint-section .form-group select {
+            font-size: 0.8rem;
+        }
+    
+        .request-complaint-section .submit-btn {
+            font-size: 0.85rem;
+            padding: 8px;
+        }
+    
+        .request-complaint-section .messages-container {
+            padding: 15px;
+        }
+    
+        .request-complaint-section .request-item summary {
+            font-size: 0.9rem;
+            padding: 10px;
+        }
+    
+        .request-complaint-section .request-item summary .request-title {
+            min-width: 150px;
+            font-size: 0.9rem;
+        }
+    
+        .request-complaint-section .request-item summary .request-meta {
+            flex-direction: column;
+            gap: 5px;
+            font-size: 0.8rem;
+        }
+    
+        .request-complaint-section .request-item summary .request-status {
+            font-size: 0.75rem;
+        }
+    
+        .request-complaint-section .message-item {
+            font-size: 0.8rem;
+        }
+    
+        .request-complaint-section .reply-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    
+        .request-complaint-section .reply-form textarea {
+            width: 100%;
+            min-height: 50px;
+            font-size: 0.8rem;
+        }
+    
+        .request-complaint-section .reply-form button {
+            width: 100%;
+            font-size: 0.8rem;
+            padding: 8px 15px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .request-complaint-section {
+            padding: 10px;
+        }
+    
+        .request-complaint-section .form-container {
+            padding: 10px;
+        }
+    
+        .request-complaint-section .form-group {
+            margin-bottom: 12px;
+        }
+    
+        .request-complaint-section .form-group label {
+            font-size: 0.8rem;
+        }
+    
+        .request-complaint-section .form-group input,
+        .request-complaint-section .form-group textarea,
+        .request-complaint-section .form-group select {
+            font-size: 0.75rem;
+            padding: 6px;
+        }
+    
+        .request-complaint-section .submit-btn {
+            font-size: 0.8rem;
+            padding: 6px;
+        }
+    
+        .request-complaint-section .messages-container h2 {
+            font-size: 1rem;
+        }
+    
+        .request-complaint-section .request-item summary .request-title {
+            font-size: 0.85rem;
+        }
+    
+        .request-complaint-section .message-content {
+            font-size: 0.75rem;
+        }
+    
+        .request-complaint-section .message-date {
+            font-size: 0.65rem;
+        }
+    }
+    </style>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <a href="/" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="burger-menu" id="burger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+        <div class="nav-container" id="nav-container">
+            <ul class="nav-links">
+                <li><a href="/" class="home-link active">Anasayfa</a></li>
+                <li><a href="/filmler.html?type=film">Filmler</a></li>
+                <li><a href="/diziler.html?type=dizi">Diziler</a></li>
+                <li><a href="/arama/film-dizi-arama.html">Detaylı Arama (Keşfet)</a></li>
+                <li><a href="/istek-form/request-complaint.html">İstek ve Şikayet</a></li>
+            </ul>
+            <div class="auth-buttons" id="auth-buttons">
+                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
+                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+            </div>
+            <div class="user-info" id="user-info" style="display: none;">
+                <div class="user-profile">
+                    <span class="user-greeting">Merhaba,</span>
+                    <span class="username-display" id="username-display"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Auth Modal -->
+    <div class="auth-modal" id="auth-modal">
+        <div class="auth-modal-content">
+            <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="login-tab" onclick="switchTab('login')">Giriş Yap</button>
+                <button class="tab-btn" id="signup-tab" onclick="switchTab('signup')">Üye Ol</button>
+                <button class="tab-btn" id="forgot-tab" onclick="switchTab('forgot')">Şifremi Unuttum</button>
+            </div>
+            <div class="auth-form" id="login-form">
+                <h2>Giriş Yap</h2>
+                <form id="login-form-submit" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Kullanıcı Adı</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Parola</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <p class="error-message" id="login-error"></p>
+                    <button type="submit" class="auth-submit">Giriş Yap</button>
+                    <p class="forgot-link" onclick="switchTab('forgot')">Şifrenizi mi unuttunuz?</p>
+                </form>
+            </div>
+            <div class="auth-form" id="signup-form" style="display: none;">
+                <h2>Üye Ol</h2>
+                <form id="signup-form-submit" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signup-username">Kullanıcı Adı</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">E-posta</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Parola</label>
+                        <input type="password" id="signup-password" required oninput="validatePassword()">
+                        <p class="password-hint" id="password-hint">Parola en az 8 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password-confirm">Parola Tekrar</label>
+                        <input type="password" id="signup-password-confirm" required>
+                    </div>
+                    <p class="error-message" id="signup-error"></p>
+                    <button type="submit" class="auth-submit">Üye Ol</button>
+                </form>
+            </div>
+            <div class="auth-form" id="forgot-form" style="display: none;">
+                <h2>Şifremi Unuttum</h2>
+                <form id="forgot-form-submit" onsubmit="handleForgotPassword(event)">
+                    <div class="form-group">
+                        <label for="forgot-email">E-posta</label>
+                        <input type="email" id="forgot-email" required>
+                    </div>
+                    <p class="error-message" id="forgot-error"></p>
+                    <p class="success-message" id="forgot-success"></p>
+                    <button type="submit" class="auth-submit">Şifre Sıfırlama Bağlantısı Gönder</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <section class="request-complaint-section">
+            <h1 class="section-title">İstek ve Şikayet Formu</h1>
+            <div class="form-container" id="form-container">
+                <div id="auth-message" class="form-message error" style="display: none;">
+                    Lütfen istek veya şikayet göndermek için giriş yapın.
+                </div>
+                <form id="request-complaint-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="form-type">Mesaj Türü</label>
+                        <select id="form-type" name="type" required>
+                            <option value="" disabled selected>Seçiniz</option>
+                            <option value="request">Film/Dizi İsteği</option>
+                            <option value="complaint">Şikayet</option>
+                            <option value="premium">Premium Üyelik</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="title">Başlık</label>
+                        <input type="text" id="title" name="title" placeholder="Örn: Yeni film önerisi" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Mesajınız</label>
+                        <textarea id="message" name="message" rows="6" placeholder="Mesajınızı detaylı bir şekilde yazınız" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Gönder</button>
+                </form>
+                <div id="form-message" class="form-message"></div>
+            </div>
+
+            <!-- Mesajlaşma Alanı -->
+            <div class="messages-container">
+                <h2>Geçmiş İstek ve Şikayetler</h2>
+                <div id="requests-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>DİZİT</h3>
+                <p>En iyi film ve dizi izleme platformu.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+    const form = document.getElementById('request-complaint-form');
+    const formMessage = document.getElementById('form-message');
+    const authMessage = document.getElementById('auth-message');
+    const formContainer = document.getElementById('form-container');
+    const requestsList = document.getElementById('requests-list');
+    const burgerMenu = document.getElementById('burger-menu');
+    const navContainer = document.getElementById('nav-container');
+    const authButtons = document.getElementById('auth-buttons');
+    const userInfo = document.getElementById('user-info');
+    const usernameDisplay = document.getElementById('username-display');
+    let isLoggedIn = !!localStorage.getItem('token');
+    let currentUser = localStorage.getItem('username') || null;
+    let API_URL = 'http://localhost:3000'; // Varsayılan, yapılandırmadan güncellenecek
+
+    if (!form || !formMessage || !authMessage || !formContainer || !requestsList || !burgerMenu || !navContainer || !authButtons || !userInfo || !usernameDisplay) {
+        console.error('Gerekli elementler bulunamadı.');
+        return;
+    }
+
+    // API_URL'yi al
+    async function fetchApiUrl() {
+        try {
+            console.log('API_URL isteği gönderiliyor:', '/api/config');
+            const response = await fetch('/api/config');
+            if (!response.ok) {
+                throw new Error(`HTTP hatası: ${response.status} ${response.statusText}`);
+            }
+            const config = await response.json();
+            API_URL = config.apiUrl || 'http://localhost:3000';
+            console.log('API_URL alındı:', API_URL);
+        } catch (error) {
+            console.error('API_URL alınamadı:', error.message);
+            formMessage.textContent = 'Bağlantı yapılandırması yüklenemedi.';
+            formMessage.className = 'form-message error';
+        }
+    }
+
+    // Kullanıcı giriş durumunu kontrol et
+    async function checkAuth() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            isLoggedIn = false;
+            currentUser = null;
+            updateAuthUI();
+            authMessage.style.display = 'block';
+            form.style.display = 'none';
+            return false;
+        }
+        try {
+            console.log('Token doğrulama isteği:', `${API_URL}/api/verify-token`);
+            const response = await fetch(`${API_URL}/api/verify-token`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                isLoggedIn = true;
+                currentUser = data.username;
+                localStorage.setItem('username', data.username);
+                updateAuthUI();
+                authMessage.style.display = 'none';
+                form.style.display = 'block';
+                return true;
+            } else {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                authMessage.style.display = 'block';
+                form.style.display = 'none';
+                formMessage.textContent = 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.';
+                formMessage.className = 'form-message error';
+                return false;
+            }
+        } catch (error) {
+            console.error('Token doğrulama hatası:', error.message);
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            updateAuthUI();
+            authMessage.style.display = 'block';
+            form.style.display = 'none';
+            formMessage.textContent = 'Bağlantı hatası, lütfen daha sonra tekrar deneyin.';
+            formMessage.className = 'form-message error';
+            return false;
+        }
+    }
+
+    // Authentication UI güncelle
+    function updateAuthUI() {
+        authButtons.style.display = isLoggedIn ? 'none' : 'flex';
+        userInfo.style.display = isLoggedIn ? 'flex' : 'none';
+        if (isLoggedIn) {
+            usernameDisplay.textContent = currentUser;
+        }
+    }
+
+    // Toast bildirimi göster
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Auth modal fonksiyonları
+    window.openAuthModal = function(type = 'login') {
+        const modal = document.getElementById('auth-modal');
+        modal.classList.add('active');
+        switchTab(type);
+    };
+
+    window.closeAuthModal = function() {
+        const modal = document.getElementById('auth-modal');
+        modal.classList.remove('active');
+        document.getElementById('login-error').textContent = '';
+        document.getElementById('signup-error').textContent = '';
+        document.getElementById('forgot-error').textContent = '';
+        document.getElementById('forgot-success').textContent = '';
+        document.getElementById('login-form-submit').reset();
+        document.getElementById('signup-form-submit').reset();
+        document.getElementById('forgot-form-submit').reset();
+        document.getElementById('password-hint').style.color = '#666';
+    };
+
+    window.switchTab = function(type) {
+        const loginTab = document.getElementById('login-tab');
+        const signupTab = document.getElementById('signup-tab');
+        const forgotTab = document.getElementById('forgot-tab');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const forgotForm = document.getElementById('forgot-form');
+        const loginError = document.getElementById('login-error');
+        const signupError = document.getElementById('signup-error');
+        const forgotError = document.getElementById('forgot-error');
+        const forgotSuccess = document.getElementById('forgot-success');
+
+        loginTab.classList.toggle('active', type === 'login');
+        signupTab.classList.toggle('active', type === 'signup');
+        forgotTab.classList.toggle('active', type === 'forgot');
+        loginForm.style.display = type === 'login' ? 'block' : 'none';
+        signupForm.style.display = type === 'signup' ? 'block' : 'none';
+        forgotForm.style.display = type === 'forgot' ? 'block' : 'none';
+        loginError.textContent = '';
+        signupError.textContent = '';
+        forgotError.textContent = '';
+        forgotSuccess.textContent = '';
+        document.getElementById('login-form-submit').reset();
+        document.getElementById('signup-form-submit').reset();
+        document.getElementById('forgot-form-submit').reset();
+        document.getElementById('password-hint').style.color = '#666';
+    };
+
+    window.validatePassword = function() {
+        const password = document.getElementById('signup-password').value;
+        const hint = document.getElementById('password-hint');
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+        if (!strongPasswordRegex.test(password) && password.length > 0) {
+            hint.style.color = '#e74c3c';
+        } else {
+            hint.style.color = '#666';
+        }
+    };
+
+    window.handleLogin = async function(event) {
+        event.preventDefault();
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        const errorEl = document.getElementById('login-error');
+        try {
+            console.log('Giriş denemesi:', { username });
+            const res = await fetch(`${API_URL}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            console.log('Sunucu yanıtı:', data);
+            if (res.ok) {
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('username', data.username);
+                isLoggedIn = true;
+                currentUser = data.username;
+                errorEl.textContent = '';
+                closeAuthModal();
+                updateAuthUI();
+                await checkAuth();
+                await loadRequests();
+                showToast('Giriş başarılı!', 'success');
+            } else {
+                errorEl.textContent = data.error || 'Giriş başarısız';
+                console.log('Giriş hatası:', data.error);
+            }
+        } catch (error) {
+            errorEl.textContent = 'Sunucuyla bağlantı hatası';
+            console.error('Giriş işlemi hatası:', error);
+        }
+    };
+
+    window.handleSignup = async function(event) {
+        event.preventDefault();
+        const username = document.getElementById('signup-username').value;
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const passwordConfirm = document.getElementById('signup-password-confirm').value;
+        const errorEl = document.getElementById('signup-error');
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+
+        if (!strongPasswordRegex.test(password)) {
+            errorEl.textContent = 'Parola en az 8 karakter, 1 büyük harf, 1 küçük harf ve 1 rakam içermelidir.';
+            return;
+        }
+        if (password !== passwordConfirm) {
+            errorEl.textContent = 'Parolalar eşleşmiyor';
+            return;
+        }
+        try {
+            const res = await fetch(`${API_URL}/api/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                const loginRes = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const loginData = await loginRes.json();
+                if (loginRes.ok) {
+                    localStorage.setItem('token', loginData.token);
+                    localStorage.setItem('username', loginData.username);
+                    isLoggedIn = true;
+                    currentUser = loginData.username;
+                    closeAuthModal();
+                    updateAuthUI();
+                    await checkAuth();
+                    await loadRequests();
+                    showToast('Kayıt ve giriş başarılı!', 'success');
+                } else {
+                    errorEl.textContent = loginData.error || 'Otomatik giriş başarısız';
+                }
+            } else {
+                errorEl.textContent = data.error || 'Kayıt başarısız';
+            }
+        } catch (error) {
+            errorEl.textContent = 'Sunucuyla bağlantı hatası';
+            console.error('Kayıt hatası:', error);
+        }
+    };
+
+    window.handleForgotPassword = async function(event) {
+        event.preventDefault();
+        const email = document.getElementById('forgot-email').value;
+        const errorEl = document.getElementById('forgot-error');
+        const successEl = document.getElementById('forgot-success');
+        try {
+            const res = await fetch(`${API_URL}/api/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                successEl.textContent = 'Şifre sıfırlama bağlantısı e-postanıza gönderildi.';
+                errorEl.textContent = '';
+            } else {
+                errorEl.textContent = data.error || 'Şifre sıfırlama başarısız';
+                successEl.textContent = '';
+            }
+        } catch (error) {
+            errorEl.textContent = 'Sunucuyla bağlantı hatası';
+            console.error('Şifre sıfırlama hatası:', error);
+            successEl.textContent = '';
+        }
+    };
+
+    window.logout = function() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        isLoggedIn = false;
+        currentUser = null;
+        updateAuthUI();
+        authMessage.style.display = 'block';
+        form.style.display = 'none';
+        requestsList.innerHTML = '<p>Geçmiş istek/şikayetleri görmek için lütfen giriş yapın.</p>';
+        showToast('Çıkış yapıldı.', 'success');
+    };
+
+    // Kullanıcının istek/şikayetlerini yükle
+    async function loadRequests() {
+        if (!isLoggedIn) {
+            requestsList.innerHTML = '<p>Geçmiş istek/şikayetleri görmek için lütfen giriş yapın.</p>';
+            return;
+        }
+        try {
+            console.log('İstek/Şikayet yükleme isteği:', `${API_URL}/api/requests/user`);
+            const response = await fetch(`${API_URL}/api/requests/user`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP hatası: ${response.status} ${response.statusText}`);
+            }
+            const requests = await response.json();
+            console.log('İstek/Şikayet API yanıtı:', requests);
+
+            if (!Array.isArray(requests)) {
+                console.error('API yanıtı dizi değil:', requests);
+                requestsList.innerHTML = '<p>İstek/şikayet verileri alınamadı. Lütfen tekrar deneyin.</p>';
+                formMessage.textContent = 'Veri formatı hatalı.';
+                formMessage.className = 'form-message error';
+                return;
+            }
+
+            requestsList.innerHTML = requests.length
+                ? requests.map(request => {
+                    if (!request._id || !request.title) {
+                        console.warn('Geçersiz istek nesnesi:', request);
+                        return '';
+                    }
+                    const isAnswered = request.messages?.some(msg => msg.sender === 'admin');
+                    return `
+                        <div class="request-item" data-request-id="${request._id}">
+                            <details ${request.isClosed ? '' : 'open'}>
+                                <summary>
+                                    <span class="request-title">${request.title}</span>
+                                    <div class="request-meta">
+                                        <span>Tür: ${request.type === 'request' ? 'İstek' : 'Şikayet'}</span>
+                                        <span class="request-status ${isAnswered ? 'answered' : 'not-answered'}">
+                                            ${isAnswered ? 'Cevaplandı' : 'Cevaplanmadı'}
+                                        </span>
+                                    </div>
+                                    ${request.isClosed ? '<i class="fas fa-lock closed-icon"></i>' : ''}
+                                </summary>
+                                <div class="request-content">
+                                    <div class="message-list">
+                                        ${request.messages && Array.isArray(request.messages)
+                                            ? request.messages.map(msg => `
+                                                <div class="message-item ${msg.sender}">
+                                                    <div class="message-content">${msg.content}</div>
+                                                    <div class="message-date">${new Date(msg.createdAt).toLocaleString('tr-TR')}</div>
+                                                </div>
+                                            `).join('')
+                                            : '<p>Mesaj bulunamadı.</p>'}
+                                    </div>
+                                    ${request.isClosed ? '<p class="form-message">Bu konu kapatılmıştır.</p>' : `
+                                        <form class="reply-form" data-request-id="${request._id}">
+                                            <textarea placeholder="Yanıtınızı yazın" name="message"></textarea>
+                                            <button type="submit">Yanıt Gönder</button>
+                                        </form>
+                                    `}
+                                </div>
+                            </details>
+                        </div>
+                    `;
+                }).join('')
+                : '<p>Henüz istek veya şikayet bulunmamaktadır.</p>';
+        } catch (error) {
+            console.error('İstek/Şikayet yükleme hatası:', error.message);
+            requestsList.innerHTML = '<p>İstek/şikayetler yüklenirken bir hata oluştu.</p>';
+            formMessage.textContent = `Bağlantı hatası: ${error.message}`;
+            formMessage.className = 'form-message error';
+        }
+    }
+
+    // Form gönderimi
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!isLoggedIn) {
+            formMessage.textContent = 'Lütfen giriş yapın.';
+            formMessage.className = 'form-message error';
+            return;
+        }
+
+        const formType = document.getElementById('form-type').value;
+        const title = document.getElementById('title').value.trim();
+        const message = document.getElementById('message').value.trim();
+
+        if (!formType || !title || !message) {
+            formMessage.textContent = 'Lütfen tüm zorunlu alanları doldurun.';
+            formMessage.className = 'form-message error';
+            return;
+        }
+
+        try {
+            console.log('Form gönderim isteği:', `${API_URL}/api/requests`);
+            const response = await fetch(`${API_URL}/api/requests`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    type: formType,
+                    title,
+                    message
+                })
+            });
+
+            const result = await response.json();
+            console.log('Form gönderim yanıtı:', result);
+
+            if (response.ok) {
+                formMessage.textContent = result.message || 'Mesajınız başarıyla gönderildi!';
+                formMessage.className = 'form-message success';
+                form.reset();
+                await loadRequests();
+                showToast('Mesaj gönderildi!', 'success');
+            } else {
+                formMessage.textContent = result.error || 'Mesaj gönderilirken bir hata oluştu.';
+                formMessage.className = 'form-message error';
+            }
+        } catch (error) {
+            console.error('Form gönderim hatası:', error.message);
+            formMessage.textContent = 'Bağlantı hatası, lütfen daha sonra tekrar deneyin.';
+            formMessage.className = 'form-message error';
+        }
+    });
+
+    // Yanıt formu gönderimi
+    requestsList.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        if (!form.classList.contains('reply-form')) return;
+
+        const requestId = form.dataset.requestId;
+        const message = form.querySelector('textarea').value.trim();
+
+        if (!message) {
+            const formMessage = document.createElement('div');
+            formMessage.textContent = 'Lütfen bir yanıt yazın.';
+            formMessage.className = 'form-message error';
+            form.parentNode.insertBefore(formMessage, form.nextSibling);
+            setTimeout(() => formMessage.remove(), 3000);
+            return;
+        }
+
+        try {
+            console.log('Yanıt gönderim isteği:', `${API_URL}/api/requests/${requestId}/reply`);
+            const response = await fetch(`${API_URL}/api/requests/${requestId}/reply`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ message })
+            });
+
+            const result = await response.json();
+            console.log('Yanıt gönderim yanıtı:', result);
+
+            if (response.ok) {
+                const formMessage = document.createElement('div');
+                formMessage.textContent = result.message || 'Yanıtınız başarıyla gönderildi!';
+                formMessage.className = 'form-message success';
+                form.parentNode.insertBefore(formMessage, form.nextSibling);
+                form.reset();
+                await loadRequests();
+                showToast('Yanıt gönderildi!', 'success');
+                setTimeout(() => formMessage.remove(), 3000);
+            } else {
+                const formMessage = document.createElement('div');
+                formMessage.textContent = result.error || 'Yanıt gönderilirken bir hata oluştu.';
+                formMessage.className = 'form-message error';
+                form.parentNode.insertBefore(formMessage, form.nextSibling);
+                setTimeout(() => formMessage.remove(), 3000);
+            }
+        } catch (error) {
+            console.error('Yanıt gönderim hatası:', error.message);
+            const formMessage = document.createElement('div');
+            formMessage.textContent = 'Bağlantı hatası, lütfen daha sonra tekrar deneyin.';
+            formMessage.className = 'form-message error';
+            form.parentNode.insertBefore(formMessage, form.nextSibling);
+            setTimeout(() => formMessage.remove(), 3000);
+        }
+    });
+
+    // Burger menü kontrolü
+    burgerMenu.addEventListener('click', () => {
+        navContainer.classList.toggle('active');
+    });
+
+    // Pencere boyutu değiştiğinde menüyü kapat
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768 && navContainer.classList.contains('active')) {
+            navContainer.classList.remove('active');
+        }
+    });
+
+    // İlk yükleme
+    await fetchApiUrl();
+    await checkAuth();
+    await loadRequests();
+});
+    </script>
+</body>
+</html>

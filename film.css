@@ -223,6 +223,39 @@
     padding: 0 20px;
 }
 
+/* Similar Movies - Mobil Dinamik Kaydırma */
+.similar-movies .slider-container {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    gap: 15px;
+    padding-bottom: 10px;
+    -webkit-overflow-scrolling: touch; /* iOS için pürüzsüz kaydırma */
+    scroll-snap-type: x mandatory; /* Kartların hizalı durması */
+}
+
+.similar-movies .slider-container > * {
+    scroll-snap-align: start; /* Her kart başlangıçta hizalanır */
+}
+
+/* Mobil cihazlarda kaydırma çubuğunu gizle */
+@media (max-width: 768px) {
+    .similar-movies .slider-container {
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE ve Edge */
+    }
+
+    .similar-movies .slider-container::-webkit-scrollbar {
+        display: none; /* Chrome, Safari */
+    }
+
+    /* Slider butonlarını mobilde gizle */
+    .similar-movies .slider-prev,
+    .similar-movies .slider-next {
+        display: none;
+    }
+}
+
 /* Player Actions */
 .player-actions {
     display: flex;
@@ -232,7 +265,7 @@
     flex-wrap: wrap;
 }
 
-.like-btn, .dislike-btn, .favorite-btn {
+.like-btn, .dislike-btn, .favorite-btn,.watch-later-btn{
     display: flex;
     align-items: center;
     gap: 8px;
@@ -246,12 +279,12 @@
     transition: all 0.3s ease;
 }
 
-.like-btn i, .dislike-btn i, .favorite-btn i {
+.like-btn i, .dislike-btn i, .favorite-btn i, .watch-later-btn i {
     margin-right: 8px;
     color: var(--accent-color);
 }
 
-.like-btn:hover:not(.active), .dislike-btn:hover:not(.active), .favorite-btn:hover:not(.active) {
+.like-btn:hover:not(.active), .dislike-btn:hover:not(.active), .favorite-btn:hover:not(.active), .watch-later-btn:hover:not(.active) {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -285,18 +318,26 @@
     color: var(--accent-color);
     animation: heartbeat 0.5s ease;
 }
-
+.watch-later-btn.active {
+    background-color: transparent;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+.watch-later-btn.active i {
+    color: var(--accent-color);
+    animation: heartbeat 0.5s ease;
+}
 @keyframes heartbeat {
     0% { transform: scale(1); }
     50% { transform: scale(1.2); }
     100% { transform: scale(1); }
 }
 
-.like-btn.active:hover, .dislike-btn.active:hover, .favorite-btn.active:hover {
+.like-btn.active:hover, .dislike-btn.active:hover, .favorite-btn.active:hover,.watch-later-btn.active:hover {
     opacity: 0.9;
 }
 
-.like-btn.disabled, .dislike-btn.disabled, .favorite-btn.disabled {
+.like-btn.disabled, .dislike-btn.disabled, .favorite-btn.disabled,.watch-later-btn.disabled {
     cursor: not-allowed;
     opacity: 0.5;
 }
@@ -468,9 +509,109 @@
     background: linear-gradient(135deg, #dc3545, #b32d38);
 }
 
+/* Seri Filmler Bölümü - Sade Liste Tasarımı */
+.related-series {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.related-series-title {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.related-series-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--accent-color);
+    margin-left: 10px;
+    opacity: 0.3;
+}
+
+.related-series-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.related-series-item {
+    background-color: var(--card-bg);
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.related-series-item:hover {
+    background-color: rgba(255, 204, 0, 0.05);
+}
+
+.related-series-item.active {
+    background-color: rgba(255, 204, 0, 0.15);
+}
+
+.related-series-item.active .related-series-item-title {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.related-series-item-title {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.related-series-item-title i {
+    color: var(--accent-color);
+    font-size: 1rem;
+}
+
+.related-series-item-meta {
+    display: flex;
+    gap: 10px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.related-series-item-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.related-series-item-meta i {
+    color: var(--accent-color);
+}
+
+.related-series-item-language {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background-color: rgba(255, 204, 0, 0.1);
+    color: var(--accent-color);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.related-series-item-language .flag-icon {
+    width: 12px;
+    height: 8px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-    .film-container, .series-section {
+    .film-container, .series-section, .related-series {
         padding: 15px;
     }
 
@@ -523,7 +664,7 @@
         gap: 10px;
     }
 
-    .like-btn, .dislike-btn, .favorite-btn {
+    .like-btn, .dislike-btn, .favorite-btn ,.watch-later-btn{
         padding: 6px 12px;
         font-size: 0.9rem;
     }
@@ -557,9 +698,36 @@
         padding: 8px 16px;
         font-size: 0.85rem;
     }
+
+    .related-series-title {
+        font-size: 1.6rem;
+    }
+
+    .related-series-item-title {
+        font-size: 1.1rem;
+    }
+
+    .related-series-item-meta {
+        font-size: 0.8rem;
+    }
+
+    .related-series-item-language {
+        font-size: 0.75rem;
+    }
 }
 
 @media (max-width: 480px) {
+   
+    .player-container {
+        margin-bottom: 5px;
+        padding: 0px;
+    }
+    .film-container {
+        padding: 0px;
+    }
+    .player-box {
+        padding: 10px;
+    }
     .film-title {
         font-size: 1.5rem;
     }
@@ -589,7 +757,7 @@
         font-size: 0.9rem;
     }
 
-    .like-btn, .dislike-btn, .favorite-btn {
+    .like-btn, .dislike-btn, .favorite-btn ,.watch-later-btn{
         padding: 5px 10px;
         font-size: 0.85rem;
     }
@@ -639,18 +807,38 @@
         width: 100%;
         height: auto;
     }
+
+    .related-series-title {
+        font-size: 1.4rem;
+    }
+
+    .related-series-item-title {
+        font-size: 1rem;
+    }
+
+    .related-series-item-meta {
+        font-size: 0.75rem;
+    }
+
+    .related-series-item-language {
+        font-size: 0.7rem;
+    }
 }
 
 @media (max-width: 365px) {
     .film-poster {
         max-width: 180px;
         width: 100%;
-        height: auto;
+        height: 180px;
         margin: 0 auto;
     }
 
     .film-hero {
         padding: 10px;
+    }
+
+    .related-series-item-title {
+        font-size: 0.95rem;
     }
 }
 
@@ -765,4 +953,52 @@
         padding: 6px 12px;
         font-size: 0.8rem;
     }
+}
+.premium-message {
+    text-align: center;
+    padding: 40px;
+    background: var(--secondary-bg);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 1.2rem;
+    margin: 20px 0;
+}
+.premium-message i {
+    font-size: 2rem;
+    color: var(--accent-color);
+    margin-bottom: 10px;
+}
+.premium-message button {
+    background: var(--accent-color);
+    color: var(--primary-bg);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+.premium-message button:hover {
+    background: #e6b800;
+}
+.related-series-list.loading::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 24px;
+    margin: 20px auto;
+    border: 4px solid #ffcc00;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.watched-icon {
+    color: #28a745;
+    margin-left: 8px;
+    font-size: 14px;
 }

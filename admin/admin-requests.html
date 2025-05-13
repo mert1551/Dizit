@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DİZİT - Admin İstek/Şikayet Paneli</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        :root {
+            --primary-bg: #1a1a1a;
+            --secondary-bg: #2c2c2c;
+            --card-bg: #333;
+            --text-color: #fff;
+            --text-secondary: #b0b0b0;
+            --accent-color: #ffd700;
+            --input-bg: #444;
+            --border-color: #555;
+            --danger-color: #ff5555;
+            --success-color: #55ff55;
+        }
+
+        body {
+            background: var(--primary-bg);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .admin-requests-section {
+            max-width: 1000px;
+            margin: 90px auto 20px;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .date-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+            overflow-x: auto;
+        }
+
+        .date-tab {
+            background: var(--card-bg);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .date-tab.active {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .date-tab:hover {
+            background: var(--secondary-bg);
+        }
+
+        .requests-container {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .request-item {
+            margin-bottom: 10px;
+        }
+
+        .request-item details {
+            background: var(--secondary-bg);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .request-item summary {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            background: var(--secondary-bg);
+            transition: background 0.3s;
+        }
+
+        .request-item summary:hover {
+            background: var(--card-bg);
+        }
+
+        .request-item summary .request-title {
+            font-weight: 500;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .request-item summary .request-meta {
+            display: flex;
+            gap: 15px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .request-item summary .request-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .request-item summary .request-status.answered {
+            background: var(--success-color);
+            color: var(--primary-bg);
+        }
+
+        .request-item summary .request-status.not-answered {
+            background: var(--danger-color);
+            color: var(--text-color);
+        }
+
+        .request-item .closed-icon {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-left: 10px;
+        }
+
+        .request-content {
+            padding: 15px;
+            background: var(--primary-bg);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .message-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .message-item {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .message-item.user {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            margin-right: 25px;
+            margin-left: auto;
+            border-radius: 12px 12px 12px 0;
+        }
+
+        .message-item.admin {
+            background: var(--secondary-bg);
+            border: 1px solid var(--accent-color);
+            color: var(--text-color);
+            margin-left: 25px;
+            margin-right: auto;
+            border-radius: 12px 12px 0 12px;
+        }
+
+        .message-content {
+            line-height: 1.4;
+        }
+
+        .message-date {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 3px;
+        }
+
+        .reply-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .reply-form textarea {
+            flex: 1;
+            padding: 10px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            resize: none;
+            min-height: 60px;
+        }
+
+        .reply-form .custom-reply-btn {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .reply-form .custom-reply-btn:hover {
+            background: #e6c200;
+        }
+
+        .predefined-messages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .predefined-message-btn {
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            padding: 8px 15px;
+            border: 1px solid var(--accent-color);
+            border-radius: 5px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .predefined-message-btn:hover {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .close-btn {
+            background: var(--danger-color);
+            color: var(--text-color);
+        }
+
+        .close-btn:hover {
+            background: #cc4444;
+        }
+
+        .reopen-btn {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .reopen-btn:hover {
+            background: #e6c200;
+        }
+
+        .delete-btn {
+            background: #ff3333;
+            color: var(--text-color);
+        }
+
+        .delete-btn:hover {
+            background: #cc2222;
+        }
+
+        .form-message {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        .form-message.success {
+            color: var(--success-color);
+        }
+
+        .form-message.error {
+            color: var(--danger-color);
+        }
+
+        .no-requests {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            padding: 20px;
+        }
+
+        .username-link {
+            color: var(--accent-color);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .username-link:hover {
+            color: #e6c200;
+        }
+
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .auth-modal.active {
+            display: flex;
+        }
+
+        .auth-modal-content {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .auth-tabs .tab-btn {
+            flex: 1;
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .auth-tabs .tab-btn.active {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .auth-form h2 {
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.85rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .auth-submit {
+            width: 100%;
+            padding: 10px;
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s;
+        }
+
+        .auth-submit:hover {
+            background: #e6c200;
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast-notification.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .admin-requests-section {
+                padding: 15px;
+                margin: 80px auto 15px;
+            }
+
+            .requests-container {
+                padding: 15px;
+            }
+
+            .date-tabs {
+                padding: 0 5px;
+            }
+
+            .date-tab {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+            }
+
+            .reply-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .reply-form textarea {
+                width: 100%;
+            }
+
+            .reply-form .custom-reply-btn {
+                width: 100%;
+            }
+
+            .predefined-messages {
+                flex-direction: column;
+            }
+
+            .predefined-message-btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .section-title {
+                font-size: 1.4rem;
+            }
+
+            .request-item summary {
+                font-size: 0.9rem;
+                padding: 10px;
+            }
+
+            .request-item summary .request-title {
+                min-width: 150px;
+                font-size: 0.9rem;
+            }
+
+            .request-item summary .request-meta {
+                flex-direction: column;
+                gap: 5px;
+                font-size: 0.8rem;
+            }
+
+            .request-item summary .request-status {
+                font-size: 0.75rem;
+            }
+
+            .message-item {
+                font-size: 0.8rem;
+            }
+
+            .reply-form textarea {
+                min-height: 50px;
+                font-size: 0.8rem;
+            }
+
+            .reply-form .custom-reply-btn,
+            .action-btn,
+            .predefined-message-btn {
+                font-size: 0.8rem;
+                padding: 8px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header id="header">
+        <a href="/index.html" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="burger-menu" id="burger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+        <div class="nav-container" id="nav-container">
+            <ul class="nav-links">
+                <li><a href="/admin-panel.html">Anasayfa</a></li>
+                <li><a href="/add-movie.html">Ekle</a></li>
+                <li><a href="/edit-movie.html">Düzenle</a></li>
+                <li><a href="/admin-requests.html" class="active">İstek/Şikayet</a></li>
+            </ul>
+            <div class="auth-buttons" id="auth-buttons">
+                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
+                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+            </div>
+            <div class="user-info" id="user-info" style="display: none;">
+                <div class="user-profile">
+                    <span class="user-greeting">Merhaba,</span>
+                    <span class="username-display" id="username-display"></span>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Auth Modal -->
+    <div class="auth-modal" id="auth-modal">
+        <div class="auth-modal-content">
+            <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="login-tab" onclick="switchTab('login')">Giriş Yap</button>
+                <button class="tab-btn" id="signup-tab" onclick="switchTab('signup')">Üye Ol</button>
+            </div>
+            <div class="auth-form" id="login-form">
+                <h2>Giriş Yap</h2>
+                <form id="login-form-submit" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="login-username">Kullanıcı Adı</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Parola</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <p class="error-message" id="login-error"></p>
+                    <button type="submit" class="auth-submit">Giriş Yap</button>
+                </form>
+            </div>
+            <div class="auth-form" id="signup-form" style="display: none;">
+                <h2>Üye Ol</h2>
+                <form id="signup-form-submit" onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signup-username">Kullanıcı Adı</label>
+                        <input type="text" id="signup-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">E-posta</label>
+                        <input type="email" id="signup-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Parola</label>
+                        <input type="password" id="signup-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password-confirm">Parola Tekrar</label>
+                        <input type="password" id="signup-password-confirm" required>
+                    </div>
+                    <p class="error-message" id="signup-error"></p>
+                    <button type="submit" class="auth-submit">Üye Ol</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="admin-requests-section">
+        <h1 class="section-title">İstek ve Şikayet Yönetim Paneli</h1>
+        <div class="requests-container">
+            <div id="auth-message" class="form-message error" style="display: none;">
+                Bu sayfayı görüntülemek için yönetici girişi yapmalısınız.
+            </div>
+            <div id="date-tabs"></div>
+            <div id="requests-list"></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>DİZİT</h3>
+                <p>En iyi film ve dizi izleme platformu.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast-notification" id="toast-notification"></div>
+
+    <!-- Scripts -->
+    <script src="/script.js"></script>
+    <script>
+        let isLoggedIn = !!localStorage.getItem('token');
+        let currentUser = localStorage.getItem('username') || null;
+        let isAdmin = false;
+        let API_URL = 'http://localhost:3000';
+
+        const predefinedMessages = [
+            'İstek Dizi/Filminiz Gün İçerisinde Eklenecektir',
+            'İstek Dizi/Filminiz 1 Hafta İçerisinde Eklenecektir'
+        ];
+
+        async function fetchApiUrl() {
+            try {
+                console.log('API_URL isteği gönderiliyor:', '/api/config');
+                const response = await fetch('/api/config');
+                if (!response.ok) {
+                    throw new Error(`HTTP hatası: ${response.status} ${response.statusText}`);
+                }
+                const config = await response.json();
+                API_URL = config.apiUrl || 'http://localhost:3000';
+                console.log('API_URL alınd Чехта: ', API_URL);
+            } catch (error) {
+                console.error('API_URL alınamadı:', error.message);
+                showToast('Bağlantı yapılandırması yüklenemedi');
+            }
+        }
+
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast-notification');
+            toast.textContent = message;
+            toast.className = `toast-notification ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function updateAuthUI() {
+            const authButtons = document.getElementById('auth-buttons');
+            const userInfo = document.getElementById('user-info');
+            const usernameDisplay = document.getElementById('username-display');
+            if (isLoggedIn && currentUser) {
+                authButtons.style.display = 'none';
+                userInfo.style.display = 'flex';
+                usernameDisplay.textContent = currentUser;
+            } else {
+                authButtons.style.display = 'flex';
+                userInfo.style.display = 'none';
+            }
+        }
+
+        async function checkAdmin() {
+            const token = localStorage.getItem('token');
+            const authMessage = document.getElementById('auth-message');
+            const requestsList = document.getElementById('requests-list');
+
+            if (!token) {
+                authMessage.style.display = 'block';
+                requestsList.innerHTML = '<p>Lütfen yönetici olarak giriş yapın.</p>';
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                showToast('Giriş yapmanız gerekiyor');
+                return false;
+            }
+
+            try {
+                console.log('Admin kontrol isteği gönderiliyor:', `${API_URL}/api/check-admin`);
+                const response = await fetch(`${API_URL}/api/check-admin`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const result = await response.json();
+                console.log('Admin kontrol yanıtı:', result);
+
+                if (response.ok && result.isAdmin) {
+                    authMessage.style.display = 'none';
+                    isAdmin = true;
+                    isLoggedIn = true;
+                    currentUser = localStorage.getItem('username');
+                    updateAuthUI();
+                    return true;
+                } else {
+                    authMessage.style.display = 'block';
+                    requestsList.innerHTML = '<p>Bu sayfayı görüntülemek için yönetici yetkisi gerekli.</p>';
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    isLoggedIn = false;
+                    currentUser = null;
+                    updateAuthUI();
+                    showToast('Yetkisiz erişim');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Admin kontrol hatası:', error.message);
+                authMessage.style.display = 'block';
+                requestsList.innerHTML = '<p>Bağlantı hatası, lütfen daha sonra tekrar deneyin.</p>';
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                showToast('Bağlantı hatası: Admin kontrolü başarısız');
+                return false;
+            }
+        }
+
+        function groupRequestsByDate(requests) {
+            const grouped = {};
+            requests.forEach(request => {
+                const date = new Date(request.createdAt).toLocaleDateString('tr-TR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                if (!grouped[date]) {
+                    grouped[date] = [];
+                }
+                grouped[date].push(request);
+            });
+            return grouped;
+        }
+
+        function renderRequestsByDate(groupedRequests, selectedDate) {
+            const requestsList = document.getElementById('requests-list');
+            const dateTabs = document.getElementById('date-tabs');
+            const dates = Object.keys(groupedRequests).sort((a, b) => {
+                const [dayA, monthA, yearA] = a.split('.');
+                const [dayB, monthB, yearB] = b.split('.');
+                return new Date(`${yearB}-${monthB}-${dayB}`) - new Date(`${yearA}-${monthA}-${dayA}`);
+            });
+
+            dateTabs.innerHTML = dates.length
+                ? dates.map(date => `
+                    <button class="date-tab ${date === selectedDate ? 'active' : ''}" data-date="${date}">
+                        ${date}
+                    </button>
+                `).join('')
+                : '<p>Hiçbir tarihte istek veya şikayet bulunmamaktadır.</p>';
+
+            const requests = groupedRequests[selectedDate] || [];
+            requestsList.innerHTML = requests.length
+                ? requests.map(request => {
+                    if (!request._id || !request.title) {
+                        console.warn('Geçersiz istek nesnesi:', request);
+                        return '';
+                    }
+                    const isAnswered = request.messages?.some(msg => msg.sender === 'admin');
+                    return `
+                        <div class="request-item" data-request-id="${request._id}">
+                            <details ${request.isClosed ? '' : 'open'}>
+                                <summary>
+                                    <span class="request-title">${request.title}</span>
+                                    <div class="request-meta">
+                                        <span>Tür: ${request.type === 'request' ? 'İstek' : 'Şikayet'}</span>
+                                        <span>Kullanıcı: <a href="/admin/admin-panel-users.html?username=${request.userId?.username || 'Bilinmeyen Kullanıcı'}" class="username-link">${request.userId?.username || 'Bilinmeyen Kullanıcı'}</a></span>
+                                        <span class="request-status ${isAnswered ? 'answered' : 'not-answered'}">
+                                            ${isAnswered ? 'Cevaplandı' : 'Cevaplanmadı'}
+                                        </span>
+                                    </div>
+                                    ${request.isClosed ? '<i class="fas fa-lock closed-icon"></i>' : ''}
+                                </summary>
+                                <div class="request-content">
+                                    <div class="message-list">
+                                        ${request.messages && Array.isArray(request.messages)
+                                            ? request.messages.map(msg => `
+                                                <div class="message-item ${msg.sender}">
+                                                    <div class="message-content">${msg.content}</div>
+                                                    <div class="message-date">${new Date(msg.createdAt).toLocaleString('tr-TR')}</div>
+                                                </div>
+                                            `).join('')
+                                            : '<p>Mesaj bulunamadı.</p>'}
+                                    </div>
+                                    ${request.isClosed ? `
+                                        <button class="action-btn reopen-btn" onclick="reopenRequest('${request._id}')">Konuyu Yeniden Aç</button>
+                                        <button class="action-btn delete-btn" onclick="deleteRequest('${request._id}')">İsteği Sil</button>
+                                    ` : `
+                                        <form class="reply-form" data-request-id="${request._id}">
+                                            <textarea placeholder="Özel bir yanıt yazın" name="message"></textarea>
+                                            <button type="submit" class="custom-reply-btn">Yanıt Gönder</button>
+                                        </form>
+                                        <div class="predefined-messages">
+                                            ${predefinedMessages.map(msg => `
+                                                <button type="button" class="predefined-message-btn" onclick="sendPredefinedMessage('${request._id}', '${msg.replace(/'/g, "\\'")}')">${msg}</button>
+                                            `).join('')}
+                                        </div>
+                                        <button class="action-btn close-btn" onclick="closeRequest('${request._id}')">Konuyu Kapat</button>
+                                        <button class="action-btn delete-btn" onclick="deleteRequest('${request._id}')">İsteği Sil</button>
+                                    `}
+                                </div>
+                            </details>
+                        </div>
+                    `;
+                }).join('')
+                : '<p class="no-requests">Bu tarihte istek veya şikayet bulunmamaktadır.</p>';
+
+            dateTabs.querySelectorAll('.date-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    dateTabs.querySelector('.date-tab.active')?.classList.remove('active');
+                    tab.classList.add('active');
+                    renderRequestsByDate(groupedRequests, tab.dataset.date);
+                });
+            });
+        }
+
+        async function loadRequests() {
+            const token = localStorage.getItem('token');
+            const requestsList = document.getElementById('requests-list');
+            if (!token) {
+                requestsList.innerHTML = '<p>Lütfen yönetici olarak giriş yapın.</p>';
+                showToast('Giriş yapmanız gerekiyor');
+                return;
+            }
+
+            try {
+                console.log('İstek/Şikayet yükleme isteği gönderiliyor:', `${API_URL}/api/requests`);
+                const response = await fetch(`${API_URL}/api/requests`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP hatası: ${response.status} ${response.statusText}`);
+                }
+                const requests = await response.json();
+                console.log('İstek/Şikayet API yanıtı:', requests);
+
+                if (!Array.isArray(requests)) {
+                    console.error('API yanıtı dizi değil:', requests);
+                    requestsList.innerHTML = '<p>İstek/şikayet verileri alınamadı. Lütfen tekrar deneyin.</p>';
+                    showToast('Veri formatı hatalı');
+                    return;
+                }
+
+                const groupedRequests = groupRequestsByDate(requests);
+                const latestDate = Object.keys(groupedRequests).sort((a, b) => {
+                    const [dayA, monthA, yearA] = a.split('.');
+                    const [dayB, monthB, yearB] = b.split('.');
+                    return new Date(`${yearB}-${monthB}-${dayB}`) - new Date(`${yearA}-${monthA}-${dayA}`);
+                })[0] || new Date().toLocaleDateString('tr-TR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                renderRequestsByDate(groupedRequests, latestDate);
+            } catch (error) {
+                console.error('İstek/Şikayet yükleme hatası:', error.message);
+                requestsList.innerHTML = '<p>İstek/şikayetler yüklenirken bir hata oluştu.</p>';
+                showToast(`Bağlantı hatası: ${error.message}`);
+            }
+        }
+
+        async function sendPredefinedMessage(requestId, message) {
+            try {
+                const token = localStorage.getItem('token');
+                console.log('Hazır mesaj gönderim isteği:', `${API_URL}/api/requests/${requestId}/reply`);
+                const response = await fetch(`${API_URL}/api/requests/${requestId}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const result = await response.json();
+                console.log('Hazır mesaj gönderim yanıtı:', result);
+
+                if (response.ok) {
+                    showToast(result.message || 'Yanıtınız başarıyla gönderildi!', 'success');
+                    loadRequests();
+                } else {
+                    showToast(result.error || 'Yanıt gönderilirken bir hata oluştu');
+                }
+            } catch (error) {
+                console.error('Hazır mesaj gönderim hatası:', error.message);
+                showToast(`Bağlantı hatası: ${error.message}`);
+            }
+        }
+
+        async function closeRequest(requestId) {
+            if (!confirm('Bu isteği/şikayeti kapatmak istediğinize emin misiniz?')) return;
+            try {
+                const token = localStorage.getItem('token');
+                console.log('Konu kapatma isteği gönderiliyor:', `${API_URL}/api/requests/${requestId}/close`);
+                const response = await fetch(`${API_URL}/api/requests/${requestId}/close`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const result = await response.json();
+                console.log('Konu kapatma yanıtı:', result);
+
+                if (response.ok) {
+                    showToast(result.message || 'Konu başarıyla kapatıldı', 'success');
+                    loadRequests();
+                } else {
+                    showToast(result.error || 'Konu kapatılırken bir hata oluştu');
+                }
+            } catch (error) {
+                console.error('Konu kapatma hatası:', error.message);
+                showToast(`Bağlantı hatası: ${error.message}`);
+            }
+        }
+
+        async function reopenRequest(requestId) {
+            if (!confirm('Bu isteği/şikayeti yeniden açmak istediğinize emin misiniz?')) return;
+            try {
+                const token = localStorage.getItem('token');
+                console.log('Konu yeniden açma isteği gönderiliyor:', `${API_URL}/api/requests/${requestId}/reopen`);
+                const response = await fetch(`${API_URL}/api/requests/${requestId}/reopen`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const result = await response.json();
+                console.log('Konu yeniden açma yanıtı:', result);
+
+                if (response.ok) {
+                    showToast(result.message || 'Konu başarıyla yeniden açıldı', 'success');
+                    loadRequests();
+                } else {
+                    showToast(result.error || 'Konu yeniden açılırken bir hata oluştu');
+                }
+            } catch (error) {
+                console.error('Konu yeniden açma hatası:', error.message);
+                showToast(`Bağlantı hatası: ${error.message}`);
+            }
+        }
+
+        async function deleteRequest(requestId) {
+            if (!confirm('Bu isteği/şikayeti silmek istediğinize emin misiniz?')) return;
+            try {
+                const token = localStorage.getItem('token');
+                console.log('İstek silme isteği gönderiliyor:', `${API_URL}/api/requests/${requestId}`);
+                const response = await fetch(`${API_URL}/api/requests/${requestId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const result = await response.json();
+                console.log('İstek silme yanıtı:', result);
+
+                if (response.ok) {
+                    showToast(result.message || 'İstek başarıyla silindi', 'success');
+                    loadRequests();
+                } else {
+                    showToast(result.error || 'İstek silinirken bir hata oluştu');
+                }
+            } catch (error) {
+                console.error('İstek silme hatası:', error.message);
+                showToast(`Bağlantı hatası: ${error.message}`);
+            }
+        }
+
+        // Auth Modal Functions
+        function openAuthModal(type = 'login') {
+            const modal = document.getElementById('auth-modal');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            modal.classList.add('active');
+            if (type === 'login') {
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+            } else {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                loginTab.classList.remove('active');
+                signupTab.classList.add('active');
+            }
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('active');
+            document.getElementById('login-error').textContent = '';
+            document.getElementById('signup-error').textContent = '';
+            document.getElementById('login-form-submit').reset();
+            document.getElementById('signup-form-submit').reset();
+        }
+
+        function switchTab(type) {
+            openAuthModal(type);
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorEl = document.getElementById('login-error');
+            try {
+                const res = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.error || 'Giriş başarısız';
+                    return;
+                }
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('username', data.username);
+                isLoggedIn = true;
+                currentUser = data.username;
+                closeAuthModal();
+                showToast('Giriş başarılı!', 'success');
+                await checkAdmin();
+                if (isAdmin) {
+                    await loadRequests();
+                }
+            } catch (error) {
+                console.error('Giriş hatası:', error);
+                errorEl.textContent = 'Sunucu hatası';
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const passwordConfirm = document.getElementById('signup-password-confirm').value;
+            const errorEl = document.getElementById('signup-error');
+            if (password !== passwordConfirm) {
+                errorEl.textContent = 'Parolalar eşleşmiyor';
+                return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errorEl.textContent = data.error || 'Kayıt başarısız';
+                    return;
+                }
+                closeAuthModal();
+                showToast('Kayıt başarılı! Lütfen giriş yapın.', 'success');
+            } catch (error) {
+                console.error('Kayıt hatası:', error);
+                errorEl.textContent = 'Sunucu hatası';
+            }
+        }
+
+        document.getElementById('requests-list').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            if (!form.classList.contains('reply-form')) return;
+
+            const requestId = form.dataset.requestId;
+            const message = form.querySelector('textarea').value.trim();
+
+            if (!message) {
+                const formMessage = document.createElement('div');
+                formMessage.textContent = 'Lütfen bir yanıt yazın.';
+                formMessage.className = 'form-message error';
+                form.parentNode.insertBefore(formMessage, form.nextSibling);
+                setTimeout(() => formMessage.remove(), 3000);
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                console.log('Yanıt gönderim isteği:', `${API_URL}/api/requests/${requestId}/reply`);
+                const response = await fetch(`${API_URL}/api/requests/${requestId}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const result = await response.json();
+                console.log('Yanıt gönderim yanıtı:', result);
+
+                if (response.ok) {
+                    const formMessage = document.createElement('div');
+                    formMessage.textContent = result.message || 'Yanıtınız başarıyla gönderildi!';
+                    formMessage.className = 'form-message success';
+                    form.parentNode.insertBefore(formMessage, form.nextSibling);
+                    form.reset();
+                    loadRequests();
+                    setTimeout(() => formMessage.remove(), 3000);
+                } else {
+                    const formMessage = document.createElement('div');
+                    formMessage.textContent = result.error || 'Yanıt gönderilirken bir hata oluştu.';
+                    formMessage.className = 'form-message error';
+                    form.parentNode.insertBefore(formMessage, form.nextSibling);
+                    setTimeout(() => formMessage.remove(), 3000);
+                }
+            } catch (error) {
+                console.error('Yanıt gönderim hatası:', error.message);
+                const formMessage = document.createElement('div');
+                formMessage.textContent = 'Bağlantı hatası, lütfen daha sonra tekrar deneyin.';
+                formMessage.className = 'form-message error';
+                form.parentNode.insertBefore(formMessage, form.nextSibling);
+                setTimeout(() => formMessage.remove(), 3000);
+                showToast(`Bağlantı hatası: ${error.message}`);
+            }
+        });
+
+        window.logout = function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            isAdmin = false;
+            updateAuthUI();
+            window.location.href = '/';
+            showToast('Çıkış yapıldı', 'success');
+        };
+
+        const burgerMenu = document.getElementById('burger-menu');
+        const navContainer = document.getElementById('nav-container');
+        if (burgerMenu && navContainer) {
+            burgerMenu.addEventListener('click', () => {
+                navContainer.classList.toggle('active');
+            });
+        }
+
+        (async () => {
+            await fetchApiUrl();
+            const isAdmin = await checkAdmin();
+            if (isAdmin) {
+                await loadRequests();
+            }
+        })();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9343c0da2dc14505',t:'MTc0NTMxMDU2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>

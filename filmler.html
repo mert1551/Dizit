@@ -458,28 +458,26 @@
         }
     
         function displaySearchResults(results) {
-    const searchResults = document.getElementById('search-results');
-    if (!searchResults) return;
-    searchResults.innerHTML = results.length ? '' : '<p>Sonuç bulunamadı.</p>';
-
-    results.forEach(item => {
-        const itemEl = document.createElement('div');
-        itemEl.className = 'search-result-item';
-        itemEl.innerHTML = `
-            <img src="${item.poster || 'https://via.placeholder.com/150'}" alt="${item.title}" class="search-result-poster">
-            <div class="search-result-info">
-                <div class="search-result-title">
-                    ${item.title || 'Bilinmeyen İçerik'}
-                    ${item.title2 ? `<span class="search-result-title2">(${item.title2})</span>` : ''}
-                </div>
-                <div class="search-result-year">${item.year || 'N/A'}</div>
-                <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
-            </div>
-        `;
-        itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
-        searchResults.appendChild(itemEl);
-    });
-}
+            const searchResults = document.getElementById('search-results');
+            searchResults.innerHTML = results.length ? '' : '<p>Sonuç bulunamadı.</p>';
+            results.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'search-result-item';
+                itemEl.innerHTML = `
+                    <img src="${item.poster || 'https://via.placeholder.com/150'}" alt="${item.title}" class="search-result-poster">
+                    <div class="search-result-info">
+                        <div class="search-result-title">
+                            ${item.title || 'Bilinmeyen İçerik'}
+                            ${item.title2 ? `<span class="search-result-title2">(${item.title2})</span>` : ''}
+                        </div>
+                        <div class="search-result-year">${item.year || 'N/A'}</div>
+                        <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
+                    </div>
+                `;
+                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
+                searchResults.appendChild(itemEl);
+            });
+        }
     
         // Event Listeners
         const searchInput = document.getElementById('search-input');

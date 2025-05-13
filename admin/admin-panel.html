@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
     <style>
+      
         :root {
             --primary-bg: #1a1a1a;
             --secondary-bg: #2c2c2c;
@@ -189,30 +190,6 @@
             background: #cc4444;
         }
 
-        .ban-btn {
-            background: var(--danger-color);
-        }
-
-        .ban-btn:hover {
-            background: #cc4444;
-        }
-
-        .unban-btn {
-            background: var(--success-color);
-        }
-
-        .unban-btn:hover {
-            background: #44cc44;
-        }
-
-        .admin-btn {
-            background: #007bff;
-        }
-
-        .admin-btn:hover {
-            background: #0056b3;
-        }
-
         .admin-only-message {
             text-align: center;
             color: var(--danger-color);
@@ -260,6 +237,16 @@
 
         .toast-notification.show {
             display: block;
+        }
+
+        .user-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .user-link:hover {
+            text-decoration: underline;
         }
 
         @media (max-width: 768px) {
@@ -347,10 +334,10 @@
                 <li><a href="admin-panel.html" class="active">Anasayfa</a></li>
                 <li><a href="add-movie.html">Ekle</a></li>
                 <li><a href="edit-movie.html">Düzenle</a></li>
+                <li><a href="admin-requests.html" class="active">İstek/Şikayet</a></li>
             </ul>
             <div class="auth-buttons" id="auth-buttons">
-                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
-                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+                <button class="login-btn" onclick="openAuthModal()">Giriş Yap</button>
             </div>
             <div class="user-info" id="user-info" style="display: none;">
                 <div class="user-profile">
@@ -365,10 +352,6 @@
     <div class="auth-modal" id="auth-modal">
         <div class="auth-modal-content">
             <button class="close-modal" onclick="closeAuthModal()"><i class="fas fa-times"></i></button>
-            <div class="auth-tabs">
-                <button class="tab-btn active" id="login-tab" onclick="switchTab('login')">Giriş Yap</button>
-                <button class="tab-btn" id="signup-tab" onclick="switchTab('signup')">Üye Ol</button>
-            </div>
             <div class="auth-form" id="login-form">
                 <h2>Giriş Yap</h2>
                 <form id="login-form-submit" onsubmit="handleLogin(event)">
@@ -382,29 +365,6 @@
                     </div>
                     <p class="error-message" id="login-error"></p>
                     <button type="submit" class="auth-submit">Giriş Yap</button>
-                </form>
-            </div>
-            <div class="auth-form" id="signup-form" style="display: none;">
-                <h2>Üye Ol</h2>
-                <form id="signup-form-submit" onsubmit="handleSignup(event)">
-                    <div class="form-group">
-                        <label for="signup-username">Kullanıcı Adı</label>
-                        <input type="text" id="signup-username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-email">E-posta</label>
-                        <input type="email" id="signup-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-password">Parola</label>
-                        <input type="password" id="signup-password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-password-confirm">Parola Tekrar</label>
-                        <input type="password" id="signup-password-confirm" required>
-                    </div>
-                    <p class="error-message" id="signup-error"></p>
-                    <button type="submit" class="auth-submit">Üye Ol</button>
                 </form>
             </div>
         </div>
@@ -463,6 +423,8 @@
                             <option value="all">Tümü</option>
                             <option value="active">Aktif</option>
                             <option value="banned">Yasaklı</option>
+                            <option value="admin">Admin</option>
+                            <option value="premium">Premium</option>
                         </select>
                     </div>
                     <input type="text" id="user-search" class="search-bar" placeholder="Kullanıcı ara...">
@@ -473,7 +435,7 @@
                             <th>Kullanıcı Adı</th>
                             <th>E-posta</th>
                             <th>Durum</th>
-                            <th>Admin</th>
+                            <th>Premium</th>
                             <th>Eylemler</th>
                         </tr>
                     </thead>
@@ -521,6 +483,7 @@
                 const token = localStorage.getItem('token');
                 if (!token) {
                     console.log('Token bulunamadı');
+                    openAuthModal(); // Giriş yapılmamışsa modalı aç
                     throw new Error('Token bulunamadı');
                 }
                 const res = await fetch('/api/check-admin', {
@@ -573,37 +536,16 @@
         }
 
         // Auth Modal
-        function openAuthModal(type = 'login') {
+        function openAuthModal() {
             const modal = document.getElementById('auth-modal');
-            const loginForm = document.getElementById('login-form');
-            const signupForm = document.getElementById('signup-form');
-            const loginTab = document.getElementById('login-tab');
-            const signupTab = document.getElementById('signup-tab');
             modal.classList.add('active');
-            if (type === 'login') {
-                loginForm.style.display = 'block';
-                signupForm.style.display = 'none';
-                loginTab.classList.add('active');
-                signupTab.classList.remove('active');
-            } else {
-                loginForm.style.display = 'none';
-                signupForm.style.display = 'block';
-                loginTab.classList.remove('active');
-                signupTab.classList.add('active');
-            }
         }
 
         function closeAuthModal() {
             const modal = document.getElementById('auth-modal');
             modal.classList.remove('active');
             document.getElementById('login-error').textContent = '';
-            document.getElementById('signup-error').textContent = '';
             document.getElementById('login-form-submit').reset();
-            document.getElementById('signup-form-submit').reset();
-        }
-
-        function switchTab(type) {
-            openAuthModal(type);
         }
 
         // Handle Login
@@ -636,37 +578,6 @@
             }
         }
 
-        // Handle Signup
-        async function handleSignup(event) {
-            event.preventDefault();
-            const username = document.getElementById('signup-username').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const passwordConfirm = document.getElementById('signup-password-confirm').value;
-            const errorEl = document.getElementById('signup-error');
-            if (password !== passwordConfirm) {
-                errorEl.textContent = 'Parolalar eşleşmiyor';
-                return;
-            }
-            try {
-                const res = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password })
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                    errorEl.textContent = data.error || 'Kayıt başarısız';
-                    return;
-                }
-                closeAuthModal();
-                showToast('Kayıt başarılı! Lütfen giriş yapın.');
-            } catch (error) {
-                console.error('Kayıt hatası:', error);
-                errorEl.textContent = 'Sunucu hatası';
-            }
-        }
-
         // Logout
         function logout() {
             localStorage.removeItem('token');
@@ -678,6 +589,7 @@
             allUsers = [];
             updateAdminUI();
             showToast('Çıkış yapıldı');
+            openAuthModal(); // Çıkış yapıldığında giriş modalını aç
         }
 
         // Show Tab
@@ -780,112 +692,89 @@
             });
         }
 
-        // Render Users
-        function renderUsers(users) {
-            const userList = document.getElementById('user-list');
-            userList.innerHTML = '';
-            if (users.length === 0) {
-                userList.innerHTML = '<tr><td colspan="5">Kullanıcı bulunamadı</td></tr>';
-                return;
-            }
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                const isCurrentUser = user.username === currentUser;
-                row.innerHTML = `
-                    <td data-label="Kullanıcı Adı">${user.username}</td>
-                    <td data-label="E-posta">${user.email}</td>
-                    <td data-label="Durum">${user.isBanned ? 'Yasaklı' : 'Aktif'}</td>
-                    <td data-label="Admin">${user.isAdmin ? 'Evet' : 'Hayır'}</td>
-                    <td data-label="Eylemler" class="actions">
-                        ${user.isBanned ?
-                            `<button class="action-btn unban-btn" onclick="unbanUser('${user.username}')">Yasağı Kaldır</button>` :
-                            (isCurrentUser ? '' : `<button class="action-btn ban-btn" onclick="banUser('${user.username}')">Yasakla</button>`)}
-                        <button class="action-btn delete-btn" onclick="deleteUser('${user.username}')">Sil</button>
-                        ${isCurrentUser ? '' :
-                            (user.isAdmin ?
-                                `<button class="action-btn admin-btn" onclick="toggleAdmin('${user.username}', false)">Adminliği Kaldır</button>` :
-                                `<button class="action-btn admin-btn" onclick="toggleAdmin('${user.username}', true)">Admin Yap</button>`)}
-                    </td>
-                `;
-                userList.appendChild(row);
-            });
-        }
+   
+// Render Users
+function renderUsers(users) {
+    const userList = document.getElementById('user-list');
+    userList.innerHTML = '';
+    if (users.length === 0) {
+        userList.innerHTML = '<tr><td colspan="5">Kullanıcı bulunamadı</td></tr>';
+        return;
+    }
+    users.forEach(user => {
+        const row = document.createElement('tr');
+        // Premium türünü kullanıcı dostu bir şekilde formatla
+        const premiumDisplay = {
+            'none': 'Yok',
+            '1-minute': '1 Dakika',
+            '1-week': '1 Hafta',
+            '1-month': '1 Ay',
+            '1-year': '1 Yıl',
+            'unlimited': 'Sınırsız'
+        }[user.premiumType] || 'Yok'; // Tanımsız veya geçersizse 'Yok'
+        row.innerHTML = `
+            <td data-label="Kullanıcı Adı"><a href="admin-panel-users.html?username=${user.username}" class="user-link">${user.username}</a></td>
+            <td data-label="E-posta">${user.email}</td>
+            <td data-label="Durum">${user.isBanned ? 'Yasaklı' : 'Aktif'}</td>
+            <td data-label="Premium">${premiumDisplay}</td>
+            <td data-label="Eylemler" class="actions">
+                <button class="action-btn delete-btn" onclick="deleteUser('${user.username}')">Sil</button>
+            </td>
+        `;
+        userList.appendChild(row);
+    });
+}
 
-        // Edit Movie
-        function editMovie(movieId) {
-            window.location.href = `edit-movie.html?id=${movieId}`;
-        }
 
-        // Delete Movie
-        async function deleteMovie(movieId) {
-            if (!confirm('Bu filmi/diziyi silmek istediğinizden emin misiniz?')) return;
-            try {
-                const res = await fetch(`/api/movies/${movieId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                if (res.ok) {
-                    showToast('Film/Dizi silindi');
-                    await fetchMovies();
-                } else {
-                    const data = await res.json();
-                    showToast(data.error || 'Silme başarısız');
-                }
-            } catch (error) {
-                console.error('Film silme hatası:', error);
-                showToast('Sunucu hatası');
-            }
+// Admin statüsünü değiştirme
+async function toggleAdminStatus(username, isAdmin) {
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/users/${username}/admin`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ isAdmin })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message);
+            await fetchUsers(); // Kullanıcı listesini yenile
+        } else {
+            showToast(data.error || 'Admin işlemi başarısız');
         }
+    } catch (error) {
+        console.error('Admin işlemi hatası:', error);
+        showToast('Sunucu hatası');
+    }
+}
 
-        // Ban User
-        async function banUser(username) {
-            if (!confirm(`${username} kullanıcısını yasaklamak istediğinizden emin misiniz?`)) return;
-            try {
-                const res = await fetch(`/api/users/${username}/ban`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ isBanned: true })
-                });
-                if (res.ok) {
-                    showToast(`${username} yasaklandı`);
-                    await fetchUsers();
-                } else {
-                    const data = await res.json();
-                    showToast(data.error || 'Yasaklama başarısız');
-                }
-            } catch (error) {
-                console.error('Kullanıcı yasaklama hatası:', error);
-                showToast('Sunucu hatası');
-            }
+// Premium statüsünü güncelleme
+async function updatePremiumStatus(username, premiumType) {
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/users/${username}/premium`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ premiumType })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message);
+            await fetchUsers(); // Kullanıcı listesini yenile
+        } else {
+            showToast(data.error || 'Premium işlemi başarısız');
         }
-
-        // Unban User
-        async function unbanUser(username) {
-            if (!confirm(`${username} kullanıcısının yasağını kaldırmak istediğinizden emin misiniz?`)) return;
-            try {
-                const res = await fetch(`/api/users/${username}/ban`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ isBanned: false })
-                });
-                if (res.ok) {
-                    showToast(`${username} kullanıcısının yasağı kaldırıldı`);
-                    await fetchUsers();
-                } else {
-                    const data = await res.json();
-                    showToast(data.error || 'Yasağı kaldırma başarısız');
-                }
-            } catch (error) {
-                console.error('Kullanıcı yasağı kaldırma hatası:', error);
-                showToast('Sunucu hatası');
-            }
-        }
+    } catch (error) {
+        console.error('Premium güncelleme hatası:', error);
+        showToast('Sunucu hatası');
+    }
+}
 
         // Delete User
         async function deleteUser(username) {
@@ -904,31 +793,6 @@
                 }
             } catch (error) {
                 console.error('Kullanıcı silme hatası:', error);
-                showToast('Sunucu hatası');
-            }
-        }
-
-        // Toggle Admin Status
-        async function toggleAdmin(username, makeAdmin) {
-            if (!confirm(`${username} kullanıcısını ${makeAdmin ? 'admin yapmayı' : 'adminlikten çıkarmayı'} istediğinizden emin misiniz?`)) return;
-            try {
-                const res = await fetch(`/api/users/${username}/admin`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ isAdmin: makeAdmin })
-                });
-                if (res.ok) {
-                    showToast(`${username} ${makeAdmin ? 'admin yapıldı' : 'adminliği kaldırıldı'}`);
-                    await fetchUsers();
-                } else {
-                    const data = await res.json();
-                    showToast(data.error || 'Admin güncelleme başarısız');
-                }
-            } catch (error) {
-                console.error('Admin güncelleme hatası:', error);
                 showToast('Sunucu hatası');
             }
         }
@@ -966,18 +830,23 @@
         }
 
         // Filter and Search Users
-        function filterUsers() {
-            const status = document.getElementById('status-filter').value;
-            const search = document.getElementById('user-search').value.toLowerCase();
-            const filteredUsers = allUsers.filter(user => {
-                const matchesStatus = status === 'all' ||
-                    (status === 'active' && !user.isBanned) ||
-                    (status === 'banned' && user.isBanned);
-                const matchesSearch = user.username.toLowerCase().includes(search) || user.email.toLowerCase().includes(search);
-                return matchesStatus && matchesSearch;
-            });
-            renderUsers(filteredUsers);
-        }
+function filterUsers() {
+    const status = document.getElementById('status-filter').value;
+    const search = document.getElementById('user-search').value.toLowerCase();
+    const filteredUsers = allUsers.filter(user => {
+        const matchesStatus =
+            status === 'all' ||
+            (status === 'active' && !user.isBanned) ||
+            (status === 'banned' && user.isBanned) ||
+            (status === 'admin' && user.isAdmin) ||
+            (status === 'premium' && user.premiumType !== 'none');
+        const matchesSearch =
+            user.username.toLowerCase().includes(search) ||
+            user.email.toLowerCase().includes(search);
+        return matchesStatus && matchesSearch;
+    });
+    renderUsers(filteredUsers);
+}
 
         // Event Listeners
         document.getElementById('type-filter').addEventListener('change', filterMovies);

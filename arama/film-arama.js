@@ -402,6 +402,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Auth Modal
 function openAuthModal(type = 'login') {
+
     const modal = document.getElementById('auth-modal');
     modal.classList.add('active');
     switchTab(type);

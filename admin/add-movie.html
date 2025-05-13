@@ -8,6 +8,61 @@
     <link rel="stylesheet" href="../style.css">
     <style>
         /* Admin sayfası için ek stiller */
+        .form-group input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color, #444);
+            border-radius: 4px;
+            background: var(--input-bg, #252525);
+            cursor: pointer;
+            vertical-align: middle;
+            position: relative;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .form-group input[type="checkbox"]:checked {
+            background: var(--accent-color, #ffcc00);
+            border-color: var(--accent-color, #ffcc00);
+        }
+
+        .form-group input[type="checkbox"]:checked::after {
+            content: '\f00c'; /* Font Awesome check ikonu */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--primary-bg, #000);
+            font-size: 12px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .form-group input[type="checkbox"]:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 468px) {
+            .form-group input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+            }
+            .form-group input[type="checkbox"]:checked::after {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 319px) {
+            .form-group input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+            }
+            .form-group input[type="checkbox"]:checked::after {
+                font-size: 8px;
+            }
+        }
+
         .admin-container {
             max-width: 1200px;
             margin: 80px auto 20px;
@@ -142,8 +197,41 @@
         }
 
         .season-container h3 {
-            margin-top: 0;
+            margin: 0;
             color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--input-bg);
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .season-container h3:hover {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .season-container h3::after {
+            content: '\f107'; /* Font Awesome aşağı ok */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            transition: transform 0.3s;
+        }
+
+        .season-container.active h3::after {
+            transform: rotate(180deg);
+        }
+
+        .season-content {
+            display: none;
+            padding-top: 15px;
+        }
+
+        .season-container.active .season-content {
+            display: block;
         }
 
         .video-source-entry select, .episode-entry select {
@@ -354,6 +442,7 @@
                 <li><a href="admin-panel.html" class="active">Anasayfa</a></li>
                 <li><a href="add-movie.html" class="active">Ekle</a></li>
                 <li><a href="edit-movie.html" class="active">Düzenle</a></li>
+                <li><a href="admin-requests.html" class="active">İstek/Şikayet</a></li>
             </ul>
             <div class="auth-buttons" id="auth-buttons">
                 <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
@@ -420,7 +509,7 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="movie-id">Film ID (Benzersiz)</label>
-                        <input type="text" id="movie-id" required pattern="[a-zA-Z0-9]+" placeholder="Örn: filmA123">
+                        <input type="text" id="movie-id" required pattern="[a-zA-Z0-9-$]+" placeholder="Örn: top-gun">
                         <span class="validation-message" id="movie-id-error"></span>
                     </div>
                     <div class="form-group">
@@ -514,6 +603,10 @@
                         <label>Sezonlar ve Bölümler</label>
                         <div id="season-list"></div>
                         <button type="button" id="add-season-btn">Yeni Sezon Ekle</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="movie-premium">Premium İçerik</label>
+                        <input type="checkbox" id="movie-premium" name="movie-premium">
                     </div>
                     <button type="submit" class="submit-btn">Film/Dizi Ekle</button>
                 </div>
@@ -725,7 +818,7 @@
             let isValid = true;
             const isFilm = document.getElementById('movie-type').value === 'film';
             const fields = [
-                { id: 'movie-id', errorId: 'movie-id-error', validate: val => /^[a-zA-Z0-9]+$/.test(val), message: 'ID sadece harf ve sayı içermeli' },
+                { id: 'movie-id', errorId: 'movie-id-error', validate: val => /^[a-zA-Z0-9-]+$/.test(val), message: 'ID sadece harf, sayı ve tire içermeli' },
                 { id: 'movie-title', errorId: 'movie-title-error', validate: val => val.trim().length > 0, message: 'Başlık zorunlu' },
                 { id: 'movie-year', errorId: 'movie-year-error', validate: val => val && val >= 1900 && val <= 2100, message: 'Geçerli bir yıl girin (1900-2100)' },
                 { id: 'movie-runtime', errorId: 'movie-runtime-error', validate: val => !isFilm || (val && /^\d+\s*dk$|^\d+\s*s\s*\d+\s*dk$/.test(val)), message: 'Örn: 2 s 10 dk veya 40 dk' },
@@ -866,6 +959,7 @@
                 id: document.getElementById('movie-id').value.trim(),
                 title: document.getElementById('movie-title').value.trim(),
                 title2: document.getElementById('movie-title2').value.trim() || undefined,
+                premium: document.getElementById('movie-premium').checked,
                 year: parseInt(document.getElementById('movie-year').value),
                 runtime: document.getElementById('movie-runtime').value.trim() || undefined,
                 rating: parseFloat(document.getElementById('movie-rating').value) || undefined,
@@ -1031,11 +1125,13 @@
             seasonDiv.className = 'season-container';
             seasonDiv.innerHTML = `
                 <h3>Sezon ${seasonNumber}</h3>
-                <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
-                <span class="validation-message season-error"></span>
-                <div class="episode-list"></div>
-                <button type="button" class="add-episode-btn">Bölüm Ekle</button>
-                <button type="button" class="remove-season">Sezonu Kaldır</button>
+                <div class="season-content">
+                    <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
+                    <span class="validation-message season-error"></span>
+                    <div class="episode-list"></div>
+                    <button type="button" class="add-episode-btn">Bölüm Ekle</button>
+                    <button type="button" class="remove-season">Sezonu Kaldır</button>
+                </div>
             `;
             seasonList.appendChild(seasonDiv);
 
@@ -1052,6 +1148,17 @@
                 const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
                 console.log('Yeni bölüm ekleniyor, bölüm numarası:', episodeCount);
                 addEpisode(episodeList, episodeCount);
+            });
+
+            seasonDiv.querySelector('h3').addEventListener('click', () => {
+                console.log(`Sezon ${seasonNumber} tıklatıldı`);
+                const allSeasons = document.querySelectorAll('.season-container');
+                allSeasons.forEach(season => {
+                    if (season !== seasonDiv) {
+                        season.classList.remove('active');
+                    }
+                });
+                seasonDiv.classList.toggle('active');
             });
         }
 
@@ -1152,6 +1259,5 @@
             });
         });
     </script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'933e6b88ad88afa4',t:'MTc0NTI1NDY0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

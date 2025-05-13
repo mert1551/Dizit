@@ -25,6 +25,61 @@
             margin: 0;
         }
 
+        .form-group input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color, #555);
+            border-radius: 4px;
+            background: var(--input-bg, #444);
+            cursor: pointer;
+            vertical-align: middle;
+            position: relative;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .form-group input[type="checkbox"]:checked {
+            background: var(--accent-color, #ffd700);
+            border-color: var(--accent-color, #ffd700);
+        }
+
+        .form-group input[type="checkbox"]:checked::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--primary-bg, #1a1a1a);
+            font-size: 12px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .form-group input[type="checkbox"]:focus {
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 468px) {
+            .form-group input[type="checkbox"] {
+                width: 18px;
+                height: 18px;
+            }
+            .form-group input[type="checkbox"]:checked::after {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 319px) {
+            .form-group input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+            }
+            .form-group input[type="checkbox"]:checked::after {
+                font-size: 8px;
+            }
+        }
+
         .admin-container {
             max-width: 1200px;
             margin: 80px auto 20px;
@@ -166,8 +221,41 @@
         }
 
         .season-container h3 {
-            margin-top: 0;
+            margin: 0;
             color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--input-bg);
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .season-container h3:hover {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .season-container h3::after {
+            content: '\f107';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            transition: transform 0.3s;
+        }
+
+        .season-container.active h3::after {
+            transform: rotate(180deg);
+        }
+
+        .season-content {
+            display: none;
+            padding-top: 15px;
+        }
+
+        .season-container.active .season-content {
+            display: block;
         }
 
         .video-source-entry select, .episode-entry select {
@@ -191,18 +279,28 @@
             background: #cc4444;
         }
 
-        #add-video-btn, #add-episode-btn, #add-season-btn {
-            background: var(--accent-color);
-            color: var(--primary-bg);
+        #add-video-btn, .add-episode-video-btn, .add-episode-btn, #add-season-btn {
+            background: var(--accent-color) !important;
+            color: var(--primary-bg) !important;
             padding: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
+            font-size: 1rem;
+            transition: background 0.3s;
         }
 
-        #add-video-btn:hover, #add-episode-btn:hover, #add-season-btn:hover {
-            background: #e6b800;
+        #add-video-btn:hover, .add-episode-video-btn:hover, .add-episode-btn:hover, #add-season-btn:hover {
+            background: #e6b800 !important;
+        }
+
+        .video-type-custom {
+            display: none;
+        }
+
+        .video-source-entry .video-type-select[value="Diğer"] ~ .video-type-custom {
+            display: block;
         }
 
         .toast-notification {
@@ -247,7 +345,13 @@
                 padding: 12px;
                 font-size: 1rem;
             }
+
+            #add-video-btn, .add-episode-video-btn, .add-episode-btn, #add-season-btn {
+                padding: 12px;
+                font-size: 1rem;
+            }
         }
+
         @media (max-width: 468px) {
             .form-group label {
                 font-size: 0.7rem;
@@ -259,16 +363,20 @@
                 padding: 8px;
             }
             .submit-btn, .delete-btn, .fetch-btn {
-            padding: 8px;
-            font-size: 0.8rem;
-            width: 100%;
-        }
+                padding: 8px;
+                font-size: 0.8rem;
+                width: 100%;
+            }
+            #add-video-btn, .add-episode-video-btn, .add-episode-btn, #add-season-btn {
+                padding: 8px;
+                font-size: 0.8rem;
+            }
             .form-group .validation-message {
-            font-size: 0.6rem;
-            bottom: -18px;
+                font-size: 0.6rem;
+                bottom: -18px;
+            }
         }
-        }
-        
+
         @media (max-width: 319px) {
             .form-group label {
                 font-size: 0.5rem;
@@ -280,10 +388,14 @@
                 padding: 6px;
             }
             .submit-btn, .delete-btn, .fetch-btn {
-            padding: 6px;
-            font-size: 0.6rem;
-            width: 100%;
-        }
+                padding: 6px;
+                font-size: 0.6rem;
+                width: 100%;
+            }
+            #add-video-btn, .add-episode-video-btn, .add-episode-btn, #add-season-btn {
+                padding: 6px;
+                font-size: 0.6rem;
+            }
         }
     </style>
 </head>
@@ -366,7 +478,7 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="movie-id">Film/Dizi ID</label>
-                        <input type="text" id="movie-id" placeholder="ID girin (örn: filmTest123)" pattern="[a-zA-Z0-9]{3,20}" required>
+                        <input type="text" id="movie-id" placeholder="ID girin (örn: filmTest123)" pattern="[a-zA-Z0-9-$]{1,100}" required>
                         <span class="validation-message" id="movie-id-error"></span>
                     </div>
                     <div class="form-group">
@@ -438,6 +550,10 @@
                         <label>Sezonlar ve Bölümler</label>
                         <div id="season-list"></div>
                         <button type="button" id="add-season-btn">Yeni Sezon Ekle</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="movie-premium">Premium İçerik</label>
+                        <input type="checkbox" id="movie-premium" name="movie-premium">
                     </div>
                     <button type="submit" class="submit-btn">Değişiklikleri Kaydet</button>
                     <button type="button" class="delete-btn" onclick="deleteMovie()">Filmi/Diziyi Sil</button>
@@ -638,8 +754,8 @@
 
         async function fetchMovieData() {
             const movieId = document.getElementById('movie-id').value.trim();
-            if (!movieId || !/^[a-zA-Z0-9]{3,20}$/.test(movieId)) {
-                showToast('Geçerli bir ID girin (3-20 karakter, harf ve sayı)');
+            if (!movieId || !/^[a-zA-Z0-9-$]{1,100}$/.test(movieId)) {
+                showToast('Geçerli bir ID girin (1-100 karakter, harf ve sayı)');
                 return;
             }
 
@@ -650,6 +766,7 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
+                    console.log('Çekilen veri:', data);
                     originalMovieId = movieId;
                     populateForm(data);
                     updatePreview();
@@ -664,6 +781,7 @@
         }
 
         function populateForm(movie) {
+            console.log('populateForm çağrıldı, movie:', movie);
             document.getElementById('movie-id').value = movie.id || '';
             document.getElementById('movie-title').value = movie.title || '';
             document.getElementById('movie-title2').value = movie.title2 || '';
@@ -677,6 +795,9 @@
             document.getElementById('movie-plot').value = movie.plot || '';
             document.getElementById('movie-type').value = movie.type || 'film';
             document.getElementById('movie-related-series').value = movie.relatedSeries?.join(', ') || '';
+            const premiumStatus = movie.premium || movie.isPremium || false;
+            document.getElementById('movie-premium').checked = premiumStatus;
+            console.log('Premium checkbox durumu:', premiumStatus);
 
             const videoSourceList = document.getElementById('video-source-list');
             videoSourceList.innerHTML = '';
@@ -696,19 +817,26 @@
             document.getElementById('episodes-section').style.display = movie.type === 'dizi' ? 'block' : 'none';
             document.getElementById('runtime-section').style.display = movie.type === 'film' ? 'block' : 'none';
             document.getElementById('video-sources-section').style.display = movie.type === 'film' ? 'block' : 'none';
+
+            // Ensure video-type-custom visibility for all video sources
+            document.querySelectorAll('.video-source-entry').forEach(entry => {
+                const select = entry.querySelector('.video-type-select');
+                const customInput = entry.querySelector('.video-type-custom');
+                customInput.style.display = select.value === 'Diğer' ? 'block' : 'none';
+            });
         }
 
         function validateForm() {
             let isValid = true;
             const isFilm = document.getElementById('movie-type').value === 'film';
             const fields = [
-                { id: 'movie-id', errorId: 'movie-id-error', validate: val => /^[a-zA-Z0-9]{3,20}$/.test(val), message: 'ID 3-20 karakter olmalı, sadece harf ve sayı' },
+                { id: 'movie-id', errorId: 'movie-id-error', validate: val => /^[a-zA-Z0-9-]+$/.test(val), message: 'ID sadece harf, sayı ve tire içermeli' },
                 { id: 'movie-title', errorId: 'movie-title-error', validate: val => val.trim().length > 0, message: 'Başlık zorunlu' },
                 { id: 'movie-year', errorId: 'movie-year-error', validate: val => !val || (val >= 1900 && val <= 2100), message: 'Geçerli bir yıl girin' },
                 { id: 'movie-runtime', errorId: 'movie-runtime-error', validate: val => !isFilm || !val || /^\d+\s*dk$|^\d+\s*s\s*\d+\s*dk$/.test(val), message: 'Örn: 2 s 10 dk veya 40 dk' },
                 { id: 'movie-rating', errorId: 'movie-rating-error', validate: val => !val || (val >= 0 && val <= 10), message: '0-10 arasında bir puan girin' },
                 { id: 'movie-poster', errorId: 'movie-poster-error', validate: val => !val || /^https?:\/\/.+\.(jpg|png|jpeg)$/.test(val), message: 'Geçerli bir URL girin (jpg/png)' },
-                { id: 'movie-related-series', errorId: 'movie-related-series-error', validate: val => !val || val.split(',').every(id => id.trim() === '' || /^[a-zA-Z0-9]{3,20}$/.test(id.trim())), message: 'Geçerli ID’ler girin (3-20 karakter, virgülle ayırın)' }
+                { id: 'movie-related-series', errorId: 'movie-related-series-error', validate: val => !val || val.split(',').every(id => id.trim() === '' || /^[a-zAZ0-9-$]{1,100}$/.test(id.trim())), message: 'Geçerli ID’ler girin (1-100 karakter, virgülle ayırın)' }
             ];
 
             fields.forEach(field => {
@@ -806,6 +934,7 @@
             const year = document.getElementById('movie-year').value;
             const genres = document.getElementById('movie-genres').value;
             const plot = document.getElementById('movie-plot').value;
+            const isPremium = document.getElementById('movie-premium').checked;
 
             const previewSection = document.getElementById('preview-section');
             const previewPoster = document.getElementById('preview-poster');
@@ -817,7 +946,7 @@
                 previewSection.style.display = 'block';
                 previewPoster.src = poster || 'https://via.placeholder.com/200x300';
                 previewTitle.textContent = title || 'Başlık Belirtilmedi';
-                previewMeta.textContent = `${year || 'Yıl Belirtilmedi'} | ${genres || 'Tür Belirtilmedi'}`;
+                previewMeta.textContent = `${year || 'Yıl Belirtilmedi'} | ${genres || 'Tür Belirtilmedi'} | ${isPremium ? 'Premium' : 'Standart'}`;
                 previewPlot.textContent = plot || 'Konu özeti girilmedi.';
             } else {
                 previewSection.style.display = 'none';
@@ -826,6 +955,7 @@
 
         async function handleEditMovie(event) {
             event.preventDefault();
+            console.log('handleEditMovie çağrıldı');
             if (!isLoggedIn || !isAdmin) {
                 showToast('Yönetici girişi yapmalısınız');
                 openAuthModal('login');
@@ -850,6 +980,7 @@
                 plot: document.getElementById('movie-plot').value.trim() || null,
                 poster: document.getElementById('movie-poster').value.trim() || null,
                 type: document.getElementById('movie-type').value,
+                premium: document.getElementById('movie-premium').checked,
                 videoSrc: [],
                 episodes: [],
                 season: null,
@@ -864,13 +995,17 @@
                     const src = entry.querySelector('.video-src').value.trim();
                     return { type: typeCustom || typeSelect, src };
                 }).filter(v => v.src);
-            } else {
+                movieData.episodes = [];
+                movieData.season = null;
+            } else if (movieData.type === 'dizi') {
                 const seasons = document.querySelectorAll('.season-container');
                 movieData.episodes = Array.from(seasons).flatMap(season => {
                     const seasonNumber = parseInt(season.querySelector('.season-number').value) || 1;
                     const episodes = season.querySelectorAll('.episode-entry');
                     return Array.from(episodes).map(entry => {
                         const episodeNumber = parseInt(entry.querySelector('.episode-number').value) || 1;
+                        const episodeTitle = entry.querySelector('.episode-title')?.value.trim() || `Sezon ${seasonNumber} Bölüm ${episodeNumber}`;
+                        const addedDate = entry.querySelector('.episode-added-date')?.value || undefined;
                         const videoSources = entry.querySelectorAll('.video-source-entry');
                         const videoSrc = Array.from(videoSources).map(srcEntry => {
                             const typeSelect = srcEntry.querySelector('.video-type-select').value;
@@ -881,15 +1016,22 @@
                         return {
                             seasonNumber,
                             episodeNumber,
-                            title: `Sezon ${seasonNumber} Bölüm ${episodeNumber}`,
-                            videoSrc
+                            title: episodeTitle,
+                            videoSrc,
+                            ...(addedDate && { addedDate })
                         };
                     });
                 });
                 movieData.season = movieData.episodes.length ? Math.max(...movieData.episodes.map(e => e.seasonNumber)) : null;
                 movieData.runtime = null;
                 movieData.videoSrc = [];
+            } else {
+                console.error('Geçersiz tür:', movieData.type);
+                showToast('Geçersiz içerik türü seçildi');
+                return;
             }
+
+            console.log('Gönderilen movieData:', JSON.stringify(movieData, null, 2));
 
             try {
                 const token = localStorage.getItem('token');
@@ -902,16 +1044,18 @@
                     body: JSON.stringify(movieData)
                 });
                 const data = await res.json();
+                console.log('Backend yanıtı:', data);
                 if (res.ok) {
                     originalMovieId = movieData.id;
-                    showToast('Değişiklikler başarıyla kaydedildi!');
+                    showToast('Değişiklikler başarıyla kaydedildi! Yeni bölümler ana sayfada görünecek.');
                     fetchMovieData();
                 } else {
                     showToast(data.error || 'Değişiklikler kaydedilemedi');
+                    console.error('Hata detayları:', data);
                 }
             } catch (error) {
                 console.error('Güncelleme hatası:', error);
-                showToast('Bir hata oluştu');
+                showToast('Bir hata oluştu: ' + error.message);
             }
         }
 
@@ -955,8 +1099,7 @@
             }
         }
 
-        function addVideoSource(type = 'Dublaj', src = '') {
-            const videoList = document.getElementById('video-source-list');
+        function addVideoSource(type = 'Dublaj', src = '', targetList = document.getElementById('video-source-list')) {
             const videoDiv = document.createElement('div');
             videoDiv.className = 'video-source-entry';
             videoDiv.innerHTML = `
@@ -972,8 +1115,14 @@
                 <button type="button" class="remove-video">Kaldır</button>
                 <span class="validation-message video-error"></span>
             `;
-            videoList.appendChild(videoDiv);
+            targetList.appendChild(videoDiv);
+            const select = videoDiv.querySelector('.video-type-select');
+            const customInput = videoDiv.querySelector('.video-type-custom');
+            customInput.style.display = select.value === 'Diğer' ? 'block' : 'none';
             videoDiv.querySelector('.remove-video').addEventListener('click', () => videoDiv.remove());
+            select.addEventListener('change', function () {
+                customInput.style.display = this.value === 'Diğer' ? 'block' : 'none';
+            });
         }
 
         function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1, episodes = []) {
@@ -982,11 +1131,13 @@
             seasonDiv.className = 'season-container';
             seasonDiv.innerHTML = `
                 <h3>Sezon ${seasonNumber}</h3>
-                <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
-                <span class="validation-message season-error"></span>
-                <div class="episode-list"></div>
-                <button type="button" class="add-episode-btn">Bölüm Ekle</button>
-                <button type="button" class="remove-season">Sezonu Kaldır</button>
+                <div class="season-content">
+                    <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
+                    <span class="validation-message season-error"></span>
+                    <div class="episode-list"></div>
+                    <button type="button" class="add-episode-btn">Bölüm Ekle</button>
+                    <button type="button" class="remove-season">Sezonu Kaldır</button>
+                </div>
             `;
             seasonList.appendChild(seasonDiv);
 
@@ -996,6 +1147,8 @@
                 episodeDiv.className = 'episode-entry';
                 episodeDiv.innerHTML = `
                     <input type="number" class="episode-number" value="${episode.episodeNumber}" min="1" required>
+                    <input type="text" class="episode-title" value="${episode.title || ''}" placeholder="Bölüm başlığı (opsiyonel)">
+                    <input type="hidden" class="episode-added-date" value="${episode.addedDate || ''}">
                     <div class="video-source-list" style="grid-column: span 2;"></div>
                     <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
                     <button type="button" class="remove-episode">Bölüm Kaldır</button>
@@ -1005,45 +1158,13 @@
 
                 const videoList = episodeDiv.querySelector('.video-source-list');
                 episode.videoSrc.forEach(src => {
-                    const videoDiv = document.createElement('div');
-                    videoDiv.className = 'video-source-entry';
-                    videoDiv.innerHTML = `
-                        <select class="video-type-select">
-                            <option value="Dublaj" ${src.type === 'Dublaj' ? 'selected' : ''}>Dublaj</option>
-                            <option value="Altyazı" ${src.type === 'Altyazı' ? 'selected' : ''}>Altyazı</option>
-                            <option value="Türkçe Dublaj & Altyazı" ${src.type === 'Türkçe Dublaj & Altyazı' ? 'selected' : ''}>Türkçe Dublaj & Altyazı</option>
-                            <option value="Yerli" ${src.type === 'Yerli' ? 'selected' : ''}>Yerli</option>
-                            <option value="Diğer" ${src.type === 'Diğer' || !['Dublaj', 'Altyazı', 'Türkçe Dublaj & Altyazı', 'Yerli'].includes(src.type) ? 'selected' : ''}>Diğer</option>
-                        </select>
-                        <input type="text" class="video-type-custom" placeholder="Özel tür girin" value="${['Dublaj', 'Altyazı', 'Türkçe Dublaj & Altyazı', 'Yerli'].includes(src.type) ? '' : src.type}">
-                        <input type="url" class="video-src" placeholder="Video URL" value="${src.src}">
-                        <button type="button" class="remove-video">Kaldır</button>
-                        <span class="validation-message video-error"></span>
-                    `;
-                    videoList.appendChild(videoDiv);
-                    videoDiv.querySelector('.remove-video').addEventListener('click', () => videoDiv.remove());
+                    addVideoSource(src.type, src.src, videoList);
                 });
 
                 episodeDiv.querySelector('.remove-episode').addEventListener('click', () => episodeDiv.remove());
 
                 episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', () => {
-                    const videoDiv = document.createElement('div');
-                    videoDiv.className = 'video-source-entry';
-                    videoDiv.innerHTML = `
-                        <select class="video-type-select">
-                            <option value="Dublaj">Dublaj</option>
-                            <option value="Altyazı">Altyazı</option>
-                            <option value="Türkçe Dublaj & Altyazı">Türkçe Dublaj & Altyazı</option>
-                            <option value="Yerli">Yerli</option>
-                            <option value="Diğer">Diğer</option>
-                        </select>
-                        <input type="text" class="video-type-custom" placeholder="Özel tür girin">
-                        <input type="url" class="video-src" placeholder="Video URL">
-                        <button type="button" class="remove-video">Kaldır</button>
-                        <span class="validation-message video-error"></span>
-                    `;
-                    videoList.appendChild(videoDiv);
-                    videoDiv.querySelector('.remove-video').addEventListener('click', () => videoDiv.remove());
+                    addVideoSource('Dublaj', '', videoList);
                 });
             });
 
@@ -1058,6 +1179,7 @@
                 episodeDiv.className = 'episode-entry';
                 episodeDiv.innerHTML = `
                     <input type="number" class="episode-number" value="${episodeCount}" min="1" required>
+                    <input type="text" class="episode-title" placeholder="Bölüm başlığı (opsiyonel)">
                     <div class="video-source-list" style="grid-column: span 2;"></div>
                     <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
                     <button type="button" class="remove-episode">Bölüm Kaldır</button>
@@ -1065,28 +1187,24 @@
                 `;
                 episodeList.appendChild(episodeDiv);
 
+                const videoList = episodeDiv.querySelector('.video-source-list');
+                addVideoSource('Dublaj', '', videoList);
+
                 episodeDiv.querySelector('.remove-episode').addEventListener('click', () => episodeDiv.remove());
 
                 episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', () => {
-                    const videoList = episodeDiv.querySelector('.video-source-list');
-                    const videoDiv = document.createElement('div');
-                    videoDiv.className = 'video-source-entry';
-                    videoDiv.innerHTML = `
-                        <select class="video-type-select">
-                            <option value="Dublaj">Dublaj</option>
-                            <option value="Altyazı">Altyazı</option>
-                            <option value="Türkçe Dublaj & Altyazı">Türkçe Dublaj & Altyazı</option>
-                            <option value="Yerli">Yerli</option>
-                            <option value="Diğer">Diğer</option>
-                        </select>
-                        <input type="text" class="video-type-custom" placeholder="Özel tür girin">
-                        <input type="url" class="video-src" placeholder="Video URL">
-                        <button type="button" class="remove-video">Kaldır</button>
-                        <span class="validation-message video-error"></span>
-                    `;
-                    videoList.appendChild(videoDiv);
-                    videoDiv.querySelector('.remove-video').addEventListener('click', () => videoDiv.remove());
+                    addVideoSource('Dublaj', '', videoList);
                 });
+            });
+
+            seasonDiv.querySelector('h3').addEventListener('click', () => {
+                const allSeasons = document.querySelectorAll('.season-container');
+                allSeasons.forEach(season => {
+                    if (season !== seasonDiv) {
+                        season.classList.remove('active');
+                    }
+                });
+                seasonDiv.classList.toggle('active');
             });
         }
 
@@ -1100,6 +1218,21 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('Sayfa yüklendi, admin durumu kontrol ediliyor');
+            
+            const premiumCheckbox = document.getElementById('movie-premium');
+            if (premiumCheckbox) {
+                console.log('movie-premium bulundu');
+                premiumCheckbox.addEventListener('change', function() {
+                    console.log('Checkbox durumu değişti:', this.checked);
+                    showToast(this.checked ? 'İçerik premium yapıldı' : 'İçerik standart yapıldı');
+                    validateForm();
+                    updatePreview();
+                });
+            } else {
+                console.error('HATA: movie-premium ID bulunamadı');
+            }
+
             checkAdminStatus();
 
             const burgerMenu = document.getElementById('burger-menu');
@@ -1144,5 +1277,7 @@
             });
         });
     </script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'937a05b76ee5bf68',t:'MTc0NTg3OTYxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'937a1b341b377221',t:'MTc0NTg4MDQ5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hesabım - DİZİT</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --transition-speed: 0.4s;
+            --shadow-light: 0 3px 10px rgba(0, 0, 0, 0.2);
+            --shadow-dark: 0 6px 20px rgba(0, 0, 0, 0.3);
+            --gradient-bg: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            --premium-color: #ffcc00;
+            --standard-color: #aaaaaa;
+            --accent-color: #ffcc00;
+            --text-color: #ffffff;
+            --text-secondary: #aaaaaa;
+            --primary-bg: #121212;
+            --secondary-bg: #1e1e1e;
+            --card-bg: #252525;
+        }
+
+        .profile-container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 30px;
+            background: var(--gradient-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow-dark);
+            animation: fadeIn 0.6s ease-in-out;
+            border: 1px solid rgba(255, 204, 0, 0.1);
+            position: relative;
+            min-width: 240px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 204, 0, 0.2);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--primary-bg);
+            border: 4px solid var(--text-color);
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
+        }
+
+        .profile-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .profile-username {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .profile-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .edit-profile-btn, .settings-btn {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background var(--transition-speed), transform var(--transition-speed);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .edit-profile-btn:hover, .settings-btn:hover {
+            background: #e6b800;
+            transform: scale(1.05);
+        }
+
+        .profile-bio {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            line-height: 1.4;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .stat-item {
+            text-align: center;
+            background: var(--secondary-bg);
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            min-width: 100px;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-light);
+        }
+
+        .stat-count {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .content-tabs {
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            margin: 30px 0;
+            border-bottom: 3px solid rgba(255, 204, 0, 0.2);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-btn {
+            padding: 12px 25px;
+            background: var(--secondary-bg);
+            border: none;
+            color: var(--text-color);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all var(--transition-speed);
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            box-shadow: inset 0 -3px 0 var(--accent-color);
+        }
+
+        .content-section {
+            display: none;
+            animation: slideIn 0.6s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .content-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            box-shadow: var(--shadow-light);
+        }
+
+        .content-card:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-dark);
+        }
+
+        .content-poster {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+            transition: filter var(--transition-speed);
+        }
+
+        .content-card:hover .content-poster {
+            filter: brightness(70%);
+        }
+
+        .content-info {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .content-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .content-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .load-more {
+            text-align: center;
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .load-more-btn, .show-less-btn {
+            padding: 12px 30px;
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background var(--transition-speed), transform var(--transition-speed);
+        }
+
+        .load-more-btn:hover, .show-less-btn:hover {
+            background: #e6b800;
+            transform: scale(1.05);
+        }
+
+        .spinner {
+            text-align: center;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            padding: 20px;
+        }
+
+        .premium-status {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--standard-color);
+            transition: color var(--transition-speed);
+        }
+
+        .premium-status.premium {
+            color: var(--premium-color);
+        }
+
+        .premium-status i {
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .profile-container {
+                margin: 20px 10px;
+                padding: 20px;
+            }
+
+            .profile-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 2.5rem;
+            }
+
+            .profile-username {
+                font-size: 1.6rem;
+            }
+
+            .profile-bio {
+                font-size: 0.9rem;
+                max-width: 90%;
+            }
+
+            .stat-item {
+                padding: 8px 15px;
+                min-width: 80px;
+            }
+
+            .stat-count {
+                font-size: 1.2rem;
+            }
+
+            .stat-label {
+                font-size: 0.85rem;
+            }
+
+            .profile-actions {
+                top: 10px;
+                right: 10px;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .edit-profile-btn, .settings-btn {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+
+            .content-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 15px;
+            }
+
+            .tab-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .content-title {
+                font-size: 0.95rem;
+            }
+
+            .content-meta {
+                font-size: 0.8rem;
+            }
+
+            .load-more-btn, .show-less-btn {
+                padding: 10px 25px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-container {
+                margin: 15px 5px;
+                padding: 15px;
+            }
+
+            .profile-avatar {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+
+            .profile-username {
+                font-size: 1.4rem;
+            }
+
+            .profile-bio {
+                font-size: 0.85rem;
+            }
+
+            .stat-item {
+                padding: 6px 12px;
+                min-width: 70px;
+            }
+
+            .stat-count {
+                font-size: 1.1rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            .profile-actions {
+                top: 8px;
+                right: 8px;
+            }
+
+            .edit-profile-btn, .settings-btn {
+                padding: 5px 8px;
+                font-size: 0.8rem;
+            }
+
+            .premium-status i {
+                font-size: 0.7rem;
+            }
+
+            .content-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+            }
+
+            .tab-btn {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+            }
+
+            .content-title {
+                font-size: 0.9rem;
+            }
+
+            .content-meta {
+                font-size: 0.75rem;
+            }
+
+            .load-more-btn, .show-less-btn {
+                padding: 8px 20px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .profile-container {
+                margin: 10px 3px;
+                padding: 10px;
+                min-width: 240px;
+            }
+
+            .profile-avatar {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+
+            .profile-username {
+                font-size: 1.2rem;
+            }
+
+            .profile-bio {
+                font-size: 0.8rem;
+            }
+
+            .stat-item {
+                padding: 5px 10px;
+                min-width: 60px;
+            }
+
+            .stat-count {
+                font-size: 1rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            .profile-actions {
+                top: 5px;
+                right: 5px;
+            }
+
+            .edit-profile-btn, .settings-btn {
+                padding: 4px 6px;
+                font-size: 0.75rem;
+            }
+
+            .premium-status i {
+                font-size: 0.7rem;
+            }
+
+            .content-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 10px;
+            }
+
+            .tab-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            .content-title {
+                font-size: 0.85rem;
+            }
+
+            .content-meta {
+                font-size: 0.7rem;
+            }
+
+            .load-more-btn, .show-less-btn {
+                padding: 8px 20px;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 250px) {
+            .profile-container {
+                margin: 8px 2px;
+                padding: 8px;
+                min-width: 230px;
+            }
+
+            .profile-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+
+            .profile-username {
+                font-size: 1rem;
+            }
+
+            .profile-bio {
+                font-size: 0.75rem;
+            }
+
+            .stat-item {
+                padding: 4px 8px;
+                min-width: 50px;
+            }
+
+            .stat-count {
+                font-size: 0.9rem;
+            }
+
+            .stat-label {
+                font-size: 0.7rem;
+            }
+
+            .profile-actions {
+                top: 4px;
+                right: 4px;
+            }
+
+            .edit-profile-btn, .settings-btn {
+                padding: 3px 5px;
+                font-size: 0.7rem;
+            }
+
+            .premium-status i {
+                font-size: 0.65rem;
+            }
+
+            .content-grid {
+                grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+                gap: 8px;
+            }
+
+            .tab-btn {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+
+            .content-title {
+                font-size: 0.8rem;
+            }
+
+            .content-meta {
+                font-size: 0.65rem;
+            }
+
+            .load-more-btn, .show-less-btn {
+                padding: 6px 15px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="burger-menu"><i class="fas fa-bars"></i></div>
+            <nav class="nav-container">
+                <ul class="nav-links">
+                    <li><a href="index.html">Ana Sayfa</a></li>
+                    <li><a href="/diziler">Diziler</a></li>
+                    <li><a href="/filmler">Filmler</a></li>
+                    <li><a href="/hesabim.html">Hesabım</a></li>
+                    <li><a href="/ayarlar.html">Ayarlar</a></li>
+                    <li><a href="/admin" id="admin-link" style="display: none;">Yönetim</a></li>
+                </ul>
+                <div class="auth-buttons" id="auth-buttons">
+                    <button class="login-btn">Giriş Yap</button>
+                    <button class="signup-btn">Kayıt Ol</button>
+                </div>
+                <div class="user-info" id="user-info" style="display: none;">
+                    <div class="user-profile">
+                        <span class="user-greeting">Merhaba,</span>
+                        <span class="username-display"></span>
+                    </div>
+                    <button class="logout-btn"><i class="fas fa-sign-out-alt"></i> Çıkış</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="profile-container">
+            <div class="premium-status">
+                <span id="premium-label">Standart</span>
+                <i id="premium-icon" class="fas fa-crown" style="display: none;"></i>
+            </div>
+            <div class="profile-actions">
+                <a href="/profil-düzenle.html" class="edit-profile-btn"><i class="fas fa-edit"></i> Profil Düzenle</a>
+                <a href="/ayarlar.html" class="settings-btn"><i class="fas fa-cog"></i> Ayarlar</a>
+            </div>
+            
+            <div class="profile-header">
+                <div class="profile-avatar"><img src="/resim/avatar/user.png" alt="Profile Avatar"></div>
+                <div class="profile-info">
+                    <div class="profile-username">
+                        <span>Kullanıcı</span>
+                    </div>
+                    <div class="profile-bio">Henüz bir bio eklenmemiş.</div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-count" id="liked-series-count">0</div>
+                            <div class="stat-label">Beğenilen Dizi</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-count" id="liked-movies-count">0</div>
+                            <div class="stat-label">Beğenilen Film</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-count" id="watched-count">0</div>
+                            <div class="stat-label">İzlenen İçerik</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-tabs">
+                <button class="tab-btn active" data-tab="liked-series">Beğenilen Diziler</button>
+                <button class="tab-btn" data-tab="liked-movies">Beğenilen Filmler</button>
+                <button class="tab-btn" data-tab="watched">İzlenenler</button>
+            </div>
+
+            <div class="content-section active" id="liked-series">
+                <div class="content-grid" id="liked-series-grid"></div>
+                <div class="load-more" id="liked-series-load-more">
+                    <button class="load-more-btn" aria-label="Daha fazla içerik yükle">Daha Fazla Göster</button>
+                    <button class="show-less-btn" style="display: none;" aria-label="İçeriği sıfırla">Daha Az Göster</button>
+                </div>
+            </div>
+            <div class="content-section" id="liked-movies">
+                <div class="content-grid" id="liked-movies-grid"></div>
+                <div class="load-more" id="liked-movies-load-more">
+                    <button class="load-more-btn" aria-label="Daha fazla içerik yükle">Daha Fazla Göster</button>
+                    <button class="show-less-btn" style="display: none;" aria-label="İçeriği sıfırla">Daha Az Göster</button>
+                </div>
+            </div>
+            <div class="content-section" id="watched">
+                <div class="content-grid" id="watched-grid"></div>
+                <div class="load-more" id="watched-load-more">
+                    <button class="load-more-btn" aria-label="Daha fazla içerik yükle">Daha Fazla Göster</button>
+                    <button class="show-less-btn" style="display: none;" aria-label="İçeriği sıfırla">Daha Az Göster</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>DİZİT</h3>
+                <p>En sevdiğiniz film ve dizileri keşfedin!</p>
+            </div>
+            <div class="footer-column">
+                <h3>Bağlantılar</h3>
+                <p><a href="/hakkimizda">Hakkımızda</a></p>
+                <p><a href="/iletisim">İletişim</a></p>
+            </div>
+            <div class="footer-column">
+                <h3>Destek</h3>
+                <p><a href="/sss">SSS</a></p>
+                <p><a href="/destek">Destek</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <div class="toast"></div>
+
+    <script>
+        const ITEMS_PER_LOAD = 6;
+        let loadedItems = {
+            'liked-series': 0,
+            'liked-movies': 0,
+            'watched': 0
+        };
+
+        // Get API URL
+        async function getApiUrl() {
+            try {
+                const response = await fetch('/api/config');
+                if (!response.ok) throw new Error('API URL alınamadı');
+                const config = await response.json();
+                return config.apiUrl;
+            } catch (error) {
+                console.error('API URL fetch error:', error);
+                return 'http://localhost:3000'; // Fallback URL
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.querySelector('.toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        async function verifyToken() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                showToast('Oturum açmanız gerekiyor!', 'error');
+                return null;
+            }
+            try {
+                const apiUrl = await getApiUrl();
+                const response = await fetch(`${apiUrl}/api/verify-token`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Token geçersiz');
+                return await response.json();
+            } catch (error) {
+                showToast('Oturum doğrulanamadı: ' + error.message, 'error');
+                console.error('Token verification error:', error);
+                return null;
+            }
+        }
+
+        async function checkAdminStatus() {
+            const token = localStorage.getItem('token');
+            try {
+                const apiUrl = await getApiUrl();
+                const response = await fetch(`${apiUrl}/api/check-admin`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Admin kontrolü başarısız');
+                const data = await response.json();
+                if (data.isAdmin) document.getElementById('admin-link').style.display = 'block';
+            } catch (error) {
+                console.error('Admin kontrol hatası:', error.message);
+            }
+        }
+
+        async function checkPremiumStatus() {
+            const token = localStorage.getItem('token');
+            if (!token) return false;
+            try {
+                const apiUrl = await getApiUrl();
+                const response = await fetch(`${apiUrl}/api/check-premium`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Premium durumu alınamadı');
+                const data = await response.json();
+                return data.isPremium;
+            } catch (error) {
+                console.error('Premium status check error:', error);
+                return false;
+            }
+        }
+
+        async function loadProfileData() {
+            const userData = await verifyToken();
+            if (!userData) {
+                showToast('Oturum açmanız gerekiyor!', 'error');
+                setTimeout(() => location.href = 'index.html', 2000);
+                return;
+            }
+
+            try {
+                const apiUrl = await getApiUrl();
+                const response = await fetch(`${apiUrl}/api/user-profile`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (!response.ok) throw new Error('Kullanıcı verileri alınamadı');
+                const user = await response.json();
+
+                // Update premium status
+                const isPremium = user.isPremium;
+                const premiumLabel = document.getElementById('premium-label');
+                const premiumIcon = document.getElementById('premium-icon');
+                const premiumStatus = document.querySelector('.premium-status');
+                
+                if (isPremium) {
+                    premiumLabel.textContent = 'Premium';
+                    premiumIcon.style.display = 'inline';
+                    premiumStatus.classList.add('premium');
+                } else {
+                    premiumLabel.textContent = 'Standart';
+                    premiumIcon.style.display = 'none';
+                    premiumStatus.classList.remove('premium');
+                }
+
+                // Update profile info
+                document.querySelector('.profile-username span').textContent = user.username || 'Kullanıcı';
+                document.querySelector('.username-display').textContent = user.username || 'Kullanıcı';
+                document.querySelector('.profile-bio').textContent = user.bio || 'Henüz bir bio eklenmemiş.';
+                const avatarImg = document.querySelector('.profile-avatar img');
+                avatarImg.src = user.avatar || '/resim/avatar/user.png';
+                avatarImg.onerror = () => {
+                    avatarImg.src = '/resim/avatar/user.png';
+                };
+                document.getElementById('auth-buttons').style.display = 'none';
+                document.getElementById('user-info').style.display = 'flex';
+
+                await updateProfileStats(user._id);
+                await checkAdminStatus();
+            } catch (error) {
+                showToast('Kullanıcı verileri yüklenemedi: ' + error.message, 'error');
+                console.error('Fetch user data error:', error);
+            }
+        }
+
+        async function fetchUserData(userId) {
+            try {
+                const apiUrl = await getApiUrl();
+                const response = await fetch(`${apiUrl}/api/user-profile`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (!response.ok) throw new Error('Kullanıcı verileri alınamadı');
+                return await response.json();
+            } catch (error) {
+                showToast('Kullanıcı verileri yüklenemedi: ' + error.message, 'error');
+                console.error('Fetch user data error:', error);
+                return null;
+            }
+        }
+
+        async function fetchMovie(movieId) {
+            try {
+                const apiUrl = await getApiUrl();
+                const response = await fetch(`${apiUrl}/api/movies/${movieId}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (error) {
+                console.error('Fetch movie error:', error);
+                return null;
+            }
+        }
+
+        async function updateProfileStats(userId) {
+            const user = await fetchUserData(userId);
+            if (!user) return;
+
+            const likedItemsPromises = user.likes.map(async like => {
+                const movie = await fetchMovie(like.seriesId);
+                return { ...like, movie };
+            });
+            const likedItems = await Promise.all(likedItemsPromises);
+
+            const likedSeries = likedItems.filter(item => item.movie?.type === 'dizi').length;
+            const likedMovies = likedItems.filter(item => item.movie?.type === 'film').length;
+            const watchedCount = user.watched.length;
+
+            document.getElementById('liked-series-count').textContent = likedSeries;
+            document.getElementById('liked-movies-count').textContent = likedMovies;
+            document.getElementById('watched-count').textContent = watchedCount;
+        }
+
+        async function loadContent(tab, append = false) {
+            const userData = await verifyToken();
+            if (!userData) return;
+
+            const grid = document.getElementById(`${tab}-grid`);
+            const loadMore = document.getElementById(`${tab}-load-more`);
+            const loadMoreBtn = loadMore.querySelector('.load-more-btn');
+            const showLessBtn = loadMore.querySelector('.show-less-btn');
+
+            if (!append) {
+                grid.innerHTML = '<div class="spinner">Yükleniyor...</div>';
+            }
+
+            let items = [];
+            if (tab === 'liked-series' || tab === 'liked-movies') {
+                items = await fetchLikedItems(tab === 'liked-series' ? 'dizi' : 'film', userData.userId);
+            } else if (tab === 'watched') {
+                items = await fetchWatchedItems(userData.userId);
+            }
+
+            if (!append) {
+                grid.innerHTML = '';
+            }
+
+            if (items.length === 0) {
+                grid.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Henüz içerik bulunmuyor.</p>';
+                loadMore.style.display = 'none';
+                return;
+            }
+
+            const start = append ? loadedItems[tab] : 0;
+            const end = start + ITEMS_PER_LOAD;
+            const newItems = items.slice(start, end);
+
+            newItems.forEach(item => {
+                if (!item || !item.id || !item.title) return;
+                const card = document.createElement('div');
+                card.className = 'content-card';
+                card.innerHTML = `
+                    <img src="${item.poster || 'https://via.placeholder.com/150'}" class="content-poster" alt="${item.title}" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="content-info">
+                        <div class="content-title">${item.title}</div>
+                        <div class="content-meta">${item.year || 'N/A'}</div>
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    location.href = `/${item.type}/${item.id}`;
+                });
+                grid.appendChild(card);
+            });
+
+            loadedItems[tab] = end;
+            loadMore.style.display = 'flex';
+            loadMoreBtn.style.display = end >= items.length ? 'none' : 'block';
+            showLessBtn.style.display = end >= items.length && items.length > ITEMS_PER_LOAD ? 'block' : 'none';
+        }
+
+        async function fetchLikedItems(type, userId) {
+            try {
+                const apiUrl = await getApiUrl();
+                const userResponse = await fetch(`${apiUrl}/api/user-profile`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (!userResponse.ok) throw new Error('Kullanıcı verileri alınamadı');
+                const user = await userResponse.json();
+
+                // Sort likes by likedAt timestamp (newest first) or reverse array order
+                const sortedLikes = user.likes
+                    .filter(like => like.seriesId)
+                    .sort((a, b) => {
+                        const timeA = a.likedAt ? new Date(a.likedAt) : 0;
+                        const timeB = b.likedAt ? new Date(b.likedAt) : 0;
+                        return timeB - timeA || user.likes.indexOf(b) - user.likes.indexOf(a);
+                    });
+
+                const likedItemsPromises = sortedLikes.map(async like => {
+                    const movie = await fetchMovie(like.seriesId);
+                    return movie?.type === type ? { ...movie, likedAt: like.likedAt } : null;
+                });
+
+                return (await Promise.all(likedItemsPromises)).filter(item => item !== null);
+            } catch (error) {
+                showToast(`Beğenilen ${type} yüklenemedi: ${error.message}`, 'error');
+                console.error(`Fetch liked ${type} error:`, error);
+                return [];
+            }
+        }
+
+        async function fetchWatchedItems(userId) {
+            try {
+                const apiUrl = await getApiUrl();
+                const userResponse = await fetch(`${apiUrl}/api/user-profile`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (!userResponse.ok) throw new Error('Kullanıcı verileri alınamadı');
+                const user = await userResponse.json();
+
+                // Sort watched by watchedAt timestamp (newest first) or reverse array order
+                const sortedWatched = user.watched
+                    .filter(w => w.seriesId)
+                    .sort((a, b) => {
+                        const timeA = a.watchedAt ? new Date(a.watchedAt) : 0;
+                        const timeB = b.watchedAt ? new Date(b.watchedAt) : 0;
+                        return timeB - timeA || user.watched.indexOf(b) - user.watched.indexOf(a);
+                    });
+
+                const watchedItemsPromises = sortedWatched.map(async w => {
+                    const movie = await fetchMovie(w.seriesId);
+                    return movie ? { ...movie, watchedAt: w.watchedAt } : null;
+                });
+
+                return (await Promise.all(watchedItemsPromises)).filter(item => item !== null);
+            } catch (error) {
+                showToast('İzlenen içerikler yüklenemedi: ' + error.message, 'error');
+                console.error('Fetch watched items error:', error);
+                return [];
+            }
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+
+                btn.classList.add('active');
+                const tab = btn.dataset.tab;
+                document.getElementById(tab).classList.add('active');
+
+                loadedItems[tab] = 0;
+                loadContent(tab);
+            });
+        });
+
+        document.querySelectorAll('.load-more-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.parentElement.id.split('-load-more')[0];
+                loadContent(tab, true);
+            });
+        });
+
+        document.querySelectorAll('.show-less-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.parentElement.id.split('-load-more')[0];
+                loadedItems[tab] = 0;
+                loadContent(tab);
+                document.getElementById(`${tab}-grid`).scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        document.querySelector('.logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            showToast('Başarıyla çıkış yapıldı', 'success');
+            setTimeout(() => location.href = 'index.html', 1000);
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadProfileData();
+            loadContent('liked-series');
+        });
+    </script>
+</body>
+</html>

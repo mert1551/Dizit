@@ -6,11 +6,20 @@ const videoSourceSchema = new mongoose.Schema({
     src: { type: String, required: true }
 });
 
+// Bölüm şeması
+const episodeSchema = new mongoose.Schema({
+    seasonNumber: { type: Number, required: true },
+    episodeNumber: { type: Number, required: true },
+    title: String,
+    videoSrc: [videoSourceSchema],
+    addedDate: { type: Date, default: Date.now } // Her bölüm için eklenme tarihi
+});
+
 const movieSchema = new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     title2: String,
-    year: { type: Number, required: true }, // year alanını zorunlu yap
+    year: { type: Number, required: true },
     runtime: String,
     rating: Number,
     country: [String],
@@ -21,12 +30,9 @@ const movieSchema = new mongoose.Schema({
     videoSrc: [videoSourceSchema],
     relatedSeries: [String],
     type: { type: String, required: true },
-    episodes: [{
-        seasonNumber: Number,
-        episodeNumber: Number,
-        title: String,
-        videoSrc: [videoSourceSchema]
-    }],
+    premium: { type: Boolean, default: false }, // isPremium yerine premium
+    episodes: [episodeSchema],
     season: Number
 });
+
 module.exports = mongoose.model('Movie', movieSchema);

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DİZİT - Ayarlar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --secondary-bg: #1e1e1e;
+            --card-bg: #252525;
+            --text-color: #ffffff;
+            --accent-color: #ffcc00;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--secondary-bg);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .burger-menu {
+            display: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 15px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .nav-links li a:hover,
+        .nav-links li a.active {
+            color: var(--accent-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .logout-btn {
+            background-color: var(--accent-color);
+            color: var(--primary-bg);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* Settings Page Styles */
+        .settings-content {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .settings-section {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .settings-section h3 {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #666;
+            transition: 0.4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--text-color);
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .auth-submit {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--accent-color);
+            color: var(--primary-bg);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .success-message {
+            color: #2ecc71;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* Toast Styles */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.success {
+            background-color: #2ecc71;
+        }
+
+        .toast.error {
+            background-color: #e74c3c;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .burger-menu {
+                display: block;
+            }
+
+            .nav-container {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                width: 100%;
+                background-color: var(--secondary-bg);
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .nav-container.active {
+                display: flex;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .settings-content {
+                padding: 15px;
+            }
+
+            .settings-section {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .settings-content {
+                padding: 10px;
+            }
+
+            .settings-section {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header id="header">
+        <a href="index.html" class="logo">DİZİT</a>
+        <div class="header-right">
+            <div class="burger-menu" id="burger-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+        <div class="nav-container" id="nav-container">
+            <ul class="nav-links">
+                <li><a href="index.html">Anasayfa</a></li>
+                <li><a href="filmler.html?type=film">Filmler</a></li>
+                <li><a href="diziler.html?type=dizi">Diziler</a></li>
+                <li><a href="arama/film-dizi-arama.html">Detaylı Arama (Keşfet)</a></li>
+                <li><a href="request-complaint.html">İstek ve Şikayet</a></li>
+                <li><a href="hesabim.html">Hesabım</a></li>
+                <li><a href="ayarlar.html" class="active">Ayarlar</a></li>
+                <li><a href="profil-düzenle.html">Profil Düzenle</a></li>
+            </ul>
+            <div class="user-info" id="user-info">
+                <div class="user-profile">
+                    <img id="user-avatar" src="/assets/icons/user-icon.png" alt="Avatar" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 5px;">
+                    <span class="user-greeting">Merhaba,</span>
+                    <span class="username-display" id="username-display"></span>
+                    <span class="premium-badge" id="premium-badge" style="display: none;">Premium</span>
+                </div>
+                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="settings-content">
+            <h2 class="section-title">Ayarlar</h2>
+            <section class="settings-section">
+                <h3>Görünürlük Ayarları</h3>
+                <form id="visibility-form" onsubmit="handleVisibilityUpdate(event)">
+                    <div class="toggle-group">
+                        <label>Beğenilen Dizileri Göster</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-liked-series">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-group">
+                        <label>Beğenilen Filmleri Göster</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-liked-movies">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-group">
+                        <label>İzlenen İçerikleri Göster</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="show-watched-content">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="error-message" id="visibility-error"></p>
+                    <p class="success-message" id="visibility-success"></p>
+                    <button type="submit" class="auth-submit">Ayarları Kaydet</button>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>DİZİT</h3>
+                <p>En iyi film ve dizi izleme platformu.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2025 DİZİT. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <script>
+        let isLoggedIn = !!localStorage.getItem('token');
+        let currentUser = localStorage.getItem('username') || null;
+        let apiUrl = '';
+
+        async function fetchApiUrl() {
+            try {
+                apiUrl = window.ENV?.API_URL || 'https://dizit.com/api';
+                const response = await fetch(`${apiUrl}/config`);
+                if (!response.ok) throw new Error('API yapılandırması alınamadı');
+                const data = await response.json();
+                apiUrl = data.apiUrl;
+            } catch (error) {
+                console.error('API URL alınamadı:', error);
+                apiUrl = 'https://dizit.com/api';
+                showToast('Sunucu bağlantısı kurulamadı, varsayılan URL kullanılıyor', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                showToast('Oturum bulunamadı, lütfen giriş yapın', 'error');
+                window.location.href = 'index.html';
+                return false;
+            }
+            try {
+                const res = await fetch(`${apiUrl}/verify-token`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    isLoggedIn = true;
+                    currentUser = data.username;
+                    localStorage.setItem('username', data.username);
+                    updateAuthUI();
+                    loadSettings();
+                    return true;
+                } else {
+                    const errorData = await res.json();
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    isLoggedIn = false;
+                    currentUser = null;
+                    updateAuthUI();
+                    showToast(errorData.error || 'Oturum geçersiz, lütfen yeniden giriş yapın', 'error');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+            } catch (error) {
+                console.error('Token doğrulama hatası:', error);
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                updateAuthUI();
+                showToast('Sunucuya bağlanılamadı, lütfen internet bağlantınızı kontrol edin', 'error');
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+
+        function updateAuthUI() {
+            document.getElementById('user-info').style.display = isLoggedIn ? 'flex' : 'none';
+            if (isLoggedIn) document.getElementById('username-display').textContent = currentUser;
+        }
+
+        async function loadSettings() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${apiUrl}/user`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('show-liked-series').checked = data.showLikedSeries !== false;
+                    document.getElementById('show-liked-movies').checked = data.showLikedMovies !== false;
+                    document.getElementById('show-watched-content').checked = data.showWatchedContent !== false;
+                    document.getElementById('user-avatar').src = data.avatar || '/assets/icons/user-icon.png';
+                    document.getElementById('premium-badge').style.display = data.isPremium ? 'inline-block' : 'none';
+                } else {
+                    const errorData = await res.json();
+                    showToast(errorData.error || 'Ayarlar yüklenemedi', 'error');
+                }
+            } catch (error) {
+                console.error('Ayarlar yüklenemedi:', error);
+                showToast('Sunucuya bağlanılamadı, lütfen internet bağlantınızı kontrol edin', 'error');
+            }
+        }
+
+        async function handleVisibilityUpdate(event) {
+            event.preventDefault();
+            const showLikedSeries = document.getElementById('show-liked-series').checked;
+            const showLikedMovies = document.getElementById('show-liked-movies').checked;
+            const showWatchedContent = document.getElementById('show-watched-content').checked;
+            const errorEl = document.getElementById('visibility-error');
+            const successEl = document.getElementById('visibility-success');
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${apiUrl}/user`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ showLikedSeries, showLikedMovies, showWatchedContent })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    successEl.textContent = 'Görünürlük ayarları güncellendi.';
+                    errorEl.textContent = '';
+                    showToast('Ayarlar güncellendi', 'success');
+                } else {
+                    errorEl.textContent = data.error || 'Güncelleme başarısız';
+                    successEl.textContent = '';
+                    showToast(data.error || 'Ayarlar güncellenemedi', 'error');
+                }
+            } catch (error) {
+                errorEl.textContent = 'Sunucuya bağlanılamadı, lütfen internet bağlantınızı kontrol edin';
+                successEl.textContent = '';
+                console.error('Görünürlük güncelleme hatası:', error);
+                showToast('Sunucuya bağlanılamadı, lütfen internet bağlantınızı kontrol edin', 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            updateAuthUI();
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchApiUrl();
+            await checkAuth();
+
+            const burgerMenu = document.getElementById('burger-menu');
+            const navContainer = document.getElementById('nav-container');
+            burgerMenu.addEventListener('click', () => {
+                navContainer.classList.toggle('active');
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768 && navContainer.classList.contains('active')) {
+                    navContainer.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

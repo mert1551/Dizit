@@ -46,6 +46,7 @@ header {
     color: var(--accent-color);
     text-decoration: none;
     flex-shrink: 0;
+    margin-right: 8px;
 }
 
 .header-right {
@@ -148,6 +149,143 @@ header {
 
 .signup-btn:hover {
     background-color: #e6b800;
+}
+
+/* Profile Card */
+.profile-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    z-index: 1000;
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--card-bg);
+    border-radius: 50px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    gap: 8px;
+    border: 1px solid var(--accent-color);
+    max-width: 220px;
+    touch-action: manipulation; /* Improved touch response */
+}
+
+.profile-card:hover {
+    background-color: var(--accent-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.profile-card:active {
+    transform: scale(0.95); /* Visual feedback on tap */
+}
+
+.profile-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-color);
+}
+
+.profile-username {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+.profile-card:hover .profile-username {
+    color: var(--primary-bg);
+}
+
+.profile-arrow {
+    font-size: 0.9rem;
+    color: var(--accent-color);
+    transition: transform 0.3s ease;
+}
+
+.profile-card:hover .profile-arrow {
+    color: var(--primary-bg);
+}
+
+.profile-dropdown.active .profile-arrow {
+    transform: rotate(180deg);
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+    min-width: 180px;
+    overflow: hidden;
+}
+
+.profile-dropdown.active {
+    display: block;
+    animation: slideDown 0.3s ease forwards;
+}
+
+.profile-menu {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+}
+
+.profile-menu li {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.profile-menu li a {
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-menu li:hover {
+    background-color: var(--accent-color);
+}
+
+.profile-menu li:hover a {
+    color: var(--primary-bg);
+}
+
+.profile-menu li i {
+    font-size: 1rem;
+    color: var(--accent-color);
+}
+
+.profile-menu li:hover i {
+    color: var(--primary-bg);
+}
+
+/* Animation */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Arama Overlay Stilleri */
@@ -262,8 +400,10 @@ main {
     display: flex;
     overflow-x: auto;
     scroll-behavior: smooth;
+    gap: 15px;
+    padding-bottom: 10px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
 }
 
 .slider-container::-webkit-scrollbar {
@@ -274,6 +414,7 @@ main {
     flex: 0 0 auto;
     margin-right: 15px;
     cursor: pointer;
+    scroll-snap-align: start;
 }
 
 .slider-container p,
@@ -293,20 +434,25 @@ main {
 
 .slider-container {
     display: flex;
-    gap: 1px;
-    overflow-x: hidden;
+    gap: 15px;
+    overflow-x: auto;
     scroll-behavior: smooth;
     padding-bottom: 10px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .slider-item {
+    flex: 0 0 auto;
     width: 185px;
     background-color: var(--card-bg);
     border-radius: 5px;
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    flex-shrink: 0;
+    scroll-snap-align: start;
 }
 
 .slider-item:hover {
@@ -761,6 +907,84 @@ footer {
     transform: translateY(0);
 }
 
+/* Episode List */
+.episode-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.episode-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    height: 100px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.episode-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.episode-poster {
+    width: 50px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.episode-info {
+    flex: 1;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.episode-series-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 5px;
+}
+
+.episode-details {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.show-all {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.show-all button {
+    background: var(--accent-color);
+    color: var(--primary-bg);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.show-all button:hover {
+    background: #e6b800;
+}
+
 /* Responsive Design */
 @media (max-width: 905px) {
     header {
@@ -828,6 +1052,43 @@ footer {
         padding: 12px;
     }
     
+    .profile-wrapper {
+        margin-left: 10px;
+    }
+
+    .profile-card {
+        padding: 6px 10px;
+        max-width: 180px;
+    }
+
+    .profile-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .profile-username {
+        font-size: 0.9rem;
+        max-width: 100px;
+    }
+
+    .profile-arrow {
+        font-size: 0.8rem;
+    }
+
+    .profile-dropdown {
+        top: 50px;
+        min-width: 160px;
+        right: 10px;
+    }
+
+    .profile-menu li {
+        padding: 10px 16px;
+    }
+
+    .profile-menu li a {
+        font-size: 0.9rem;
+    }
+
     main {
         padding: 15px;
         margin-top: calc(var(--header-height) + 10px);
@@ -851,6 +1112,38 @@ footer {
     }
     .logout-btn i {
         font-size: 0.9rem;
+    }
+
+    .profile-card {
+        padding: 6px 8px;
+        max-width: 160px;
+    }
+
+    .profile-avatar {
+        width: 30px;
+        height: 30px;
+    }
+
+    .profile-username {
+        font-size: 0.85rem;
+        max-width: 90px;
+    }
+
+    .profile-arrow {
+        font-size: 0.75rem;
+    }
+
+    .profile-dropdown {
+        top: 48px;
+        min-width: 150px;
+    }
+
+    .profile-menu li {
+        padding: 8px 14px;
+    }
+
+    .profile-menu li a {
+        font-size: 0.85rem;
     }
 
     .slider-item {
@@ -895,6 +1188,21 @@ footer {
         width: 60px;
         height: 90px;
     }
+
+    .episode-list {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        max-width: 100%;
+        padding: 10px 20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .episode-list {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+        padding: 10px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -934,28 +1242,46 @@ footer {
         font-size: 0.7rem;
     }
 
-    .user-info {
-        flex-direction: column;
-        text-align: center;
-        padding: 10px;
+    .profile-card {
+        padding: 5px;
+        max-width: 50px; /* Only avatar */
+        border-radius: 50%;
+        justify-content: center;
+        border: none; /* Cleaner look */
     }
-    .user-profile {
-        flex-direction: column;
-        gap: 2px;
+
+    .profile-avatar {
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--accent-color);
     }
-    .user-greeting {
-        font-size: 0.7rem;
+
+    .profile-username {
+        display: none; /* Hide username */
     }
-    .username-display {
+
+    .profile-arrow {
+        display: none; /* Hide arrow */
+    }
+
+    .profile-dropdown {
+        top: 45px;
+        right: 5px;
+        min-width: 140px;
+        width: calc(100vw - 20px); /* Fit screen */
+        max-width: 200px;
+    }
+
+    .profile-menu li {
+        padding: 8px 12px;
+    }
+
+    .profile-menu li a {
         font-size: 0.8rem;
     }
-    .logout-btn {
-        margin-top: 5px;
-        padding: 5px 8px;
-        font-size: 0.7rem;
-    }
-    .logout-btn i {
-        font-size: 0.8rem;
+
+    .profile-menu li i {
+        font-size: 0.9rem;
     }
 
     .search-result-title {
@@ -1026,7 +1352,49 @@ footer {
     }
 }
 
+@media (max-width: 350px) {
+    #search-input {
+        width: 110px;
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+}
+
 @media (max-width: 320px) {
+    #search-input {
+        width: 90px;
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+    
+    .profile-card {
+        padding: 4px;
+        max-width: 40px;
+    }
+
+    .profile-avatar {
+        width: 24px;
+        height: 24px;
+    }
+
+    .profile-dropdown {
+        top: 40px;
+        min-width: 120px;
+        max-width: 180px;
+    }
+
+    .profile-menu li {
+        padding: 6px 10px;
+    }
+
+    .profile-menu li a {
+        font-size: 0.75rem;
+    }
+
+    .profile-menu li i {
+        font-size: 0.85rem;
+    }
+
     .movie-grid {
         grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
         gap: 8px;
@@ -1035,7 +1403,7 @@ footer {
 
 @media (max-width: 307px) {
     #search-input {
-        width: 100px;
+        width: 80px;
         font-size: 0.8rem;
         padding: 8px;
     }
@@ -1054,9 +1422,54 @@ footer {
 }
 
 @media (max-width: 278px) {
+    #search-input {
+        width: 60px;
+        font-size: 0.8rem;
+        padding: 8px;
+    }
+    
+    .profile-card {
+        padding: 3px;
+        max-width: 36px;
+    }
+
+    .profile-avatar {
+        width: 18px;
+        height: 18px;
+        border: 1px solid var(--accent-color);
+    }
+
+    .profile-dropdown {
+        top: 35px;
+        min-width: 100px;
+        max-width: 140px;
+        right: 3px;
+        border-radius: 8px; /* Slightly smaller radius for small screens */
+    }
+
+    .profile-menu li {
+        padding: 5px 8px;
+    }
+
+    .profile-menu li a {
+        font-size: 0.65rem;
+        gap: 6px;
+    }
+
+    .profile-menu li i {
+        font-size: 0.75rem;
+    }
+
     .movie-grid {
         grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
         gap: 6px;
+    }
+}
+
+@media (min-width: 1201px) {
+    .episode-list {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 1200px;
     }
 }
 
