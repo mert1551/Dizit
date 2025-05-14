@@ -2473,6 +2473,177 @@ app.post("/api/watch-later", authMiddleware, async (req, res) =>
 }
 )
 
+
+const axios = require('axios');
+const cheerio = require('cheerio');
+app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res) => {
+  const baseUrl = req.query.url;
+  if (!baseUrl || !baseUrl.includes('/dizi/')) {
+    return res.status(400).json({ error: 'Geçerli bir dizi URL’si gerekli' });
+  }
+
+  try {
+    const mainPage = await axios.get(baseUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    const $main = cheerio.load(mainPage.data);
+
+    const title = $main('.data h1').first().text().trim();
+    const altTitle = $main('.data .original-title').text().trim();
+    const description = $main('.wp-content p').first().text().trim();
+    const year = $main('.data span:contains("Yapım Yılı")').next().text().trim();
+    const imdb = $main('.imdb-rat').text().replace(/[^\d.]/g, '').trim();
+    const genre = $main('.data span:contains("Tür")').next().text().trim();
+
+    const metadata = {
+      title: title || null,
+      altTitle: altTitle || null,
+      description: description || null,
+      year: year || null,
+      imdb: imdb || null,
+      genre: genre || null,
+    };
+
+    // 🔁 Embed scraping (sezon/bölüm döngüsü)
+    const results = {};
+    const maxSeasons = 20;
+    const maxEpisodesPerSeason = 100;
+    const max404Limit = 5;
+
+    for (let season = 1; season <= maxSeasons; season++) {
+      let foundInSeason = false;
+      let errorStreak = 0;
+
+      for (let episode = 1; episode <= maxEpisodesPerSeason; episode++) {
+        const epUrl = `${baseUrl}/sezon-${season}/bolum-${episode}`;
+        try {
+          const response = await axios.get(epUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+          });
+
+          const $ = cheerio.load(response.data);
+          const iframe = $('iframe[src^="https"]').first().attr('src');
+
+          if (iframe) {
+            if (!results[season]) results[season] = [];
+            results[season].push({
+              episode,
+              embed: iframe.startsWith('http') ? iframe : `https:${iframe}`
+            });
+            foundInSeason = true;
+            errorStreak = 0;
+          } else {
+            errorStreak++;
+          }
+        } catch (err) {
+          if (err.response?.status === 404) {
+            errorStreak++;
+          }
+        }
+
+        if (errorStreak >= max404Limit) break;
+      }
+
+      if (!foundInSeason) break;
+    }
+
+    const formattedEpisodes = Object.entries(results).map(([season, eps]) => ({
+      season: parseInt(season),
+      episodes: eps.sort((a, b) => a.episode - b.episode)
+    }));
+
+    res.json({
+      metadata,
+      episodes: formattedEpisodes
+    });
+  } catch (err) {
+    console.error("Scraping hatası:", err.message);
+    res.status(500).json({ error: 'Scraping sırasında hata oluştu' });
+  }
+});
+
+
+
+app.post("/api/scrape-dizipal-meta", async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!url || !url.includes("dizipal")) {
+      return res.status(400).json({ error: "Geçersiz Dizipal URL" });
+    }
+
+    const response = await axios.get(url);
+    const $ = cheerio.load(response.data);
+
+    const title = $("h5").first().text().trim();
+    const plot = $(".popup-summary .summary p").first().text().trim();
+
+    let imdb = "";
+    let genre = "";
+    let year = "";
+
+    $(".popup-summary ul li").each((_, el) => {
+      const key = $(el).find(".key").text().trim().toLowerCase();
+      const value = $(el).find(".value").text().trim();
+
+      if (key.includes("imdb")) {
+        imdb = value;
+      } else if (key.includes("tür")) {
+        genre = value
+          .split(/\s+/)
+          .filter(g => g.toLowerCase() !== "yerli")
+          .join(", ")
+          .trim();
+      } else if (key.includes("yapım yılı")) {
+        year = value;
+      }
+    });
+
+    res.json({
+      title,
+      plot,
+      imdb,
+      genre,
+      year,
+      language: "Türkçe Dublaj & Altyazı"
+    });
+  } catch (error) {
+    console.error("Dizipal meta çekme hatası:", error.message);
+    res.status(500).json({ error: "Dizipal verisi çekilemedi" });
+  }
+});
+
+function setGenres(genresString) {
+  const genreInput = document.getElementById("movie-genres"); // görünmeyen alan (hidden veya text)
+  const genreList = document.getElementById("genres-list");
+
+  genreList.innerHTML = "";
+  const genres = genresString.split(",").map(g => g.trim()).filter(Boolean);
+
+  const selectedGenres = [];
+
+  genres.forEach((g) => {
+    const tag = document.createElement("div");
+    tag.className = "genre-item";
+    tag.innerHTML = `${g} <button onclick="this.parentElement.remove(); updateHiddenGenres()">×</button>`;
+    genreList.appendChild(tag);
+    selectedGenres.push(g);
+  });
+
+  // türleri input’a kaydet (gönderilecek alan)
+  genreInput.value = selectedGenres.join(", ");
+}
+
+// etiket silindiğinde güncelle
+function updateHiddenGenres() {
+  const genreItems = document.querySelectorAll("#genres-list .genre-item");
+  const genreInput = document.getElementById("movie-genres");
+  const genres = Array.from(genreItems).map(el => el.textContent.replace("×", "").trim());
+  genreInput.value = genres.join(", ");
+}
+
+
+
 // Sunucu Başlatma
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
