@@ -7,31 +7,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../style.css">
     <style>
-        :root {
-            --primary-bg: #1a1a1a;
-            --secondary-bg: #2c2c2c;
-            --card-bg: #333;
-            --text-color: #fff;
-            --text-secondary: #b0b0b0;
-            --accent-color: #ffd700;
-            --input-bg: #444;
-            --border-color: #555;
-        }
-
-        body {
-            background: var(--primary-bg);
-            color: var(--text-color);
-            font-family: Arial, sans-serif;
-            margin: 0;
-        }
-
-        .form-group input[type="checkbox"] {
+     .form-group input[type="checkbox"] {
             appearance: none;
             width: 20px;
             height: 20px;
-            border: 2px solid var(--border-color, #555);
+            border: 2px solid var(--border-color, #444);
             border-radius: 4px;
-            background: var(--input-bg, #444);
+            background: var(--input-bg, #252525);
             cursor: pointer;
             vertical-align: middle;
             position: relative;
@@ -39,15 +21,15 @@
         }
 
         .form-group input[type="checkbox"]:checked {
-            background: var(--accent-color, #ffd700);
-            border-color: var(--accent-color, #ffd700);
+            background: var(--accent-color, #ffcc00);
+            border-color: var(--accent-color, #ffcc00);
         }
 
         .form-group input[type="checkbox"]:checked::after {
-            content: '\f00c';
+            content: '\f00c'; /* Font Awesome check ikonu */
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
-            color: var(--primary-bg, #1a1a1a);
+            color: var(--primary-bg, #000);
             font-size: 12px;
             position: absolute;
             top: 50%;
@@ -86,7 +68,7 @@
             padding: 20px;
         }
 
-        .edit-movie-section {
+        .add-movie-section {
             background: var(--card-bg);
             padding: 30px;
             border-radius: 10px;
@@ -109,11 +91,11 @@
             background: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 5px;
-            padding: 12px;
-            font-size: 1rem;
+            padding: 8px;
+            line-height: 1.4;
+            font-size: 0.95rem;
             color: var(--text-color);
             width: 100%;
-            box-sizing: border-box;
             transition: border-color 0.3s;
         }
 
@@ -178,29 +160,7 @@
             border-radius: 8px;
         }
 
-        .submit-btn, .delete-btn, .fetch-btn {
-            background: var(--accent-color);
-            color: var(--primary-bg);
-            padding: 14px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-            width: 100%;
-        }
 
-        .delete-btn {
-            background: #ff5555;
-        }
-
-        .submit-btn:hover, .fetch-btn:hover {
-            background: #e6b800;
-        }
-
-        .delete-btn:hover {
-            background: #cc4444;
-        }
 
         .video-source-entry, .episode-entry {
             border: 1px solid var(--border-color);
@@ -239,7 +199,7 @@
         }
 
         .season-container h3::after {
-            content: '\f107';
+            content: '\f107'; /* Font Awesome aşağı ok */
             font-family: 'Font Awesome 6 Free';
             font-weight: 900;
             transition: transform 0.3s;
@@ -279,27 +239,56 @@
             background: #cc4444;
         }
 
-        #add-video-btn, .add-episode-video-btn, .add-episode-btn, #add-season-btn {
-            background: var(--accent-color) !important;
-            color: var(--primary-bg) !important;
+        #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn, .submit-btn ,.delete-btn,.fetch-btn {
+            background: var(--accent-color);
+            color: var(--primary-bg);
             padding: 10px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
-            font-size: 1rem;
-            transition: background 0.3s;
+        }
+        .delete-btn{
+            background: #ff5555;
         }
 
-        #add-video-btn:hover, .add-episode-video-btn:hover, .add-episode-btn:hover, #add-season-btn:hover {
-            background: #e6b800 !important;
+        #add-video-btn:hover, .add-episode-btn:hover, .add-episode-video-btn:hover, #add-season-btn:hover, #add-genre-btn:hover {
+            background: #e6b800;
+        }
+
+        .genres-list {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .genre-item {
+            background: var(--accent-color);
+            color: var(--primary-bg);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .genre-item button {
+            background: none;
+            border: none;
+            color: var(--primary-bg);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0;
         }
 
         .video-type-custom {
             display: none;
         }
 
-        .video-source-entry .video-type-select[value="Diğer"] ~ .video-type-custom {
+        .video-source-entry .video-type-select option[value="Diğer"]:selected ~ .video-type-custom,
+        .video-source-entry .video-type-select option[value="Özel Başlık"]:selected ~ .video-type-custom {
             display: block;
         }
 
@@ -326,7 +315,7 @@
                 padding: 10px;
             }
 
-            .edit-movie-section {
+            .add-movie-section {
                 padding: 15px;
             }
 
@@ -337,43 +326,52 @@
             .form-group input,
             .form-group textarea,
             .form-group select {
-                font-size: 0.95rem;
-                padding: 12px;
+                font-size: 0.9rem;
+                padding: 10px;
             }
 
-            .submit-btn, .delete-btn, .fetch-btn {
-                padding: 12px;
-                font-size: 1rem;
-            }
+      
 
-            #add-video-btn, .add-episode-video-btn, .add-episode-btn, #add-season-btn {
-                padding: 12px;
-                font-size: 1rem;
+            .form-group label {
+                font-size: 0.85rem;
             }
         }
 
         @media (max-width: 468px) {
+      
             .form-group label {
                 font-size: 0.7rem;
             }
+
             .form-group input,
             .form-group textarea,
             .form-group select {
                 font-size: 0.75rem;
                 padding: 8px;
             }
-            .submit-btn, .delete-btn, .fetch-btn {
-                padding: 8px;
-                font-size: 0.8rem;
-                width: 100%;
-            }
-            #add-video-btn, .add-episode-video-btn, .add-episode-btn, #add-season-btn {
+
+            .submit-btn, #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn, .submit-btn ,.delete-btn,.fetch-btn{
                 padding: 8px;
                 font-size: 0.8rem;
             }
+
+            .remove-video, .remove-episode, .remove-season {
+                padding: 6px;
+                font-size: 0.7rem;
+            }
+
             .form-group .validation-message {
                 font-size: 0.6rem;
                 bottom: -18px;
+            }
+
+            .genre-item {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+
+            .genre-item button {
+                font-size: 0.6rem;
             }
         }
 
@@ -381,22 +379,39 @@
             .form-group label {
                 font-size: 0.5rem;
             }
+
             .form-group input,
             .form-group textarea,
             .form-group select {
                 font-size: 0.65rem;
                 padding: 6px;
             }
-            .submit-btn, .delete-btn, .fetch-btn {
+
+            .submit-btn, #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn , .submit-btn ,.delete-btn{
                 padding: 6px;
                 font-size: 0.6rem;
-                width: 100%;
             }
-            #add-video-btn, .add-episode-video-btn, .add-episode-btn, #add-season-btn {
-                padding: 6px;
+
+            .remove-video, .remove-episode, .remove-season {
+                padding: 5px;
                 font-size: 0.6rem;
+            }
+
+            .form-group .validation-message {
+                font-size: 0.5rem;
+                bottom: -15px;
+            }
+
+            .genre-item {
+                font-size: 0.6rem;
+                padding: 3px 6px;
+            }
+
+            .genre-item button {
+                font-size: 0.5rem;
             }
         }
+            
     </style>
 </head>
 <body>
@@ -472,7 +487,7 @@
     </div>
 
     <main class="admin-container">
-        <section class="edit-movie-section" id="admin-content" style="display: none;">
+        <section class="add-movie-section" id="admin-content" style="display: none;">
             <h2 class="section-title">Film/Dizi Düzenle</h2>
             <form id="movie-form" onsubmit="handleEditMovie(event)">
                 <div class="form-grid">
@@ -1099,114 +1114,177 @@
             }
         }
 
-        function addVideoSource(type = 'Dublaj', src = '', targetList = document.getElementById('video-source-list')) {
-            const videoDiv = document.createElement('div');
-            videoDiv.className = 'video-source-entry';
-            videoDiv.innerHTML = `
-                <select class="video-type-select">
-                    <option value="Dublaj" ${type === 'Dublaj' ? 'selected' : ''}>Dublaj</option>
-                    <option value="Altyazı" ${type === 'Altyazı' ? 'selected' : ''}>Altyazı</option>
-                    <option value="Türkçe Dublaj & Altyazı" ${type === 'Türkçe Dublaj & Altyazı' ? 'selected' : ''}>Türkçe Dublaj & Altyazı</option>
-                    <option value="Yerli" ${type === 'Yerli' ? 'selected' : ''}>Yerli</option>
-                    <option value="Diğer" ${type === 'Diğer' || !['Dublaj', 'Altyazı', 'Türkçe Dublaj & Altyazı', 'Yerli'].includes(type) ? 'selected' : ''}>Diğer</option>
-                </select>
-                <input type="text" class="video-type-custom" placeholder="Özel tür girin" value="${['Dublaj', 'Altyazı', 'Türkçe Dublaj & Altyazı', 'Yerli'].includes(type) ? '' : type}">
-                <input type="url" class="video-src" placeholder="Video URL" value="${src}">
-                <button type="button" class="remove-video">Kaldır</button>
-                <span class="validation-message video-error"></span>
+      function addVideoSource(type, src = '', targetList = document.getElementById('video-source-list')) {
+    // Eğer 'type' boşsa veya zorla otomatik belirlemek istiyorsan:
+    if (!type || type === 'Dublaj') {
+        const languageInput = document.getElementById('movie-language');
+        const rawValue = languageInput?.value?.toLowerCase() || '';
+        const languages = rawValue.split(',').map(lang => lang.trim());
+
+        const hasTurkceDublaj = languages.some(l => l.includes('türkçe') && l.includes('dublaj'));
+        const hasTurkceAltyazi = languages.some(l => l.includes('türkçe') && l.includes('altyazı'));
+        const hasDublaj = languages.some(l => l.includes('dublaj'));
+        const hasAltyazi = languages.some(l => l.includes('altyazı'));
+        const hasYerli = languages.some(l => l.includes('yerli'));
+
+        if (hasTurkceDublaj && hasTurkceAltyazi) {
+            type = 'Türkçe Dublaj & Altyazı';
+        } else if (hasTurkceDublaj) {
+            type = 'Dublaj';
+        } else if (hasTurkceAltyazi) {
+            type = 'Altyazı';
+        } else if (hasYerli) {
+            type = 'Yerli';
+        } else if (hasDublaj && hasAltyazi) {
+            type = 'Türkçe Dublaj & Altyazı';
+        } else if (hasDublaj) {
+            type = 'Dublaj';
+        } else if (hasAltyazi) {
+            type = 'Altyazı';
+        } else {
+            type = 'Diğer';
+        }
+    }
+
+    const isCustom = !['Dublaj', 'Altyazı', 'Türkçe Dublaj & Altyazı', 'Yerli'].includes(type);
+
+    const videoDiv = document.createElement('div');
+    videoDiv.className = 'video-source-entry';
+    videoDiv.innerHTML = `
+        <select class="video-type-select">
+            <option value="Dublaj" ${type === 'Dublaj' ? 'selected' : ''}>Dublaj</option>
+            <option value="Altyazı" ${type === 'Altyazı' ? 'selected' : ''}>Altyazı</option>
+            <option value="Türkçe Dublaj & Altyazı" ${type === 'Türkçe Dublaj & Altyazı' ? 'selected' : ''}>Türkçe Dublaj & Altyazı</option>
+            <option value="Yerli" ${type === 'Yerli' ? 'selected' : ''}>Yerli</option>
+            <option value="Diğer" ${isCustom ? 'selected' : ''}>Diğer</option>
+        </select>
+        <input type="text" class="video-type-custom" placeholder="Özel tür girin" value="${isCustom ? type : ''}" style="display: ${isCustom ? 'block' : 'none'};">
+        <input type="url" class="video-src" placeholder="Video URL" value="${src}">
+        <button type="button" class="remove-video">Kaldır</button>
+        <span class="validation-message video-error"></span>
+    `;
+
+    targetList.appendChild(videoDiv);
+
+    const select = videoDiv.querySelector('.video-type-select');
+    const customInput = videoDiv.querySelector('.video-type-custom');
+    select.addEventListener('change', function () {
+        customInput.style.display = this.value === 'Diğer' ? 'block' : 'none';
+    });
+
+    videoDiv.querySelector('.remove-video').addEventListener('click', () => videoDiv.remove());
+}
+
+
+
+function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1, episodes = []) {
+    const seasonList = document.getElementById('season-list');
+    const seasonDiv = document.createElement('div');
+    seasonDiv.className = 'season-container'; // ✅ Mevcut sezonlar kapalı olacak, yeni sezona aktif olacak
+
+    seasonDiv.innerHTML = `
+        <h3>Sezon ${seasonNumber}</h3>
+        <div class="season-content">
+            <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
+            <span class="validation-message season-error"></span>
+            <div class="episode-list"></div>
+            <button type="button" class="add-episode-btn">Bölüm Ekle</button>
+            <button type="button" class="remove-season">Sezonu Kaldır</button>
+        </div>
+    `;
+    seasonList.appendChild(seasonDiv);
+
+    const episodeList = seasonDiv.querySelector('.episode-list');
+
+    // Eğer dışarıdan gelen eski bölüm verisi varsa onları ekle
+    if (episodes.length > 0) {
+        episodes.forEach(episode => {
+            const episodeDiv = document.createElement('div');
+            episodeDiv.className = 'episode-entry';
+            episodeDiv.innerHTML = `
+                <input type="number" class="episode-number" value="${episode.episodeNumber}" min="1" required>
+                <input type="text" class="episode-title" value="${episode.title || ''}" placeholder="Bölüm başlığı (opsiyonel)">
+                <input type="hidden" class="episode-added-date" value="${episode.addedDate || ''}">
+                <div class="video-source-list" style="grid-column: span 2;"></div>
+                <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
+                <button type="button" class="remove-episode">Bölüm Kaldır</button>
+                <span class="validation-message episode-error"></span>
             `;
-            targetList.appendChild(videoDiv);
-            const select = videoDiv.querySelector('.video-type-select');
-            const customInput = videoDiv.querySelector('.video-type-custom');
-            customInput.style.display = select.value === 'Diğer' ? 'block' : 'none';
-            videoDiv.querySelector('.remove-video').addEventListener('click', () => videoDiv.remove());
-            select.addEventListener('change', function () {
-                customInput.style.display = this.value === 'Diğer' ? 'block' : 'none';
+            episodeList.appendChild(episodeDiv);
+
+            const videoList = episodeDiv.querySelector('.video-source-list');
+            episode.videoSrc.forEach(src => {
+                addVideoSource(src.type, src.src, videoList);
+            });
+
+            episodeDiv.querySelector('.remove-episode').addEventListener('click', () => episodeDiv.remove());
+            episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', () => {
+                addVideoSource('', '', videoList);
+            });
+        });
+    } else {
+        // Yeni eklenen sezon için 8 bölüm otomatik ekle
+        for (let i = 1; i <= 8; i++) {
+            const episodeDiv = document.createElement('div');
+            episodeDiv.className = 'episode-entry';
+            episodeDiv.innerHTML = `
+                <input type="number" class="episode-number" value="${i}" min="1" required>
+                <input type="text" class="episode-title" placeholder="Bölüm başlığı (opsiyonel)">
+                <div class="video-source-list" style="grid-column: span 2;"></div>
+                <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
+                <button type="button" class="remove-episode">Bölüm Kaldır</button>
+                <span class="validation-message episode-error"></span>
+            `;
+            episodeList.appendChild(episodeDiv);
+
+            const videoList = episodeDiv.querySelector('.video-source-list');
+            addVideoSource('', '', videoList);
+
+            episodeDiv.querySelector('.remove-episode').addEventListener('click', () => episodeDiv.remove());
+            episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', () => {
+                addVideoSource('', '', videoList);
             });
         }
+    }
 
-        function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1, episodes = []) {
-            const seasonList = document.getElementById('season-list');
-            const seasonDiv = document.createElement('div');
-            seasonDiv.className = 'season-container';
-            seasonDiv.innerHTML = `
-                <h3>Sezon ${seasonNumber}</h3>
-                <div class="season-content">
-                    <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
-                    <span class="validation-message season-error"></span>
-                    <div class="episode-list"></div>
-                    <button type="button" class="add-episode-btn">Bölüm Ekle</button>
-                    <button type="button" class="remove-season">Sezonu Kaldır</button>
-                </div>
-            `;
-            seasonList.appendChild(seasonDiv);
+    // Sezon başlığına tıklanınca sadece bu sezon aç/kapa olacak şekilde
+    seasonDiv.querySelector('h3').addEventListener('click', () => {
+        seasonDiv.classList.toggle('active');
+    });
 
-            const episodeList = seasonDiv.querySelector('.episode-list');
-            episodes.forEach(episode => {
-                const episodeDiv = document.createElement('div');
-                episodeDiv.className = 'episode-entry';
-                episodeDiv.innerHTML = `
-                    <input type="number" class="episode-number" value="${episode.episodeNumber}" min="1" required>
-                    <input type="text" class="episode-title" value="${episode.title || ''}" placeholder="Bölüm başlığı (opsiyonel)">
-                    <input type="hidden" class="episode-added-date" value="${episode.addedDate || ''}">
-                    <div class="video-source-list" style="grid-column: span 2;"></div>
-                    <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
-                    <button type="button" class="remove-episode">Bölüm Kaldır</button>
-                    <span class="validation-message episode-error"></span>
-                `;
-                episodeList.appendChild(episodeDiv);
+    // Sezonu silmek için
+    seasonDiv.querySelector('.remove-season').addEventListener('click', () => {
+        seasonDiv.remove();
+        updateSeasonNumbers();
+    });
 
-                const videoList = episodeDiv.querySelector('.video-source-list');
-                episode.videoSrc.forEach(src => {
-                    addVideoSource(src.type, src.src, videoList);
-                });
+    // Yeni bölüm ekleme butonuna tıklayınca
+    seasonDiv.querySelector('.add-episode-btn').addEventListener('click', () => {
+        const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
+        const episodeDiv = document.createElement('div');
+        episodeDiv.className = 'episode-entry';
+        episodeDiv.innerHTML = `
+            <input type="number" class="episode-number" value="${episodeCount}" min="1" required>
+            <input type="text" class="episode-title" placeholder="Bölüm başlığı (opsiyonel)">
+            <div class="video-source-list" style="grid-column: span 2;"></div>
+            <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
+            <button type="button" class="remove-episode">Bölüm Kaldır</button>
+            <span class="validation-message episode-error"></span>
+        `;
+        episodeList.appendChild(episodeDiv);
 
-                episodeDiv.querySelector('.remove-episode').addEventListener('click', () => episodeDiv.remove());
+        const videoList = episodeDiv.querySelector('.video-source-list');
+        addVideoSource('', '', videoList);
 
-                episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', () => {
-                    addVideoSource('Dublaj', '', videoList);
-                });
-            });
+        episodeDiv.querySelector('.remove-episode').addEventListener('click', () => episodeDiv.remove());
+        episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', () => {
+            addVideoSource('', '', videoList);
+        });
+    });
+}
 
-            seasonDiv.querySelector('.remove-season').addEventListener('click', () => {
-                seasonDiv.remove();
-                updateSeasonNumbers();
-            });
 
-            seasonDiv.querySelector('.add-episode-btn').addEventListener('click', () => {
-                const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
-                const episodeDiv = document.createElement('div');
-                episodeDiv.className = 'episode-entry';
-                episodeDiv.innerHTML = `
-                    <input type="number" class="episode-number" value="${episodeCount}" min="1" required>
-                    <input type="text" class="episode-title" placeholder="Bölüm başlığı (opsiyonel)">
-                    <div class="video-source-list" style="grid-column: span 2;"></div>
-                    <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
-                    <button type="button" class="remove-episode">Bölüm Kaldır</button>
-                    <span class="validation-message episode-error"></span>
-                `;
-                episodeList.appendChild(episodeDiv);
 
-                const videoList = episodeDiv.querySelector('.video-source-list');
-                addVideoSource('Dublaj', '', videoList);
-
-                episodeDiv.querySelector('.remove-episode').addEventListener('click', () => episodeDiv.remove());
-
-                episodeDiv.querySelector('.add-episode-video-btn').addEventListener('click', () => {
-                    addVideoSource('Dublaj', '', videoList);
-                });
-            });
-
-            seasonDiv.querySelector('h3').addEventListener('click', () => {
-                const allSeasons = document.querySelectorAll('.season-container');
-                allSeasons.forEach(season => {
-                    if (season !== seasonDiv) {
-                        season.classList.remove('active');
-                    }
-                });
-                seasonDiv.classList.toggle('active');
-            });
-        }
 
         function updateSeasonNumbers() {
             const seasons = document.querySelectorAll('.season-container');

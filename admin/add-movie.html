@@ -366,7 +366,7 @@
                 padding: 8px;
             }
 
-            .submit-btn, #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn {
+            .submit-btn, #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn{
                 padding: 8px;
                 font-size: 0.8rem;
             }
@@ -426,6 +426,14 @@
             .genre-item button {
                 font-size: 0.5rem;
             }
+        }
+        .dizipal-btn{
+            background-color: var(--accent-color);
+            border-radius: 8px;
+            font-weight: bold;
+            padding: 8px 15px;
+            margin-top: 5px;
+            
         }
     </style>
 </head>
@@ -507,6 +515,13 @@
             <h2 class="section-title">Yeni Film/Dizi Ekle</h2>
             <form id="movie-form" onsubmit="handleAddMovie(event)">
                 <div class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+    <label for="dizipal-link">Dizipal Linki</label>
+    <input type="url" id="dizipal-link" placeholder="https://dizipal...">
+    <button class="dizipal-btn" type="button" onclick="fetchDizipalEpisodes(); fetchDizipalMeta();">Bölümleri ve Bilgileri Getir</button>
+
+</div>
+
                     <div class="form-group">
                         <label for="movie-id">Film ID (Benzersiz)</label>
                         <input type="text" id="movie-id" required pattern="[a-zA-Z0-9-$]+" placeholder="Örn: top-gun">
@@ -569,10 +584,17 @@
                             <option value="Spor">Spor</option>
                             <option value="Suç">Suç</option>
                             <option value="Tarih">Tarih</option>
+                            <option value="Exxen">Exxen</option>
+                            <option value="BluTV">BluTV</option>
+                            <option value="Gain">Gain</option>
+                            <option value="Disney+">Disney+</option>
+                            <option value="Tod">TOD</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="Mubi">Mubi</option>
                         </select>
                         <button type="button" id="add-genre-btn">Tür Ekle</button>
                         <div class="genres-list" id="genres-list"></div>
-                        <span class="validation-message" id="movie-genres-error"></span>
+                        <span  class="validation-message" id="movie-genres-error"></span>
                     </div>
                     <div class="form-group">
                         <label for="movie-poster">Poster URL</label>
@@ -1118,49 +1140,55 @@
             });
         }
 
-        function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1) {
-            console.log('Sezon ekleniyor, sezon numarası:', seasonNumber);
-            const seasonList = document.getElementById('season-list');
-            const seasonDiv = document.createElement('div');
-            seasonDiv.className = 'season-container';
-            seasonDiv.innerHTML = `
-                <h3>Sezon ${seasonNumber}</h3>
-                <div class="season-content">
-                    <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
-                    <span class="validation-message season-error"></span>
-                    <div class="episode-list"></div>
-                    <button type="button" class="add-episode-btn">Bölüm Ekle</button>
-                    <button type="button" class="remove-season">Sezonu Kaldır</button>
-                </div>
-            `;
-            seasonList.appendChild(seasonDiv);
+    function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1) {
+    console.log('Sezon ekleniyor, sezon numarası:', seasonNumber);
+    const seasonList = document.getElementById('season-list');
+    const seasonDiv = document.createElement('div');
+    seasonDiv.className = 'season-container active'; // otomatik açık gelsin
+    seasonDiv.innerHTML = `
+        <h3>Sezon ${seasonNumber}</h3>
+        <div class="season-content">
+            <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
+            <span class="validation-message season-error"></span>
+            <div class="episode-list"></div>
+            <button type="button" class="add-episode-btn">Bölüm Ekle</button>
+            <button type="button" class="remove-season">Sezonu Kaldır</button>
+        </div>
+    `;
+    seasonList.appendChild(seasonDiv);
 
-            const episodeList = seasonDiv.querySelector('.episode-list');
-            addEpisode(episodeList, 1);
+    const episodeList = seasonDiv.querySelector('.episode-list');
 
-            seasonDiv.querySelector('.remove-season').addEventListener('click', () => {
-                console.log('Sezon kaldırılıyor');
-                seasonDiv.remove();
-                updateSeasonNumbers();
-            });
+    // ✅ 8 bölüm otomatik ekle
+    for (let i = 1; i <= 8; i++) {
+        addEpisode(episodeList, i);
+    }
 
-            seasonDiv.querySelector('.add-episode-btn').addEventListener('click', () => {
-                const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
-                console.log('Yeni bölüm ekleniyor, bölüm numarası:', episodeCount);
-                addEpisode(episodeList, episodeCount);
-            });
+    // ✂️ Diğer event handler'lar aynı kalsın
+    seasonDiv.querySelector('.remove-season').addEventListener('click', () => {
+        console.log('Sezon kaldırılıyor');
+        seasonDiv.remove();
+        updateSeasonNumbers();
+    });
 
-            seasonDiv.querySelector('h3').addEventListener('click', () => {
-                console.log(`Sezon ${seasonNumber} tıklatıldı`);
-                const allSeasons = document.querySelectorAll('.season-container');
-                allSeasons.forEach(season => {
-                    if (season !== seasonDiv) {
-                        season.classList.remove('active');
-                    }
-                });
-                seasonDiv.classList.toggle('active');
-            });
-        }
+    seasonDiv.querySelector('.add-episode-btn').addEventListener('click', () => {
+        const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
+        console.log('Yeni bölüm ekleniyor, bölüm numarası:', episodeCount);
+        addEpisode(episodeList, episodeCount);
+    });
+
+    seasonDiv.querySelector('h3').addEventListener('click', () => {
+        console.log(`Sezon ${seasonNumber} tıklatıldı`);
+        const allSeasons = document.querySelectorAll('.season-container');
+        allSeasons.forEach(season => {
+            if (season !== seasonDiv) {
+                season.classList.remove('active');
+            }
+        });
+        seasonDiv.classList.toggle('active');
+    });
+}
+
 
         function updateSeasonNumbers() {
             console.log('Sezon numaraları güncelleniyor');
@@ -1258,6 +1286,132 @@
                 });
             });
         });
+
+   
+
+
+        async function fetchDizipalEpisodes() {
+  const url = document.getElementById('dizipal-link').value;
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    alert('Token bulunamadı, lütfen tekrar giriş yapın.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/scrape-dizipal?url=${encodeURIComponent(url)}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const raw = await res.text();
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      alert("JSON okunamadı");
+      return;
+    }
+
+    if (!res.ok) {
+      alert("Hata: " + (data.error || 'Bilinmeyen hata'));
+      return;
+    }
+
+    // ⏬ Otomatik olarak movie-type'ı 'dizi' yap ve bölümleri hazırla
+    document.getElementById('movie-type').value = 'dizi';
+    document.getElementById('movie-type').dispatchEvent(new Event('change'));
+
+    const seasonList = document.getElementById('season-list');
+    seasonList.innerHTML = '';
+
+    data.episodes.forEach(season => {
+      const seasonDiv = document.createElement('div');
+      seasonDiv.classList.add('season-container', 'active');
+      seasonDiv.innerHTML = `
+        <h3>Sezon ${season.season}</h3>
+        <div class="season-content">
+          <input type="number" class="season-number" value="${season.season}" min="1" required />
+          <span class="validation-message season-error"></span>
+          <div class="episode-list">
+            ${season.episodes.map(ep => `
+              <div class="episode-entry">
+                <input type="number" class="episode-number" value="${ep.episode}" min="1" required />
+                <div class="video-source-list" style="grid-column: span 2;">
+                  <div class="video-source-entry">
+                    <select class="video-type-select">
+                      <option value="${document.getElementById('movie-language').value}" selected>${document.getElementById('movie-language').value}</option>
+                    </select>
+                    <input type="text" class="video-type-custom" style="display:none;">
+                    <input type="url" class="video-src" value="${ep.embed}" required />
+                    <button type="button" class="remove-video">Kaldır</button>
+                    <span class="validation-message video-error"></span>
+                  </div>
+                </div>
+                <button type="button" class="add-episode-video-btn">Video Kaynağı Ekle</button>
+                <button type="button" class="remove-episode">Bölüm Kaldır</button>
+                <span class="validation-message episode-error"></span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      seasonList.appendChild(seasonDiv);
+    });
+
+    document.getElementById('episodes-section').style.display = 'block';
+    alert("Bölümler başarıyla eklendi.");
+  } catch (err) {
+    alert("Hata: " + err.message);
+    console.error(err);
+  }
+}
+async function fetchDizipalMeta() {
+  const url = document.getElementById("dizipal-link").value;
+  if (!url) return;
+
+  try {
+    const res = await fetch("/api/scrape-dizipal-meta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Bilinmeyen hata");
+
+    // Form inputlarını doldur
+    document.getElementById("movie-title").value = data.title || "";
+    document.getElementById("movie-plot").value = data.plot || "";
+    document.getElementById("movie-rating").value = data.imdb || "";
+    document.getElementById("movie-year").value = data.year || "";
+
+    // Tür ekle
+    const genreList = document.getElementById("genres-list");
+    genreList.innerHTML = "";
+    if (data.genre) {
+      data.genre.split(",").forEach((g) => {
+        const trimmed = g.trim();
+        if (trimmed) {
+          const item = document.createElement("div");
+          item.className = "genre-item";
+          item.innerHTML = `${trimmed} <button onclick="this.parentElement.remove()">×</button>`;
+          genreList.appendChild(item);
+        }
+      });
+    }
+      const languageInput = document.getElementById("movie-language");
+    if (!languageInput.value.trim()) {
+        languageInput.value = "Türkçe Dublaj & Altyazı";
+    }
+  } catch (err) {
+    console.error("Dizipal meta çekilemedi:", err.message);
+  }
+}
+
+
     </script>
 </body>
 </html>

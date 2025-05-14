@@ -776,6 +776,30 @@
                 errorEl.textContent = 'Sunucuyla bağlantı hatası';
             }
         }
+      function checkUserSession() {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+
+    // Eğer token veya userId eksikse, sadece o anahtarı temizle
+    if (!token) {
+        localStorage.removeItem('token');
+    }
+
+    if (!userId) {
+        localStorage.removeItem('userId');
+    }
+
+    // Kullanıcı giriş yapmamışsa, username bilgisini temizle
+    if (!token || !userId) {
+        localStorage.removeItem('username');
+        isLoggedIn = false;
+        currentUser = null;
+    } else {
+        isLoggedIn = true;
+        currentUser = localStorage.getItem('username');
+    }
+}
+
 
         async function handleSignup(event) {
             event.preventDefault();
@@ -1588,6 +1612,34 @@
             });
         }
 
+        async function deleteComment(commentId) {
+  try {
+    const response = await fetch(`${apiUrl}/api/comments/${commentId}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      showToast(data.error || "Yorum silinemedi.", "error");
+      return;
+    }
+
+    // Backend başarılı yanıt dönerse DOM'dan yorumu kaldır
+    document.getElementById(`comment-${commentId}`)?.remove();
+    showToast(data.message, "success");
+
+  } catch (error) {
+    console.error("Yorum silme hatası:", error.message);
+    showToast("Yorum silinirken bir hata oluştu.", "error");
+  }
+}
+
+
+
         // Yorum Bölümü Fonksiyonları
         function updateCommentSectionVisibility() {
             const commentFormContainer = document.getElementById('comment-form-container');
@@ -1643,20 +1695,15 @@ async function loadComments() {
     }
 }
 
+// 🔧 GÜNCELLENMİŞ YANIT GÖSTERME DAVRANIŞI
 function renderComment(comment, isReply = false) {
-    console.log('Rendering comment:', {
-        id: comment._id,
-        username: comment.userId?.username,
-        isPremium: comment.userId?.isPremium,
-        replies: comment.replies ? comment.replies.length : 0,
-        depth: isReply ? 'Reply' : 'Top-level'
-    });
     const commentDiv = document.createElement('div');
     commentDiv.className = `comment ${isReply ? 'reply' : ''}`;
     const userId = localStorage.getItem('userId');
     const isLiked = userId && comment.likes.includes(userId);
     const isDisliked = userId && comment.dislikes.includes(userId);
     const isPremium = comment.userId?.isPremium || false;
+
     commentDiv.innerHTML = `
         <div class="comment-header">
             <img src="${comment.userId?.avatar || '/resim/avatar/user.png'}" alt="Avatar" onerror="this.src='/resim/avatar/user.png'">
@@ -1665,15 +1712,20 @@ function renderComment(comment, isReply = false) {
             <span class="comment-time">${formatTimeAgo(comment.createdAt)}</span>
         </div>
         <div class="comment-content">${comment.content}</div>
-        <div class="comment-actions">
-            <button onclick="toggleLikeComment('${comment._id}', ${isLiked})" class="${isLoggedIn ? '' : 'disabled'}">
-                <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> <span>${comment.likes.length}</span>
-            </button>
-            <button onclick="toggleDislikeComment('${comment._id}', ${isDisliked})" class="${isLoggedIn ? '' : 'disabled'}">
-                <i class="${isDisliked ? 'fas' : 'far'} fa-thumbs-down"></i> <span>${comment.dislikes.length}</span>
-            </button>
-            <button onclick="toggleReplyForm('${comment._id}')"><i class="fas fa-reply"></i> Yanıtla</button>
-        </div>
+     <div class="comment-actions">
+    <button onclick="toggleLikeComment('${comment._id}', ${isLiked})" class="${isLoggedIn ? '' : 'disabled'}">
+        <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> <span>${comment.likes.length}</span>
+    </button>
+    <button onclick="toggleDislikeComment('${comment._id}', ${isDisliked})" class="${isLoggedIn ? '' : 'disabled'}">
+        <i class="${isDisliked ? 'fas' : 'far'} fa-thumbs-down"></i> <span>${comment.dislikes.length}</span>
+    </button>
+    <button onclick="toggleReplyForm('${comment._id}')"><i class="fas fa-reply"></i> Yanıtla</button>
+
+    ${comment.userId?._id === localStorage.getItem('userId') ? `
+        <button onclick="deleteComment('${comment._id}')"><i class="fas fa-trash"></i> Sil</button>
+    ` : ''}
+</div>
+
         <div class="reply-form-container" id="reply-form-${comment._id}">
             <form onsubmit="postReply(event, '${comment._id}')">
                 <textarea placeholder="Yanıtınızı yazın..." required></textarea>
@@ -1681,31 +1733,39 @@ function renderComment(comment, isReply = false) {
             </form>
         </div>
     `;
-if (comment.replies && comment.replies.length > 0) {
-    console.log(`Processing replies for comment ${comment._id}:`, comment.replies);
-    const repliesContainer = document.createElement('div');
-    repliesContainer.className = 'replies';
-    repliesContainer.style.display = 'none';
-    const toggleButton = document.createElement('button');
-    toggleButton.className = 'replies-toggle';
-    toggleButton.innerHTML = `<i class="fas fa-chevron-down"></i> ${comment.replies.length} yanıtı göster`;
-    toggleButton.onclick = () => {
-        const allReplies = repliesContainer.querySelectorAll('.replies');
-        repliesContainer.style.display = repliesContainer.style.display === 'none' ? 'block' : 'none';
-        allReplies.forEach(reply => {
-            reply.style.display = repliesContainer.style.display;
-        });
-        toggleButton.innerHTML = repliesContainer.style.display === 'none' ?
-            `<i class="fas fa-chevron-down"></i> ${comment.replies.length} yanıtı göster` :
-            `<i class="fas fa-chevron-up"></i> Yanıtları gizle`;
-    };
-    comment.replies.forEach(reply => {
-        console.log(`Rendering reply ${reply._id}:`, reply);
-        repliesContainer.appendChild(renderComment(reply, true));
-    });
-    commentDiv.appendChild(toggleButton);
-    commentDiv.appendChild(repliesContainer);
-}
+
+    if (comment.replies && comment.replies.length > 0) {
+        const repliesContainer = document.createElement('div');
+        repliesContainer.className = 'replies';
+        repliesContainer.style.display = 'none';
+
+        const toggleButton = document.createElement('button');
+        toggleButton.className = 'replies-toggle';
+        toggleButton.innerHTML = `<i class="fas fa-chevron-down"></i> ${comment.replies.length} yanıtı göster`;
+
+        let repliesLoaded = false;
+
+        toggleButton.onclick = () => {
+            const showing = repliesContainer.style.display === 'block';
+            if (showing) {
+                repliesContainer.style.display = 'none';
+                toggleButton.innerHTML = `<i class="fas fa-chevron-down"></i> ${comment.replies.length} yanıtı göster`;
+            } else {
+                if (!repliesLoaded) {
+                    comment.replies.forEach(reply => {
+                        repliesContainer.appendChild(renderComment(reply, true));
+                    });
+                    repliesLoaded = true;
+                }
+                repliesContainer.style.display = 'block';
+                toggleButton.innerHTML = `<i class="fas fa-chevron-up"></i> Yanıtları gizle`;
+            }
+        };
+
+        commentDiv.appendChild(toggleButton);
+        commentDiv.appendChild(repliesContainer);
+    }
+
     return commentDiv;
 }
 
