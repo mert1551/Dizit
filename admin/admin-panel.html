@@ -691,8 +691,41 @@
                 movieList.appendChild(row);
             });
         }
+        
+function editMovie(movieId) {
+       window.location.href = `edit-movie.html?id=${movieId}`;
+   }
+  function deleteMovie(movieId) {
+  if (!confirm("Bu filmi silmek istediğinize emin misiniz?")) return;
 
-   
+  const token = localStorage.getItem("token"); // ✅ Token'ı al
+  if (!token) {
+    alert("Silmek için önce giriş yapmalısınız.");
+    return;
+  }
+
+  fetch(`/api/movies/${movieId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`  // ✅ Token'ı gönder
+    }
+  })
+  .then(res => {
+    if (res.ok) {
+      alert("Film başarıyla silindi.");
+      window.location.reload();
+    } else {
+      return res.json().then(data => {
+        throw new Error(data.error || "Silme işlemi başarısız");
+      });
+    }
+  })
+  .catch(err => {
+    console.error("Silme hatası:", err);
+    alert("Bir hata oluştu: " + err.message);
+  });
+}
+
 // Render Users
 function renderUsers(users) {
     const userList = document.getElementById('user-list');
@@ -860,6 +893,7 @@ function filterUsers() {
             const navContainer = document.getElementById('nav-container');
             navContainer.classList.toggle('active');
         });
+        
 
         // Initial Check
         checkAdminStatus();
