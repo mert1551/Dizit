@@ -366,7 +366,7 @@
                 padding: 8px;
             }
 
-            .submit-btn, #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn {
+            .submit-btn, #add-video-btn, .add-episode-btn, .add-episode-video-btn, #add-season-btn, #add-genre-btn{
                 padding: 8px;
                 font-size: 0.8rem;
             }
@@ -1118,49 +1118,55 @@
             });
         }
 
-        function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1) {
-            console.log('Sezon ekleniyor, sezon numarası:', seasonNumber);
-            const seasonList = document.getElementById('season-list');
-            const seasonDiv = document.createElement('div');
-            seasonDiv.className = 'season-container';
-            seasonDiv.innerHTML = `
-                <h3>Sezon ${seasonNumber}</h3>
-                <div class="season-content">
-                    <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
-                    <span class="validation-message season-error"></span>
-                    <div class="episode-list"></div>
-                    <button type="button" class="add-episode-btn">Bölüm Ekle</button>
-                    <button type="button" class="remove-season">Sezonu Kaldır</button>
-                </div>
-            `;
-            seasonList.appendChild(seasonDiv);
+    function addSeason(seasonNumber = document.querySelectorAll('.season-container').length + 1) {
+    console.log('Sezon ekleniyor, sezon numarası:', seasonNumber);
+    const seasonList = document.getElementById('season-list');
+    const seasonDiv = document.createElement('div');
+    seasonDiv.className = 'season-container active'; // otomatik açık gelsin
+    seasonDiv.innerHTML = `
+        <h3>Sezon ${seasonNumber}</h3>
+        <div class="season-content">
+            <input type="number" class="season-number" value="${seasonNumber}" min="1" required>
+            <span class="validation-message season-error"></span>
+            <div class="episode-list"></div>
+            <button type="button" class="add-episode-btn">Bölüm Ekle</button>
+            <button type="button" class="remove-season">Sezonu Kaldır</button>
+        </div>
+    `;
+    seasonList.appendChild(seasonDiv);
 
-            const episodeList = seasonDiv.querySelector('.episode-list');
-            addEpisode(episodeList, 1);
+    const episodeList = seasonDiv.querySelector('.episode-list');
 
-            seasonDiv.querySelector('.remove-season').addEventListener('click', () => {
-                console.log('Sezon kaldırılıyor');
-                seasonDiv.remove();
-                updateSeasonNumbers();
-            });
+    // ✅ 8 bölüm otomatik ekle
+    for (let i = 1; i <= 8; i++) {
+        addEpisode(episodeList, i);
+    }
 
-            seasonDiv.querySelector('.add-episode-btn').addEventListener('click', () => {
-                const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
-                console.log('Yeni bölüm ekleniyor, bölüm numarası:', episodeCount);
-                addEpisode(episodeList, episodeCount);
-            });
+    // ✂️ Diğer event handler'lar aynı kalsın
+    seasonDiv.querySelector('.remove-season').addEventListener('click', () => {
+        console.log('Sezon kaldırılıyor');
+        seasonDiv.remove();
+        updateSeasonNumbers();
+    });
 
-            seasonDiv.querySelector('h3').addEventListener('click', () => {
-                console.log(`Sezon ${seasonNumber} tıklatıldı`);
-                const allSeasons = document.querySelectorAll('.season-container');
-                allSeasons.forEach(season => {
-                    if (season !== seasonDiv) {
-                        season.classList.remove('active');
-                    }
-                });
-                seasonDiv.classList.toggle('active');
-            });
-        }
+    seasonDiv.querySelector('.add-episode-btn').addEventListener('click', () => {
+        const episodeCount = episodeList.querySelectorAll('.episode-entry').length + 1;
+        console.log('Yeni bölüm ekleniyor, bölüm numarası:', episodeCount);
+        addEpisode(episodeList, episodeCount);
+    });
+
+    seasonDiv.querySelector('h3').addEventListener('click', () => {
+        console.log(`Sezon ${seasonNumber} tıklatıldı`);
+        const allSeasons = document.querySelectorAll('.season-container');
+        allSeasons.forEach(season => {
+            if (season !== seasonDiv) {
+                season.classList.remove('active');
+            }
+        });
+        seasonDiv.classList.toggle('active');
+    });
+}
+
 
         function updateSeasonNumbers() {
             console.log('Sezon numaraları güncelleniyor');
