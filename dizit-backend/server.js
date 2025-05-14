@@ -547,6 +547,7 @@ app.post("/api/login", async (req, res) => {
       token,
       username: user.username,
       isAdmin: user.isAdmin,
+      userId: user._id.toString(),
       message: "Giriş başarılı",
     })
   } catch (error) {
@@ -1849,45 +1850,58 @@ app.post("/api/batch-status", authMiddleware, async (req, res) =>
 app.post("/api/comments", authMiddleware, async (req, res) => {
   try {
     const { movieId, content } = req.body;
-    console.log("Yeni yorum isteği:", { movieId, content });
+    if (!movieId || !content) return res.status(400).json({ error: "movieId ve content zorunlu" });
 
-    if (!movieId || !content) {
-      return res.status(400).json({ error: "movieId ve content zorunlu" });
-    }
+    const movie = await Movie.findOne({ id: movieId }).lean();
+    if (!movie) return res.status(404).json({ error: "Film/Dizi bulunamadı" });
 
-    const movie = await Movie.findOne({ id: movieId });
-    if (!movie) {
-      return res.status(404).json({ error: "Film/Dizi bulunamadı" });
-    }
-
-    const sanitizedContent = sanitizeHtml(content, {
-      allowedTags: [],
-      allowedAttributes: {},
-    });
-
-    if (!sanitizedContent.trim()) {
-      return res.status(400).json({ error: "Yorum içeriği boş olamaz" });
-    }
+    const sanitizedContent = sanitizeHtml(content, { allowedTags: [], allowedAttributes: {} });
+    if (!sanitizedContent.trim()) return res.status(400).json({ error: "Yorum içeriği boş olamaz" });
 
     const comment = new Comment({
       movieId,
       userId: req.user.userId,
       username: req.userDocument.username,
       content: sanitizedContent,
-      parentId: null, // Ana yorum
+      parentId: null
     });
-
     await comment.save();
-    console.log("Yorum eklendi:", { movieId, commentId: comment._id });
 
-    // Yorumu ekledikten sonra, güncel yorum ağacını döndür
-    const comments = await getCommentsWithReplies(movieId);
-    res.status(201).json({ message: "Yorum başarıyla eklendi", comments });
+    res.status(201).json({ message: "Yorum başarıyla eklendi", comment });
   } catch (error) {
-    console.error("Yorum ekleme hatası:", error.message);
     res.status(500).json({ error: "Yorum eklenirken bir hata oluştu" });
   }
 });
+
+// Yorum Silme Endpoint'i
+app.delete('/api/comments/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    const comment = await Comment.findById(id);
+
+    if (!comment) {
+      return res.status(404).json({ error: 'Yorum bulunamadı.' });
+    }
+
+    if (comment.userId.toString() !== userId) {
+      return res.status(403).json({ error: 'Bu yorumu silme yetkiniz yok.' });
+    }
+
+    await Comment.findByIdAndDelete(id);
+
+    return res.json({ message: 'Yorum başarıyla silindi.', commentId: id });
+  } catch (error) {
+    console.error('Yorum silme hatası:', error.message);
+    return res.status(500).json({ error: 'Yorum silme sırasında bir hata oluştu' });
+  }
+});
+
+
+
+
+
 
 // Fetch comments for a movie
 app.get("/api/comments/:movieId", async (req, res) => {
@@ -1903,127 +1917,110 @@ app.get("/api/comments/:movieId", async (req, res) => {
   }
 });
 
-async function getCommentsWithReplies(movieId, parentId = null, depth = 0, maxDepth = 5, includeReplies = true) {
-  if (depth > maxDepth) {
-    console.log(`Maksimum derinlik aşıldı: depth=${depth}`);
-    return [];
-  }
+async function getCommentsWithReplies(movieId, parentId = null, depth = 0, maxDepth = 4, includeReplies = true) {
+  if (depth > maxDepth) return [];
 
   try {
-    console.log(`Yorumlar getiriliyor: movieId=${movieId}, parentId=${parentId}, depth=${depth}`);
+    // Ana yorumları veya yanıtları al
     const comments = await Comment.find({ movieId, parentId })
-      .populate("userId", "username avatar isPremium")
+      .populate("userId", "username avatar isPremium _id")
       .sort({ createdAt: -1 })
-      .limit(50) // İlk etapta 50 yorumla sınırla
+      .limit(20) // İsteğe bağlı, örn: ilk 20 yorum
       .lean();
 
-    console.log(`Bulunan yorum sayısı: ${comments.length}, depth=${depth}`);
+    // Eğer replies istenmiyorsa sadece hasReplies ile bilgi ver
+    if (!includeReplies || depth === maxDepth) {
+      const commentIds = comments.map(c => c._id);
+      const repliesGrouped = await Comment.aggregate([
+        { $match: { parentId: { $in: commentIds } } },
+        { $group: { _id: "$parentId", count: { $sum: 1 } } }
+      ]);
 
-    for (const comment of comments) {
-      comment.hasReplies = false;
-      if (includeReplies && depth < maxDepth) {
-        // Yanıtların varlığını kontrol et
-        const replyCount = await Comment.countDocuments({ parentId: comment._id });
-        comment.hasReplies = replyCount > 0;
-        comment.replies = depth === maxDepth - 1 ? [] : await getCommentsWithReplies(movieId, comment._id, depth + 1, maxDepth, includeReplies);
-      }
+      const replyMap = Object.fromEntries(repliesGrouped.map(g => [g._id.toString(), g.count]));
+
+      comments.forEach(comment => {
+        comment.hasReplies = Boolean(replyMap[comment._id.toString()]);
+        comment.replies = []; // maxDepth sınırı geldiyse boş gönder
+      });
+
+      return comments;
     }
 
-    return comments;
+    // Derinlik kontrolüne takılmadan yanıtları da getir
+    const promises = comments.map(async (comment) => {
+      comment.replies = await getCommentsWithReplies(movieId, comment._id, depth + 1, maxDepth, includeReplies);
+      comment.hasReplies = comment.replies.length > 0;
+      return comment;
+    });
+
+    return await Promise.all(promises);
   } catch (error) {
-    console.error(`Yorum getirme hatası (movieId=${movieId}, depth=${depth}):`, error.message);
-    throw error;
+    console.error(`getCommentsWithReplies error (movieId=${movieId}, depth=${depth}):`, error.message);
+    return [];
   }
 }
+
 
 // Yorum Yanıtı Ekleme
 app.post("/api/comments/:commentId/reply", authMiddleware, async (req, res) => {
   try {
     const { commentId } = req.params;
     const { content } = req.body;
-    console.log("Yorum yanıtı isteği:", { commentId, content });
 
-    if (!content) {
-      return res.status(400).json({ error: "content zorunlu" });
-    }
+    if (!content) return res.status(400).json({ error: "Yanıt içeriği zorunlu" });
 
-    const parentComment = await Comment.findById(commentId);
-    if (!parentComment) {
-      return res.status(404).json({ error: "Ana yorum bulunamadı" });
-    }
+    const parent = await Comment.findById(commentId).lean();
+    if (!parent) return res.status(404).json({ error: "Ana yorum bulunamadı" });
 
-    const sanitizedContent = sanitizeHtml(content, {
-      allowedTags: [],
-      allowedAttributes: {},
-    });
-
-    if (!sanitizedContent.trim()) {
-      return res.status(400).json({ error: "Yanıt içeriği boş olamaz" });
-    }
+    const sanitizedContent = sanitizeHtml(content, { allowedTags: [], allowedAttributes: {} });
+    if (!sanitizedContent.trim()) return res.status(400).json({ error: "Yanıt içeriği boş olamaz" });
 
     const reply = new Comment({
-      movieId: parentComment.movieId,
+      movieId: parent.movieId,
       userId: req.user.userId,
       username: req.userDocument.username,
       content: sanitizedContent,
       parentId: commentId,
     });
-
     await reply.save();
-    console.log("Yanıt eklendi:", { commentId, replyId: reply._id });
 
-    // Yanıtı ekledikten sonra, güncel yorum ağacını döndür
-    const comments = await getCommentsWithReplies(parentComment.movieId);
-    res.status(201).json({ message: "Yanıt başarıyla eklendi", comments });
+    res.status(201).json({ message: "Yanıt başarıyla eklendi", reply });
   } catch (error) {
-    console.error("Yanıt ekleme hatası:", error.message);
     res.status(500).json({ error: "Yanıt eklenirken bir hata oluştu" });
   }
 });
+
 // Yorum beğenme
 app.post("/api/comments/:commentId/like", authMiddleware, async (req, res) => {
   try {
     const { commentId } = req.params;
-    console.log("Yorum beğenme isteği:", { commentId });
-
     const comment = await Comment.findById(commentId);
-    if (!comment) {
-      return res.status(404).json({ error: "Yorum bulunamadı" });
-    }
+    if (!comment) return res.status(404).json({ error: "Yorum bulunamadı" });
 
     const userId = req.user.userId;
-    const wasLiked = comment.likes.includes(userId);
-    const wasDisliked = comment.dislikes.includes(userId);
+    const alreadyLiked = comment.likes.includes(userId);
+    const alreadyDisliked = comment.dislikes.includes(userId);
 
-    if (wasLiked) {
-      comment.likes = comment.likes.filter((id) => id.toString() !== userId.toString());
+    if (alreadyLiked) {
+      comment.likes = comment.likes.filter(id => id.toString() !== userId);
     } else {
       comment.likes.push(userId);
-      if (wasDisliked) {
-        comment.dislikes = comment.dislikes.filter((id) => id.toString() !== userId.toString());
+      if (alreadyDisliked) {
+        comment.dislikes = comment.dislikes.filter(id => id.toString() !== userId);
       }
     }
 
     await comment.save();
-    console.log("Yorum beğenildi:", { commentId, isLiked: !wasLiked });
-
-    // Yanıt sayısını kontrol et
-    const hasReplies = (await Comment.countDocuments({ parentId: commentId })) > 0;
-
     res.json({
-      message: wasLiked ? "Beğeni kaldırıldı" : "Yorum beğenildi",
-      comment: {
-        ...comment.toObject(),
-        hasReplies,
-        replies: [],
-      },
-      isLiked: !wasLiked,
+      message: alreadyLiked ? "Beğeni kaldırıldı" : "Yorum beğenildi",
+      isLiked: !alreadyLiked,
+      commentId
     });
   } catch (error) {
-    console.error("Yorum beğeni hatası:", error.message);
-    res.status(500).json({ error: "Yorum beğenilirken bir hata oluştu" });
+    res.status(500).json({ error: "Beğeni işlemi sırasında hata oluştu" });
   }
 });
+
 
 // Yorum beğenmeme
 app.post("/api/comments/:commentId/dislike", authMiddleware, async (req, res) => {
