@@ -2476,8 +2476,9 @@ app.post("/api/watch-later", authMiddleware, async (req, res) =>
 )
 
 
-const axios = require('axios');
-const cheerio = require('cheerio');
+const axios = require("axios");
+const cheerio = require("cheerio");
+
 app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res) => {
   const baseUrl = req.query.url;
   if (!baseUrl || !baseUrl.includes('/dizi/')) {
@@ -2486,7 +2487,11 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
 
   try {
     const mainPage = await axios.get(baseUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Referer': 'https://google.com/',
+        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8',
+      }
     });
     const $main = cheerio.load(mainPage.data);
 
@@ -2506,7 +2511,6 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
       genre: genre || null,
     };
 
-    // 🔁 Embed scraping (sezon/bölüm döngüsü)
     const results = {};
     const maxSeasons = 20;
     const maxEpisodesPerSeason = 100;
@@ -2520,7 +2524,11 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
         const epUrl = `${baseUrl}/sezon-${season}/bolum-${episode}`;
         try {
           const response = await axios.get(epUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0' }
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+              'Referer': 'https://google.com/',
+              'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8',
+            }
           });
 
           const $ = cheerio.load(response.data);
@@ -2540,6 +2548,8 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
         } catch (err) {
           if (err.response?.status === 404) {
             errorStreak++;
+          } else {
+            console.warn(`Bölüm isteği hatası: ${epUrl}`, err.message);
           }
         }
 
@@ -2563,6 +2573,7 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
     res.status(500).json({ error: 'Scraping sırasında hata oluştu' });
   }
 });
+
 
 
 
