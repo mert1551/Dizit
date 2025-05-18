@@ -2475,9 +2475,70 @@ app.post("/api/watch-later", authMiddleware, async (req, res) =>
 }
 )
 
+const puppeteer = require('puppeteer');
+const axios = require('axios');
+const cheerio = require('cheerio');
 
-const axios = require("axios");
-const cheerio = require("cheerio");
+app.get('/api/scrape-series', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const series = await getAllSeries();
+    res.json(series);
+  } catch (err) {
+    console.error('Dizipal çekme hatası:', err.message);
+    res.status(500).json({ error: 'Dizipal verileri alınamadı' });
+  }
+});
+
+
+async function getAllSeries() {
+  const browser = await puppeteer.launch({
+    headless: 'new', // headless mod aktif
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+
+  const page = await browser.newPage();
+  await page.goto('https://dizipal638.com', { waitUntil: 'networkidle2' });
+
+  // Ana sayfadaki dizi linklerini alıyoruz
+  const links = await page.$$eval('a[href*="/dizi/"]', as =>
+    as.map(a => a.href).filter((v, i, a) => a.indexOf(v) === i)
+  );
+
+  await browser.close();
+
+  // Linklerden içerikleri Axios + Cheerio ile çekeceğiz
+  const series = [];
+
+  for (const link of links) {
+    try {
+      const { data } = await axios.get(link, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
+        },
+      });
+
+      const $ = cheerio.load(data);
+
+      const title = $('h1').first().text().trim();
+      const description = $('meta[name="description"]').attr('content') || '';
+      const image = $('meta[property="og:image"]').attr('content') || '';
+
+      series.push({
+        title,
+        link,
+        image,
+        description,
+      });
+    } catch (err) {
+      console.error(`Hata oluştu: ${link}`, err.message);
+    }
+  }
+
+  return series;
+}
+
+
 
 app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res) => {
   const baseUrl = req.query.url;
@@ -2487,11 +2548,7 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
 
   try {
     const mainPage = await axios.get(baseUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'Referer': 'https://google.com/',
-        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8',
-      }
+      headers: { 'User-Agent': 'Mozilla/5.0' }
     });
     const $main = cheerio.load(mainPage.data);
 
@@ -2511,6 +2568,7 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
       genre: genre || null,
     };
 
+    // 🔁 Embed scraping (sezon/bölüm döngüsü)
     const results = {};
     const maxSeasons = 20;
     const maxEpisodesPerSeason = 100;
@@ -2524,11 +2582,7 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
         const epUrl = `${baseUrl}/sezon-${season}/bolum-${episode}`;
         try {
           const response = await axios.get(epUrl, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-              'Referer': 'https://google.com/',
-              'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8',
-            }
+            headers: { 'User-Agent': 'Mozilla/5.0' }
           });
 
           const $ = cheerio.load(response.data);
@@ -2548,8 +2602,6 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
         } catch (err) {
           if (err.response?.status === 404) {
             errorStreak++;
-          } else {
-            console.warn(`Bölüm isteği hatası: ${epUrl}`, err.message);
           }
         }
 
@@ -2573,7 +2625,6 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
     res.status(500).json({ error: 'Scraping sırasında hata oluştu' });
   }
 });
-
 
 
 
