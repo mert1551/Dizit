@@ -138,19 +138,22 @@
 }
 
 .player-title {
-    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
 }
 
 .series-name {
     font-size: 2.5rem;
     color: var(--text-color);
     margin: 0;
+    margin-right: 8px;
 }
 
 .episode-info {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     color: var(--text-secondary);
-    margin: 5px 0 0;
+    margin: 0;
+    padding: 3px;
 }
 
 .video-wrapper {
@@ -336,7 +339,7 @@
     transition: all 0.3s ease;
 }
 
-.like-btn i, .dislike-btn i, .favorite-btn i {
+.like-btn i, .dislike-btn i {
     margin-right: 8px;
     color: var(--accent-color);
 }
@@ -369,6 +372,7 @@
     background-color: transparent;
     border-color: var(--accent-color);
     color: var(--accent-color);
+
 }
 
 .favorite-btn.active i {

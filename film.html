@@ -1544,7 +1544,7 @@
                         <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
                     </div>
                 `;
-                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `/dizi/${item.id}/sezon-1/bolum-1` : `/film/${item.id}`;
+                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `/dizi/${item.id}` : `/film/${item.id}`;
                 searchResults.appendChild(itemEl);
             });
         }

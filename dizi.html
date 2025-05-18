@@ -536,11 +536,12 @@
         function getSeriesIdFromDynamicUrl() {
             const match = window.location.pathname.match(/^\/dizi\/([^\/]+)(?:\/sezon-(\d+)\/bolum-(\d+))?/);
             if (!match) return null;
-            return {
-                id: match[1],
-                season: parseInt(match[2]) || 1,
-                episode: parseInt(match[3]) || 1
-            };
+           return {
+  id: match[1],
+  season: match[2] ? parseInt(match[2]) : null,
+  episode: match[3] ? parseInt(match[3]) : null
+};
+
         }
 
         async function fetchSeriesById(id) {
@@ -728,9 +729,15 @@
             playerContainer.innerHTML = `
                 <div class="player-box">
                     <div class="player-title">
-                        <h2 class="series-name">${seriesTitle || 'Bilinmeyen Dizi'}</h2>
-                        <p class="episode-info">Sezon ${seasonNumber} Bölüm ${episodeNumber}${episodeTitle ? ` ` : ''}</p>
-                    </div>
+  <h2 class="series-name">${seriesTitle || 'Bilinmeyen Dizi'}</h2>
+  <button class="favorite-btn ${isLoggedIn ? '' : 'disabled'} ${isFavorited ? 'active' : ''}" id="favorite-btn-${seriesId}" 
+           ${isFavorited ? 'red' : '#fff'}">
+    <i class="${isFavorited ? 'fas' : 'far'} fa-plus"></i>
+  </button>
+</div>
+<p class="episode-info">Sezon ${seasonNumber} Bölüm ${episodeNumber}${episodeTitle ? ` ` : ''}</p>
+
+
                     ${seriesCache.premium && !isPremiumUser ? `
                         <div class="premium-message">
                             <i class="fas fa-lock"></i>
@@ -748,9 +755,6 @@
                             </button>
                             <button class="dislike-btn ${isLoggedIn ? '' : 'disabled'} ${isDisliked ? 'active' : ''}" id="dislike-btn-${seriesId}-${seasonNumber}-${episodeNumber}">
                                 <i class="${isDisliked ? 'fas' : 'far'} fa-thumbs-down"></i> Beğenme: ${dislikeCount}
-                            </button>
-                            <button class="favorite-btn ${isLoggedIn ? '' : 'disabled'} ${isFavorited ? 'active' : ''}" id="favorite-btn-${seriesId}">
-                                <i class="${isFavorited ? 'fas' : 'far'} fa-heart"></i> ${isFavorited ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
                             </button>
                             <label class="watched-checkbox ${isLoggedIn ? '' : 'disabled'}">
                                 <input type="checkbox" id="watched-checkbox-${seriesId}-${seasonNumber}-${episodeNumber}" ${isWatched ? 'checked' : ''} ${isLoggedIn ? '' : 'disabled'}>
@@ -867,7 +871,8 @@
                     const data = await res.json();
                     if (res.ok) {
                         favoriteBtn.classList.toggle('active', data.isFavorited);
-                        favoriteBtn.innerHTML = `<i class="${data.isFavorited ? 'fas' : 'far'} fa-heart"></i> ${data.isFavorited ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}`;
+                        favoriteBtn.innerHTML = `<i class="${data.isFavorited ? 'fas' : 'far'} fa-plus"></i>`;
+
                         showToast(data.isFavorited ? 'Dizi favorilere eklendi!' : 'Dizi favorilerden çıkarıldı.', 'success');
                     } else {
                         showToast(data.error || 'Favori işlemi başarısız', 'error');
@@ -1000,7 +1005,7 @@
             }
 
             const urlData = getSeriesIdFromDynamicUrl();
-            const currentEpisode = urlData?.episode || 1;
+            const currentEpisode = urlData?.episode || null;
 
             episodes.forEach((episode, index) => {
                 const episodeNumber = episode.episodeNumber;
@@ -1134,7 +1139,7 @@
                             </div>
                         </div>
                     `;
-                    card.onclick = () => window.location.href = `/dizi/${item.id}/sezon-1/bolum-1`;
+                    card.onclick = () => window.location.href = `/dizi/${item.id}`;
                 }
                 container.appendChild(card);
             });
@@ -1256,7 +1261,7 @@
                         <div class="search-result-genres">${Array.isArray(item.genres) ? item.genres.join(', ') : 'N/A'}</div>
                     </div>
                 `;
-                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `/dizi/${item.id}/sezon-1/bolum-1` : `/film/${item.id}`;
+                itemEl.onclick = () => window.location.href = item.type === 'dizi' ? `/dizi/${item.id}` : `/film/${item.id}`;
                 searchResults.appendChild(itemEl);
             });
         }
@@ -1267,20 +1272,19 @@
             await checkPremiumStatus();
 
             let urlData = getSeriesIdFromDynamicUrl();
-            if (!urlData?.id) {
-                const urlParams = new URLSearchParams(window.location.search);
-                const seriesId = urlParams.get('id');
-                const season = parseInt(urlParams.get('season')) || 1;
-                const episode = parseInt(urlParams.get('episode')) || 1;
+           if (!urlData?.id) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const seriesId = urlParams.get('id');
+  if (seriesId) {
+    const newUrl = `/dizi/${seriesId}`;
+    window.location.replace(newUrl);
+    return;
+  }
+  displayErrorPage();
+  return;
+}
 
-                if (seriesId) {
-                    const newUrl = `/dizi/${seriesId}/sezon-${season}/bolum-${episode}`;
-                    window.location.replace(newUrl);
-                    return;
-                }
-                displayErrorPage();
-                return;
-            }
+
 
             const series = await fetchSeriesById(urlData.id);
             if (!series) {
@@ -1292,7 +1296,12 @@
             displaySeriesDetails(series);
             displaySeasonSelector(series);
             displaySimilarSeries(series);
-            watchSeries(series.id, series.title, urlData.season, urlData.episode);
+          
+if (urlData.season && urlData.episode) {
+    watchSeries(series.id, series.title, urlData.season, urlData.episode);
+}
+
+           
 
             const loadingScreen = document.getElementById('loading-screen');
             loadingScreen.classList.add('hidden');

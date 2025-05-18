@@ -1412,37 +1412,43 @@ app.get("/api/similar/:id", async (req, res) =>
     ])
 
     const scoreItem = (item) => {
-      let score = 0
-      const currentGenres = Array.isArray(current.genres) ? current.genres : []
-      const itemGenres = Array.isArray(item.genres) ? item.genres : [] // Düzeltildi
-      const genreMatches = itemGenres.filter((g) => currentGenres.includes(g)).length
-      const genreWeight = current.country?.length > 0 ? 40 : 45
-      score += (genreMatches / Math.max(currentGenres.length, 1)) * genreWeight
+  let score = 0;
 
-      const currentLanguages = Array.isArray(current.language) ? current.language : []
-      const itemLanguages = Array.isArray(item.language) ? item.language : []
-      const langMatches = itemLanguages.filter((l) => currentLanguages.includes(l)).length
-      const langWeight = current.country?.length > 0 ? 20 : 25
-      score += (langMatches / Math.max(currentLanguages.length, 1)) * langWeight
+  // GENRE - en büyük etki
+  const currentGenres = Array.isArray(current.genres) ? current.genres : [];
+  const itemGenres = Array.isArray(item.genres) ? item.genres : [];
+  const genreMatches = itemGenres.filter((g) => currentGenres.includes(g)).length;
+  score += (genreMatches / Math.max(currentGenres.length, 1)) * 40;
 
-      if (current.country?.length > 0 && item.country?.length > 0) {
-        const currentCountries = Array.isArray(current.country) ? current.country : []
-        const itemCountries = Array.isArray(item.country) ? item.country : []
-        const countryMatches = itemCountries.filter((c) => currentCountries.includes(c)).length
-        score += (countryMatches / Math.max(currentCountries.length, 1)) * 15
-      }
+  // LANGUAGE - "Yerli" azaltılarak
+  const currentLanguages = Array.isArray(current.language) ? current.language : [];
+  const itemLanguages = Array.isArray(item.language) ? item.language : [];
+  const langMatches = itemLanguages.filter((l) => currentLanguages.includes(l)).length;
 
-      const currentRating = Number.parseFloat(current.rating) || 0
-      const itemRating = Number.parseFloat(item.rating) || 0
-      const ratingDiff = Math.abs(currentRating - itemRating)
-      score += (1 - Math.min(ratingDiff / 10, 1)) * 15
+  // Yerli içerik için ceza (çok çıkmaması için)
+  const yerliPenalty = itemLanguages.includes("Yerli") ? -5 : 0;
+  score += (langMatches / Math.max(currentLanguages.length, 1)) * 10 + yerliPenalty;
 
-      const watchCount = watchCounts.find((w) => w._id === item.id)?.count || 0
-      const maxWatches = Math.max(...watchCounts.map((w) => w.count), 1)
-      score += (watchCount / maxWatches) * 10
+  // COUNTRY - düşük katkı
+  const currentCountries = Array.isArray(current.country) ? current.country : [];
+  const itemCountries = Array.isArray(item.country) ? item.country : [];
+  const countryMatches = itemCountries.filter((c) => currentCountries.includes(c)).length;
+  score += (countryMatches / Math.max(currentCountries.length, 1)) * 8;
 
-      return score
-    }
+  // RATING - fark ne kadar küçükse o kadar iyi
+  const currentRating = parseFloat(current.rating) || 0;
+  const itemRating = parseFloat(item.rating) || 0;
+  const ratingDiff = Math.abs(currentRating - itemRating);
+  score += (1 - Math.min(ratingDiff / 10, 1)) * 15;
+
+  // WATCH COUNT - popülerlik
+  const watchCount = watchCounts.find((w) => w._id === item.id)?.count || 0;
+  const maxWatches = Math.max(...watchCounts.map((w) => w.count), 1);
+  score += (watchCount / maxWatches) * 7;
+
+  return score;
+};
+
 
     const scoredItems = allItems.map((item) => ({
       ...item,
@@ -1596,37 +1602,33 @@ app.post("/api/movie-watched", authMiddleware, async (req, res) =>
 )
 
 // Film Favorilere Ekleme/Çıkarma
-app.post("/api/favorite", authMiddleware, async (req, res) =>
-{
+app.post("/api/favorite", authMiddleware, async (req, res) => {
   try {
-    const { movieId } = req.body
-    console.log("Favori isteği:", { movieId })
+    const { movieId } = req.body;
     if (!movieId || typeof movieId !== "string") {
-      return res.status(400).json({ error: "Geçerli bir movieId zorunlu" })
+      return res.status(400).json({ error: "Geçerli bir movieId zorunlu" });
     }
-    const user = await User.findById(req.user.userId)
+    const user = await User.findById(req.user.userId);
     if (!user) {
-      return res.status(404).json({ error: "Kullanıcı bulunamadı" })
+      return res.status(404).json({ error: "Kullanıcı bulunamadı" });
     }
-    const movie = await Movie.findOne({ id: movieId })
+    const movie = await Movie.findOne({ id: movieId });
     if (!movie) {
-      return res.status(404).json({ error: "Film veya dizi bulunamadı" })
+      return res.status(404).json({ error: "Film veya dizi bulunamadı" });
     }
-    const isFavorited = user.favorites.some((fav) => fav.seriesId === movieId)
+    const isFavorited = user.favorites.some((fav) => fav.seriesId === movieId);
     if (isFavorited) {
-      user.favorites = user.favorites.filter((fav) => fav.seriesId !== movieId)
+      user.favorites = user.favorites.filter((fav) => fav.seriesId !== movieId);
     } else {
-      user.favorites.push({ seriesId: movieId, seasonNumber: 0, episodeNumber: 0 })
+      user.favorites.push({ seriesId: movieId, seasonNumber: 0, episodeNumber: 0 });
     }
-    await user.save()
-    console.log(`Favori ${isFavorited ? "kaldırıldı" : "eklendi"}:`, { movieId })
-    res.json({ isFavorited: !isFavorited })
+    await user.save();
+    res.json({ isFavorited: !isFavorited });
   } catch (error) {
-    console.error("Favori hatası:", error.message)
-    res.status(500).json({ error: "Favorilere ekleme/kaldırma işlemi sırasında bir hata oluştu" })
+    console.error("Favori hatası:", error.message);
+    res.status(500).json({ error: "Favorilere ekleme/kaldırma işlemi sırasında bir hata oluştu" });
   }
-}
-)
+});
 
 // Film/Dizi ID'lerini ara
 app.get("/api/movies/search-ids", authMiddleware, adminMiddleware, async (req, res) =>
@@ -2651,6 +2653,10 @@ app.listen(PORT, () => {
 })
 
 // SEO dostu dizi yönlendirmesi
+app.get('/dizi/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dizi.html'));
+});
+
 app.get("/dizi/:id/sezon-:season/bolum-:episode", (req, res) => {
   res.sendFile(path.join(__dirname, "../dizi.html"))
 })
