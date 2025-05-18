@@ -2475,154 +2475,74 @@ app.post("/api/watch-later", authMiddleware, async (req, res) =>
 }
 )
 
-const puppeteer = require('puppeteer');
-const axios = require('axios');
-const cheerio = require('cheerio');
 
-app.get('/api/scrape-series', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const series = await getAllSeries();
-    res.json(series);
-  } catch (err) {
-    console.error('Dizipal çekme hatası:', err.message);
-    res.status(500).json({ error: 'Dizipal verileri alınamadı' });
-  }
-});
+// Yeni modül ve güncellenmiş /api/scrape-dizipal endpoint'i
+dotenv.config();
+const puppeteer = require("puppeteer");
+const axios = require("axios");
+const cheerio = require("cheerio");
 
-
-async function getAllSeries() {
-  const browser = await puppeteer.launch({
-    headless: 'new', // headless mod aktif
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  });
-
+async function getCloudflareBypassHeaders(url) {
+  const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
-  await page.goto('https://dizipal638.com', { waitUntil: 'networkidle2' });
+  await page.goto(url, { waitUntil: "networkidle2" });
 
-  // Ana sayfadaki dizi linklerini alıyoruz
-  const links = await page.$$eval('a[href*="/dizi/"]', as =>
-    as.map(a => a.href).filter((v, i, a) => a.indexOf(v) === i)
-  );
-
+  const cookies = await page.cookies();
+  const userAgent = await page.evaluate(() => navigator.userAgent);
   await browser.close();
 
-  // Linklerden içerikleri Axios + Cheerio ile çekeceğiz
-  const series = [];
-
-  for (const link of links) {
-    try {
-      const { data } = await axios.get(link, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36',
-        },
-      });
-
-      const $ = cheerio.load(data);
-
-      const title = $('h1').first().text().trim();
-      const description = $('meta[name="description"]').attr('content') || '';
-      const image = $('meta[property="og:image"]').attr('content') || '';
-
-      series.push({
-        title,
-        link,
-        image,
-        description,
-      });
-    } catch (err) {
-      console.error(`Hata oluştu: ${link}`, err.message);
-    }
-  }
-
-  return series;
+  const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join("; ");
+  return {
+    "User-Agent": userAgent,
+    "Cookie": cookieHeader,
+    "Referer": url,
+  };
 }
 
-
-
-app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res) => {
-  const baseUrl = req.query.url;
-  if (!baseUrl || !baseUrl.includes('/dizi/')) {
-    return res.status(400).json({ error: 'Geçerli bir dizi URL’si gerekli' });
-  }
-
+app.get("/api/scrape-dizipal", authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const mainPage = await axios.get(baseUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-    const $main = cheerio.load(mainPage.data);
-
-    const title = $main('.data h1').first().text().trim();
-    const altTitle = $main('.data .original-title').text().trim();
-    const description = $main('.wp-content p').first().text().trim();
-    const year = $main('.data span:contains("Yapım Yılı")').next().text().trim();
-    const imdb = $main('.imdb-rat').text().replace(/[^\d.]/g, '').trim();
-    const genre = $main('.data span:contains("Tür")').next().text().trim();
-
-    const metadata = {
-      title: title || null,
-      altTitle: altTitle || null,
-      description: description || null,
-      year: year || null,
-      imdb: imdb || null,
-      genre: genre || null,
-    };
-
-    // 🔁 Embed scraping (sezon/bölüm döngüsü)
-    const results = {};
-    const maxSeasons = 20;
-    const maxEpisodesPerSeason = 100;
-    const max404Limit = 5;
-
-    for (let season = 1; season <= maxSeasons; season++) {
-      let foundInSeason = false;
-      let errorStreak = 0;
-
-      for (let episode = 1; episode <= maxEpisodesPerSeason; episode++) {
-        const epUrl = `${baseUrl}/sezon-${season}/bolum-${episode}`;
-        try {
-          const response = await axios.get(epUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-          });
-
-          const $ = cheerio.load(response.data);
-          const iframe = $('iframe[src^="https"]').first().attr('src');
-
-          if (iframe) {
-            if (!results[season]) results[season] = [];
-            results[season].push({
-              episode,
-              embed: iframe.startsWith('http') ? iframe : `https:${iframe}`
-            });
-            foundInSeason = true;
-            errorStreak = 0;
-          } else {
-            errorStreak++;
-          }
-        } catch (err) {
-          if (err.response?.status === 404) {
-            errorStreak++;
-          }
-        }
-
-        if (errorStreak >= max404Limit) break;
-      }
-
-      if (!foundInSeason) break;
+    const { url } = req.query;
+    if (!url || !url.startsWith("http")) {
+      return res.status(400).json({ error: "Geçerli bir URL zorunlu" });
     }
 
-    const formattedEpisodes = Object.entries(results).map(([season, eps]) => ({
-      season: parseInt(season),
-      episodes: eps.sort((a, b) => a.episode - b.episode)
-    }));
+    const headers = await getCloudflareBypassHeaders(url);
+    const { data: mainHtml } = await axios.get(url, { headers });
+    const $ = cheerio.load(mainHtml);
 
-    res.json({
-      metadata,
-      episodes: formattedEpisodes
-    });
+    const title = $(".movie-title").text().trim();
+    const plot = $(".description").text().trim();
+    const rating = $(".imdb").text().trim();
+    const year = $(".year").text().trim();
+    const genres = $(".genres a")
+      .map((_, el) => $(el).text().trim())
+      .get();
+
+    const seasonLinks = $("a.season").map((_, el) => $(el).attr("href")).get();
+    const episodes = [];
+
+    for (const seasonUrl of seasonLinks) {
+      const { data: seasonHtml } = await axios.get(seasonUrl, { headers });
+      const $$ = cheerio.load(seasonHtml);
+
+      $$(".episode-item").each((_, el) => {
+        const iframe = $$(el).find("iframe").attr("src");
+        const seasonText = $$(el).find(".season-label").text();
+        const episodeText = $$(el).find(".episode-label").text();
+
+        const seasonNumber = parseInt(seasonText.match(/\d+/)?.[0] || "1");
+        const episodeNumber = parseInt(episodeText.match(/\d+/)?.[0] || "1");
+
+        if (iframe) {
+          episodes.push({ seasonNumber, episodeNumber, iframe });
+        }
+      });
+    }
+
+    return res.json({ title, plot, rating, year, genres, episodes });
   } catch (err) {
-    console.error("Scraping hatası:", err.message);
-    res.status(500).json({ error: 'Scraping sırasında hata oluştu' });
+    console.error("scrape-dizipal hata:", err.message);
+    res.status(500).json({ error: "Veri çekilirken bir hata oluştu" });
   }
 });
 
