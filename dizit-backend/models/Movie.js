@@ -30,7 +30,12 @@ const movieSchema = new mongoose.Schema({
     videoSrc: [videoSourceSchema],
     relatedSeries: [String],
     type: { type: String, required: true },
-    premium: { type: Boolean, default: false }, // isPremium yerine premium
+    premium: { type: Boolean, default: false }, 
+    views: {
+  type: Number,
+  default: 0
+},
+
     episodes: [episodeSchema],
     season: Number
 });

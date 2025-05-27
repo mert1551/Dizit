@@ -1368,6 +1368,12 @@
     console.error(err);
   }
 }
+
+
+
+
+
+
 async function fetchDizipalMeta() {
   const url = document.getElementById("dizipal-link").value;
   if (!url) return;
@@ -1392,20 +1398,28 @@ async function fetchDizipalMeta() {
     const genreList = document.getElementById("genres-list");
     genreList.innerHTML = "";
     if (data.genre) {
-      data.genre.split(",").forEach((g) => {
-        const trimmed = g.trim();
-        if (trimmed) {
-          const item = document.createElement("div");
-          item.className = "genre-item";
-          item.innerHTML = `${trimmed} <button onclick="this.parentElement.remove()">×</button>`;
-          genreList.appendChild(item);
-        }
-      });
+  data.genre.split(",").forEach((g) => {
+    const trimmed = g.trim();
+    if (trimmed) {
+      const item = document.createElement("div");
+      item.className = "genre-item";
+
+      const span = document.createElement("span");
+      span.textContent = trimmed;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.innerHTML = "×";
+      removeBtn.onclick = function () {
+        this.parentElement.remove();
+      };
+
+      item.appendChild(span);
+      item.appendChild(removeBtn);
+      genreList.appendChild(item);
     }
-      const languageInput = document.getElementById("movie-language");
-    if (!languageInput.value.trim()) {
-        languageInput.value = "Türkçe Dublaj & Altyazı";
-    }
+  });
+}
+
   } catch (err) {
     console.error("Dizipal meta çekilemedi:", err.message);
   }

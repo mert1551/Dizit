@@ -1042,12 +1042,7 @@ app.get("/api/movies", async (req, res) =>
         )
       }
     }
-    console.log(
-      "Dönen içerik sayısı:",
-      movies.length,
-      "Yıllar:",
-      movies.map((m) => m.year),
-    )
+   
     res.json(movies)
   } catch (error) {
     console.error("Listeleme hatası:", error.message)
@@ -1848,6 +1843,47 @@ app.post("/api/batch-status", authMiddleware, async (req, res) =>
 }
 )
 
+//izlenme t
+const recentViews = new Map(); // Map<movieId, Set<IP>>
+
+app.post('/api/movies/:id/view', async (req, res) => {
+  try {
+    const movieId = req.params.id;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+    if (!recentViews.has(movieId)) {
+      recentViews.set(movieId, new Set());
+    }
+
+    const movieViewSet = recentViews.get(movieId);
+
+    if (movieViewSet.has(ip)) {
+      return res.status(200).json({ message: "Bu IP zaten sayıldı." });
+    }
+
+    movieViewSet.add(ip);
+    setTimeout(() => movieViewSet.delete(ip), 24 * 60 * 60 * 1000); // 1 gün sonra sil
+
+    const movie = await Movie.findByIdAndUpdate(
+      movieId,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
+
+    if (!movie) {
+      return res.status(404).json({ error: "Film/Dizi bulunamadı" });
+    }
+
+    res.json({ views: movie.views });
+  } catch (err) {
+    console.error('İzlenme hatası:', err);
+    res.status(500).json({ error: 'İzlenme kaydedilemedi' });
+  }
+});
+
+
+
+
 // Yorum Ekleme
 app.post("/api/comments", authMiddleware, async (req, res) => {
   try {
@@ -2643,6 +2679,75 @@ function updateHiddenGenres() {
   const genres = Array.from(genreItems).map(el => el.textContent.replace("×", "").trim());
   genreInput.value = genres.join(", ");
 }
+
+
+app.get("/api/platform-content-counts", authMiddleware, adminMiddleware, async (req, res) => {
+     try {
+       const platforms = ["Exxen", "BluTV", "Gain", "Disney+", "TOD", "Amazon", "Mubi"];
+       const stats = await Movie.aggregate([
+         { $match: { genres: { $in: platforms } } },
+         { $unwind: "$genres" },
+         { $match: { genres: { $in: platforms } } },
+         { $group: { _id: "$genres", count: { $sum: 1 } } },
+         { $project: { _id: 0, platform: "$_id", count: 1 } }
+       ]);
+
+       // Tüm platformları dahil et, sayımı sıfır olanlar için bile
+       const result = platforms.map(platform => {
+         const stat = stats.find(s => s.platform === platform);
+         return { platform, count: stat ? stat.count : 0 };
+       });
+
+       console.log("Platform içerik sayımları alındı:", result);
+       res.json(result);
+     } catch (error) {
+       console.error("Platform içerik sayımları hatası:", error.message);
+       res.status(500).json({ error: "Platform içerik sayımları getirilirken hata oluştu" });
+     }
+   });
+
+
+   app.get("/public-profile/:username", async (req, res) => {
+  try {
+    const username = req.params.username.toLowerCase();
+
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: "Kullanıcı bulunamadı" });
+
+    // Favori içerikleri al
+    const favoriteSeriesIds = user.favorites.map(fav => fav.seriesId);
+
+    const favoriteMovies = await Movie.find({
+      id: { $in: favoriteSeriesIds },
+      type: "film"
+    }).select("id title poster year");
+
+    const favoriteSeries = await Movie.find({
+      id: { $in: favoriteSeriesIds },
+      type: "dizi"
+    }).select("id title poster year");
+
+    res.json({
+      username: user.username,
+      avatar: user.avatar,
+      bio: user.bio,
+      isPremium: user.isPremium,
+      favoriteMovies,
+      favoriteSeries
+    });
+
+  } catch (error) {
+    console.error("Kullanıcı profili alınamadı:", error);
+    res.status(500).json({ error: "Sunucu hatası" });
+  }
+});
+
+
+
+
+
+
+
 
 
 

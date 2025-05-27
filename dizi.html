@@ -685,6 +685,12 @@
             let likeCount = 0;
             let dislikeCount = 0;
 
+if (!seriesId || !seasonNumber || !episodeNumber) {
+  console.warn("Eksik parametre ile watchSeries çağrısı engellendi.");
+  return;
+}
+
+
             if (isLoggedIn) {
                 try {
                     const res = await fetch(`${apiUrl}/api/status/${seriesId}/${seasonNumber}/${episodeNumber}`, {
@@ -729,7 +735,10 @@
             playerContainer.innerHTML = `
                 <div class="player-box">
                     <div class="player-title">
-  <h2 class="series-name">${seriesTitle || 'Bilinmeyen Dizi'}</h2>
+  <h2 class="series-name">
+  <a href="/dizi/${seriesId}" style="color: inherit; text-decoration: none;">${seriesTitle || 'Bilinmeyen Dizi'}</a>
+</h2>
+
   <button class="favorite-btn ${isLoggedIn ? '' : 'disabled'} ${isFavorited ? 'active' : ''}" id="favorite-btn-${seriesId}" 
            ${isFavorited ? 'red' : '#fff'}">
     <i class="${isFavorited ? 'fas' : 'far'} fa-plus"></i>
@@ -1352,23 +1361,63 @@ if (urlData.season && urlData.episode) {
                 }
             });
 
-            window.addEventListener('popstate', () => {
-                const newUrlData = getSeriesIdFromDynamicUrl();
-                if (newUrlData && newUrlData.id === series.id) {
-                    watchSeries(series.id, series.title, newUrlData.season, newUrlData.episode);
-                    const seasonSelect = document.getElementById('season-select');
-                    if (seasonSelect) {
-                        seasonSelect.value = newUrlData.season;
-                        const selectedSeason = seriesCache.seasons.find(s => s.seasonNumber === newUrlData.season);
-                        displayEpisodes(series.id, selectedSeason.episodes, newUrlData.season);
-                    }
-                }
-            });
+      window.addEventListener('popstate', () => {
+    const data = getSeriesIdFromDynamicUrl();
+
+    // URL sadece dizi sayfasını içeriyorsa
+    if (data && data.id && !data.season && !data.episode) {
+        displaySeriesDetails(seriesCache);
+        displaySeasonSelector(seriesCache);
+        displaySimilarSeries(seriesCache);
+        document.getElementById('player-container').innerHTML = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
+    // URL bölüm içeriyorsa, sadece o zaman çalıştır
+    if (data && data.id && data.season && data.episode) {
+        watchSeries(data.id, seriesCache?.title || '', data.season, data.episode);
+    }
+});
+
+
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             init();
         });
+
+        
+        document.addEventListener('DOMContentLoaded', () => {
+   function sendViewEvent() {
+    const movieId = movieCache?._id; // Bu _id => MongoDB ObjectId
+
+    if (!movieId) {
+      console.warn("🚫 movieId bulunamadı.");
+      return;
+    }
+
+    fetch(`${apiUrl}/api/movies/${movieId}/view`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data?.views !== undefined) {
+        console.log("✅ Görüntüleme sayısı güncellendi:", data.views);
+      } else {
+        console.warn("🚫 İzlenme gönderilemedi:", data?.error || "Bilinmeyen hata");
+      }
+    })
+    .catch(err => console.error("🚫 Fetch hatası:", err));
+  }
+
+  // 5 saniye sonra izlenme saydır
+  setTimeout(sendViewEvent, 5000);
+});
     </script>
     <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'933ee61c5d0c49f2',t:'MTc0NTI1OTY2Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
     <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93c333a0dfc9bf77',t:'MTc0NjY0Njk1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>

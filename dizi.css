@@ -678,6 +678,19 @@
 }
 
 @media (max-width: 480px) {
+        .dizi-container, .season-section, .player-container {
+        padding: 5px;
+    }
+
+    .player-box {
+padding: 12px;
+}
+.episode-list {
+padding: 8px;
+}
+.episode-card {
+ height: 70px;
+}
     .series-title {
         font-size: 1.5rem;
     }
@@ -760,6 +773,31 @@
 }
 
 @media (max-width: 365px) {
+    .dizi-container, .season-section, .player-container {
+        padding: 0px;
+    }
+
+    .player-box {
+padding: 10px;
+}
+.episode-list {
+padding: 5px;
+}
+.episode-card {
+ height: 50px;
+}
+.video-option-btn {
+    padding: 4px 10px;
+}
+.season-selector{
+    margin-top: 10px;
+}
+  .video-wrapper {
+    padding-bottom: 60.25%;
+}
+.episode-card.active {
+    transform: scale(1.08);
+}
     .series-poster {
         max-width: 180px;
         width: 100%;
@@ -771,6 +809,7 @@
         padding: 10px;
     }
 }
+
 
 .season-selector select {
     padding: 10px;

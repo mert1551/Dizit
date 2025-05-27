@@ -1707,7 +1707,7 @@ function renderComment(comment, isReply = false) {
     commentDiv.innerHTML = `
         <div class="comment-header">
             <img src="${comment.userId?.avatar || '/resim/avatar/user.png'}" alt="Avatar" onerror="this.src='/resim/avatar/user.png'">
-            <a href="/hesabim.html?userId=${comment.userId?._id}" class="username-link">${comment.userId?.username || 'Bilinmeyen Kullanıcı'}</a>
+            <a href="/kullanici.html?kullanici=${comment.userId?.username}" class="username-link">${comment.userId?.username || 'Bilinmeyen Kullanıcı'}</a>
             ${isPremium ? '<i class="fas fa-crown premium-comment-icon"></i>' : ''}
             <span class="comment-time">${formatTimeAgo(comment.createdAt)}</span>
         </div>
@@ -2005,6 +2005,24 @@ function renderComment(comment, isReply = false) {
       }
     }
   });
+
+  // movieId URL'den çekiliyor
+function sendViewEvent() {
+    const movieId = movieCache?._id; // Bu _id => MongoDB ObjectId
+
+    fetch(`${apiUrl}/api/movies/${movieId}/view`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      }
+    })
+    .catch(err => console.error("🚫 Fetch hatası:", err));
+  }
+
+  // 5 saniye sonra izlenme saydır
+  setTimeout(sendViewEvent, 60000);
+
     </script>
     <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93c063ed9b7fb061',t:'MTc0NjYxNzQ3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
