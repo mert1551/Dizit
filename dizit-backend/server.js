@@ -13,25 +13,20 @@ const sanitizeHtml = require("sanitize-html")
 dotenv.config()
 const app = express()
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(cors())
-app.use(express.static(__dirname));
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-
-// MongoDB bağla
 app.use(express.json({ limit: '200kb' }));
 app.use(express.urlencoded({ extended: true, limit: '200kb' }));
 app.use(cors())
 app.use(express.static(path.join(__dirname, "../")))
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'index.html'))
+  res.sendFile(path.join(__dirname, '../', 'index.html'))
 
 })
+
+// MongoDB bağlantısı
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB bağlı"))
+  .catch((err) => console.error("MongoDB bağlantı hatası:", err))
 
 // Modeller
 const User = require("./models/User")
@@ -1992,7 +1987,7 @@ async function getCommentsWithReplies(movieId, parentId = null, depth = 0, maxDe
 
     // Derinlik kontrolüne takılmadan yanıtları da getir
     const promises = comments.map(async (comment) => {
-      comment.replies = await getCommentsWithReplies(movieId, comment._id, depth + 1, maxDepth, includeReplies);
+     comment.hasReplies = false;
       comment.hasReplies = comment.replies.length > 0;
       return comment;
     });
@@ -2550,7 +2545,7 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
 
     // 🔁 Embed scraping (sezon/bölüm döngüsü)
     const results = {};
-    const maxSeasons = 20;
+    const maxSeasons = 40;
     const maxEpisodesPerSeason = 100;
     const max404Limit = 5;
 
@@ -2689,7 +2684,7 @@ function updateHiddenGenres() {
 
 app.get("/api/platform-content-counts", authMiddleware, adminMiddleware, async (req, res) => {
      try {
-       const platforms = ["Exxen", "BluTV", "Gain", "Disney+", "TOD", "Amazon", "Mubi"];
+       const platforms = ["Exxen", "BluTV", "Gain", "Disney+", "Tod", "Amazon", "Mubi"];
        const stats = await Movie.aggregate([
          { $match: { genres: { $in: platforms } } },
          { $unwind: "$genres" },
@@ -2745,6 +2740,122 @@ app.get("/api/platform-content-counts", authMiddleware, adminMiddleware, async (
   } catch (error) {
     console.error("Kullanıcı profili alınamadı:", error);
     res.status(500).json({ error: "Sunucu hatası" });
+  }
+});
+
+
+
+
+
+
+
+
+
+app.post("/api/scrape/dizipal-film", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!/^https:\/\/(www\.)?dizipal\d*\.com\/[^\/]+$/.test(url)) {
+      return res.status(400).json({ error: "Geçersiz dizipal film URL'si" });
+    }
+
+    const { data: html } = await axios.get(url);
+    const $ = cheerio.load(html);
+
+    // Video embed iframe
+    const iframeSrc = $("#iframe").attr("src")?.trim();
+    const videoSrc = iframeSrc ? [{ type: "Kaynak 1", src: iframeSrc }] : [];
+
+    // Film bilgileri
+    const plot = $(".summary > p").text().trim();
+    const year = $('div.key:contains("Yapım Yılı")').next(".value").text().trim();
+    const runtime = $('div.key:contains("Süre")').next(".value").text().trim();
+    const rating = $('div.key:contains("IMDB Puanı")').next(".value").text().trim();
+    const genresRaw = $('div.key:contains("Türler")').next(".value").text().trim();
+    const genres = genresRaw ? genresRaw.split(/\s+/).map(g => g.trim()).filter(Boolean) : [];
+
+let title = "";
+let title2 = "";
+
+// Sayfa başlığını al: <title>Klaus İzle / Sihirli Plan İzle</title>
+const rawTitle = $("title").text().trim();
+
+// "İzle", "Full HD", vs. gibi gereksiz kelimeleri temizle
+const temizle = (text) => {
+  return (text || "")
+    .replace(/(İzleforum30|Sound level\s*\d+%)/gi, "")         // çöp ifadeler
+    .replace(/\b(izle|full hd|hd|full|türkçe dublaj|türkçe altyazı|dublaj)\b/gi, "") // anahtar kelimeler
+    .replace(/\b\d+%/g, "")                                    // %100 gibi ifadeler
+    .replace(/\s+/g, " ")                                      // fazla boşluk
+    .replace(/\s*\/\s*/g, "/")                                 // slash etrafı boşluk
+    .replace(/[.,:]?\s*$/, "")                                 // sonda nokta, iki nokta, boşluk varsa sil
+    .trim();
+};
+const temizleTitle = (text) => {
+  return (text || "")
+    .replace(/(İzleforum30|Sound level\s*\d+%)/gi, "")      // çöp ifadeler
+    .replace(/\s+İzle$/i, "")                               // sadece SONDA "İzle" varsa kaldır
+    .replace(/\b(full hd|hd|full|türkçe dublaj|türkçe altyazı|dublaj)\b/gi, "") // diğerleri
+    .replace(/\s+/g, " ")
+    .replace(/[.,:]?\s*$/, "")                             // sondaki noktalama
+    .trim();
+};
+
+
+// Başlığı temizle ve parçala
+const temizlenmis = temizle(rawTitle); // Örn: "Klaus/Sihirli Plan"
+const parcalar = temizlenmis.split("/").map(p => p.trim()).filter(Boolean);
+
+// İlk parça title, ikincisi title2
+if (parcalar.length >= 2) {
+  title = parcalar[0];
+  title2 = parcalar[1];
+} else if (parcalar.length === 1) {
+  title = parcalar[0];
+}
+
+
+/**
+ * 2) Yedek: .data h1  (bazı film sayfaları için)
+ */
+if (!title) {
+  title = $(".data h1").first().text().trim();
+}
+
+/**
+ * 3) Yedek: sayfa <title> veya og:title
+ */
+if (!title) {
+  title = $('meta[property="og:title"]').attr("content") ||
+          $("title").text().replace(/ - .*$/, "").trim(); // " - dizipal" ekini at
+}
+
+
+
+title = temizleTitle(title);   // sadece başlık için özel temizlik
+title2 = temizle(title2);      // önceki temizle fonksiyonu burada yeterli
+
+// Tüm temizleme işlemleri yapıldıktan sonra, en sona ekle:
+if (title.toLowerCase() === title2.toLowerCase()) {
+  title2 = "";
+}
+
+
+    return res.json({
+      title,
+      title2,
+      plot,
+      year,
+      runtime,
+      rating,
+      genres,
+      videoSrc,
+      type: "film"
+    });
+
+  } catch (err) {
+    console.error("Dizipal film verisi çekme hatası:", err.message);
+    res.status(500).json({ error: "Film verisi çekilirken hata oluştu." });
   }
 });
 
