@@ -13,12 +13,13 @@ const sanitizeHtml = require("sanitize-html")
 dotenv.config()
 const app = express()
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: '200kb' }));
+app.use(express.urlencoded({ extended: true, limit: '200kb' }));
 app.use(cors())
 app.use(express.static(path.join(__dirname, "../")))
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../index.html"))
+  res.sendFile(path.join(__dirname, '../', 'index.html'))
+
 })
 
 // MongoDB bağlantısı
@@ -540,7 +541,7 @@ app.post("/api/login", async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, username: user.username, tokenVersion: user.tokenVersion || 0 },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" },
+      { expiresIn: "3h" },
     )
     console.log("Giriş başarılı:", { username, isAdmin: user.isAdmin, tokenVersion: user.tokenVersion })
     res.json({
@@ -975,81 +976,251 @@ app.delete("/api/movies/:id", authMiddleware, adminMiddleware, async (req, res) 
 }
 )
 
+
+
+
 // Film/Dizi Listeleme
 app.get("/api/movies", async (req, res) =>
 {
   try {
-    const { type, year, genres, language, sort } = req.query
-    console.log("Gelen sorgu parametreleri:", { type, year, genres, language, sort })
-    const query = {}
+    const { type, year, genres, language, sort, search, skip = 0, limit = 30 } = req.query;
+    console.log("Gelen sorgu parametreleri:", { type, year, genres, language, sort, skip, limit });
+
+    const query = {};
 
     // İçerik tipi filtresi
-    if (type) query.type = type
+    if (type) query.type = type;
 
     // Yıl filtresi
     if (year) {
-      console.log("Yıl filtresi uygulanıyor:", year)
+      console.log("Yıl filtresi uygulanıyor:", year);
       if (year.includes("-")) {
-        const [start, end] = year.split("-").map(Number)
+        const [start, end] = year.split("-").map(Number);
         if (!isNaN(start) && !isNaN(end)) {
-          query.year = { $gte: start, $lte: end, $type: "number" }
+          query.year = { $gte: start, $lte: end, $type: "number" };
         }
       } else if (year === "before-2000") {
-        query.year = { $lte: 2000, $exists: true, $ne: null, $type: "number" }
+        query.year = { $lte: 2000, $exists: true, $ne: null, $type: "number" };
       } else {
-        const parsedYear = Number.parseInt(year)
+        const parsedYear = Number.parseInt(year);
         if (!isNaN(parsedYear)) {
-          query.year = parsedYear
+          query.year = parsedYear;
         }
       }
     }
 
     // Tür filtresi
     if (genres) {
-      const genreArray = genres.split(",").filter((g) => g.trim())
+      const genreArray = genres.split(",").filter((g) => g.trim());
       if (genreArray.length > 0) {
-        query.genres = { $all: genreArray }
+        query.genres = { $all: genreArray };
       }
     }
 
     // Dil filtresi
     if (language) {
-      const languageArray = language.split(",").filter((l) => l.trim())
+      const languageArray = language.split(",").filter((l) => l.trim());
       if (languageArray.length > 0) {
-        query.language = { $in: languageArray }
+        query.language = { $in: languageArray };
       }
     }
+    
 
     // Sıralama
-    let sortOption = { _id: -1 }
+    let sortOption = { _id: -1 };
     if (sort) {
       if (sort.startsWith("-")) {
-        sortOption = { [sort.substring(1)]: -1 }
+        sortOption = { [sort.substring(1)]: -1 };
       } else {
-        sortOption = { [sort]: 1 }
+        sortOption = { [sort]: 1 };
       }
     }
 
-    console.log("MongoDB sorgusu:", query)
-    const movies = await Movie.find(query).sort(sortOption).lean()
-    // 2000 öncesi filtresi için doğrulama
+    if (search) {
+  const searchRegex = new RegExp(search, "i"); // büyük/küçük harf duyarsız
+  query.$or = [
+    { title: searchRegex },
+    { title2: searchRegex },
+    { description: searchRegex } // varsa açıklamada da ara
+  ];
+}
+
+
+    console.log("MongoDB sorgusu:", query);
+
+    const movies = await Movie.find(query)
+      .sort(sortOption)
+      .skip(Number(skip))
+      .limit(Number(limit))
+      .lean();
+
+    // 2000 öncesi filtresi için kontrol
     if (year === "before-2000") {
-      const invalidMovies = movies.filter((m) => m.year > 2000)
+      const invalidMovies = movies.filter((m) => m.year > 2000);
       if (invalidMovies.length > 0) {
         console.warn(
           "HATA: 2000 sonrası içerikler döndü:",
           invalidMovies.map((m) => ({ id: m.id, title: m.title, year: m.year })),
-        )
+        );
       }
     }
-   
-    res.json(movies)
+
+    res.json(movies);
   } catch (error) {
-    console.error("Listeleme hatası:", error.message)
-    res.status(500).json({ error: "İçerik listeleme sırasında bir hata oluştu" })
+    console.error("Listeleme hatası:", error.message);
+    res.status(500).json({ error: "İçerik listeleme sırasında bir hata oluştu" });
   }
-}
-)
+});
+
+
+// Film ve Dizi Sayılarını Getir
+app.get("/api/stats/content-counts", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const filmCount = await Movie.countDocuments({ type: "film" });
+    const diziCount = await Movie.countDocuments({ type: "dizi" });
+    res.json({ filmCount, diziCount });
+  } catch (error) {
+    console.error("İstatistik verisi çekme hatası:", error.message);
+    res.status(500).json({ error: "İstatistik verileri alınamadı" });
+  }
+});
+
+
+
+// Tüm kategori isimlerini getir
+app.get("/api/genres", async (req, res) => {
+  try {
+    const genres = await Movie.distinct("genres");
+    res.json(genres.filter(Boolean));
+  } catch (err) {
+    console.error("Kategori alma hatası:", err);
+    res.status(500).json({ error: "Kategoriler alınamadı" });
+  }
+});
+
+
+// Ana sayfa için tek endpoint
+app.get("/api/movies/home", async (req, res) => {
+  try {
+    const [
+      newFilms,
+      newSeries,
+      latestFilms,
+      latestSeries
+    ] = await Promise.all([
+      Movie.find({ type: "film" }).sort({ year: -1, _id: -1 }).limit(10).lean(),
+      Movie.find({ type: "dizi" }).sort({ year: -1, _id: -1 }).limit(10).lean(),
+      Movie.find({ type: "film" }).sort({ _id: -1 }).limit(12).lean(),
+      Movie.find({ type: "dizi" }).sort({ _id: -1 }).limit(12).lean()
+    ]);
+
+    res.json({
+      newFilms,
+      newSeries,
+      latestFilms,
+      latestSeries
+    });
+  } catch (error) {
+    console.error("Ana sayfa içerikleri alınamadı:", error.message);
+    res.status(500).json({ error: "Ana sayfa içerikleri alınamadı" });
+  }
+});
+
+
+
+
+app.get("/api/series", async (req, res) => {
+  try {
+    const skip = parseInt(req.query.skip) || 0;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const series = await Movie.find({ type: "dizi" })
+      .sort({ _id: -1 }) // En son eklenenler
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    res.json(series);
+  } catch (error) {
+    console.error("Dizi listeleme hatası:", error.message);
+    res.status(500).json({ error: "Dizi verileri alınamadı" });
+  }
+});
+
+app.get("/api/films", async (req, res) => {
+  try {
+    const skip = parseInt(req.query.skip) || 0;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const films = await Movie.find({ type: "film" })
+      .sort({ _id: -1 }) // En son eklenenler
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    res.json(films);
+  } catch (error) {
+    console.error("Film listeleme hatası:", error.message);
+    res.status(500).json({ error: "Film verileri alınamadı" });
+  }
+});
+
+
+app.get('/api/all-movies', async (req, res) => {
+  try {
+    const { type, year, genres, language, sort, page = 1, limit = 20 } = req.query;
+
+    const query = {};
+    if (type) query.type = type;
+
+    if (year) {
+      if (year === 'before-2000') {
+        query.year = { $lte: 2000 };
+      } else if (year.includes('-')) {
+        const [start, end] = year.split('-').map(Number);
+        query.year = { $gte: start, $lte: end };
+      } else {
+        query.year = Number(year);
+      }
+    }
+
+    if (genres) {
+      query.genres = { $all: genres.split(',') };
+    }
+
+    if (language) {
+      query.language = { $all: language.split(',') };
+    }
+
+    const sortObj = {};
+    if (sort) {
+      const field = sort.replace('-', '');
+      const order = sort.startsWith('-') ? -1 : 1;
+      sortObj[field] = order;
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const movies = await Movie.find(query)
+      .sort(sortObj)
+      .skip(skip)
+      .limit(Number(limit))
+      .lean();
+
+    const total = await Movie.countDocuments(query);
+
+    res.json({
+      results: movies,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: Number(page),
+    });
+  } catch (error) {
+    console.error("Tüm filmler alınırken hata:", error.message);
+    res.status(500).json({ error: "Veriler alınamadı" });
+  }
+});
+
+
 
 // Film/Dizi Detay
 app.get("/api/movies/:id", async (req, res) =>
@@ -1986,7 +2157,7 @@ async function getCommentsWithReplies(movieId, parentId = null, depth = 0, maxDe
 
     // Derinlik kontrolüne takılmadan yanıtları da getir
     const promises = comments.map(async (comment) => {
-      comment.replies = await getCommentsWithReplies(movieId, comment._id, depth + 1, maxDepth, includeReplies);
+     comment.hasReplies = false;
       comment.hasReplies = comment.replies.length > 0;
       return comment;
     });
@@ -2404,76 +2575,83 @@ app.get("/api/video/:seriesId/:seasonNumber/:episodeNumber", authMiddleware, asy
 )
 
 // Yeni Eklenen Bölümler
-app.get("/api/recent-episodes", async (req, res) =>
-{
+app.get("/api/recent-episodes", async (req, res) => {
   try {
-    console.log("Yeni bölümler sorgulanıyor")
-    const series = await Movie.find({ type: "dizi" }).select("id title poster episodes year language rating").lean()
+    const limit = parseInt(req.query.limit) || 20;
 
-    const episodesBySeries = {}
+    const episodes = await Movie.aggregate([
+      {
+        $match: {
+          type: "dizi",
+          episodes: { $exists: true, $not: { $size: 0 } },
+        },
+      },
+      { $unwind: "$episodes" },
+      {
+        $match: {
+          "episodes.seasonNumber": { $exists: true },
+          "episodes.episodeNumber": { $exists: true },
+        },
+      },
+      {
+        $project: {
+          seriesId: "$id",
+          seriesTitle: "$title",
+          poster: { $ifNull: ["$episodes.poster", "$poster"] },
+          seasonNumber: "$episodes.seasonNumber",
+          episodeNumber: "$episodes.episodeNumber",
+          episodeTitle: {
+            $ifNull: [
+              "$episodes.title",
+              {
+                $concat: [
+                  "Sezon ",
+                  { $toString: "$episodes.seasonNumber" },
+                  " - Bölüm ",
+                  { $toString: "$episodes.episodeNumber" },
+                ],
+              },
+            ],
+          },
+          addedDate: {
+            $ifNull: ["$episodes.addedDate", new Date(0)],
+          },
+          year: "$year",
+          language: "$language",
+          rating: "$rating",
+          // 📌 URL alanı:
+          url: {
+            $concat: [
+              "/dizi/",
+              "$id",
+              "/",
+              { $toString: "$episodes.seasonNumber" },
+              "/",
+              { $toString: "$episodes.episodeNumber" },
+            ],
+          },
+        },
+      },
+      {
+        $sort: {
+          addedDate: -1,
+          seriesId: 1,
+          seasonNumber: -1,
+          episodeNumber: -1,
+        },
+      },
+      { $limit: limit },
+    ]);
 
-    // Dizileri ve bölümleri gruplandır
-    series.forEach((serie) => {
-      if (serie.episodes && Array.isArray(serie.episodes)) {
-        episodesBySeries[serie.id] = {
-          seriesId: serie.id,
-          seriesTitle: serie.title,
-          poster: serie.poster || "https://via.placeholder.com/300x450",
-          year: serie.year || "N/A",
-          language: serie.language || [],
-          rating: serie.rating || "N/A",
-          episodes: serie.episodes.map((episode) => ({
-            seasonNumber: episode.seasonNumber,
-            episodeNumber: episode.episodeNumber,
-            episodeTitle: episode.title || `Bölüm ${episode.episodeNumber}`,
-            addedDate: episode.addedDate,
-            poster: episode.poster || serie.poster || "https://via.placeholder.com/300x450",
-          })),
-        }
-      }
-    })
-
-    // Tüm bölümleri birleştir ve sırala
-    const allEpisodes = []
-    Object.values(episodesBySeries).forEach((series) => {
-      series.episodes.forEach((episode) => {
-        allEpisodes.push({
-          seriesId: series.seriesId,
-          seriesTitle: series.seriesTitle,
-          poster: episode.poster,
-          seasonNumber: episode.seasonNumber,
-          episodeNumber: episode.episodeNumber,
-          episodeTitle: episode.episodeTitle,
-          year: series.year,
-          language: series.language,
-          rating: series.rating,
-          addedDate: episode.addedDate,
-        })
-      })
-    })
-
-    // Bölümleri önce addedDate'e göre (en yeni en üstte), sonra sezon ve bölüm numarasına göre tersten sırala
-    const finalSortedEpisodes = allEpisodes
-      .sort((a, b) => {
-        // Önce addedDate'e göre tersten sırala
-        const dateDiff = new Date(b.addedDate) - new Date(a.addedDate)
-        if (dateDiff !== 0) return dateDiff
-
-        // Aynı addedDate ise, önce diziye göre (seriesId), sonra sezon (büyükten küçüğe), sonra bölüm (büyükten küçüğe)
-        if (a.seriesId !== b.seriesId) return a.seriesId.localeCompare(b.seriesId)
-        if (b.seasonNumber !== a.seasonNumber) return b.seasonNumber - a.seasonNumber
-        return b.episodeNumber - a.episodeNumber
-      })
-      .slice(0, req.query.limit ? Number.parseInt(req.query.limit) : 12) // Varsayılan 12 bölüm
-
-    console.log("Yeni bölümler döndü:", finalSortedEpisodes.length)
-    res.json(finalSortedEpisodes)
-  } catch (error) {
-    console.error("Yeni bölümler getirme hatası:", error.message)
-    res.status(500).json({ error: "Yeni bölümler getirilirken bir hata oluştu" })
+    res.json(episodes);
+  } catch (err) {
+    console.error("Bölüm listesi alınırken hata:", err);
+    res.status(500).json({ error: "Bölüm listesi alınamadı" });
   }
-}
-)
+});
+
+
+
 
 // Watch Later API endpoint
 app.post("/api/watch-later", authMiddleware, async (req, res) =>
@@ -2544,7 +2722,7 @@ app.get('/api/scrape-dizipal', authMiddleware, adminMiddleware, async (req, res)
 
     // 🔁 Embed scraping (sezon/bölüm döngüsü)
     const results = {};
-    const maxSeasons = 20;
+    const maxSeasons = 40;
     const maxEpisodesPerSeason = 100;
     const max404Limit = 5;
 
@@ -2683,7 +2861,7 @@ function updateHiddenGenres() {
 
 app.get("/api/platform-content-counts", authMiddleware, adminMiddleware, async (req, res) => {
      try {
-       const platforms = ["Exxen", "BluTV", "Gain", "Disney+", "TOD", "Amazon", "Mubi"];
+       const platforms = ["Exxen", "BluTV", "Gain", "Disney+", "Tod", "Amazon", "Tabii" ,"Mubi"];
        const stats = await Movie.aggregate([
          { $match: { genres: { $in: platforms } } },
          { $unwind: "$genres" },
@@ -2750,6 +2928,122 @@ app.get("/api/platform-content-counts", authMiddleware, adminMiddleware, async (
 
 
 
+app.post("/api/scrape/dizipal-film", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!/^https:\/\/(www\.)?dizipal\d*\.com\/[^\/]+$/.test(url)) {
+      return res.status(400).json({ error: "Geçersiz dizipal film URL'si" });
+    }
+
+    const { data: html } = await axios.get(url);
+    const $ = cheerio.load(html);
+
+    // Video embed iframe
+    const iframeSrc = $("#iframe").attr("src")?.trim();
+    const videoSrc = iframeSrc ? [{ type: "Kaynak 1", src: iframeSrc }] : [];
+
+    // Film bilgileri
+    const plot = $(".summary > p").text().trim();
+    const year = $('div.key:contains("Yapım Yılı")').next(".value").text().trim();
+    const runtime = $('div.key:contains("Süre")').next(".value").text().trim();
+    const rating = $('div.key:contains("IMDB Puanı")').next(".value").text().trim();
+    const genresRaw = $('div.key:contains("Türler")').next(".value").text().trim();
+    const genres = genresRaw ? genresRaw.split(/\s+/).map(g => g.trim()).filter(Boolean) : [];
+
+let title = "";
+let title2 = "";
+
+// Sayfa başlığını al: <title>Klaus İzle / Sihirli Plan İzle</title>
+const rawTitle = $("title").text().trim();
+
+// "İzle", "Full HD", vs. gibi gereksiz kelimeleri temizle
+const temizle = (text) => {
+  return (text || "")
+    .replace(/(İzleforum30|Sound level\s*\d+%)/gi, "")         // çöp ifadeler
+    .replace(/\b(izle|full hd|hd|full|türkçe dublaj|türkçe altyazı|dublaj)\b/gi, "") // anahtar kelimeler
+    .replace(/\b\d+%/g, "")                                    // %100 gibi ifadeler
+    .replace(/\s+/g, " ")                                      // fazla boşluk
+    .replace(/\s*\/\s*/g, "/")                                 // slash etrafı boşluk
+    .replace(/[.,:]?\s*$/, "")                                 // sonda nokta, iki nokta, boşluk varsa sil
+    .trim();
+};
+const temizleTitle = (text) => {
+  return (text || "")
+    .replace(/(İzleforum30|Sound level\s*\d+%)/gi, "")      // çöp ifadeler
+    .replace(/\s+İzle$/i, "")                               // sadece SONDA "İzle" varsa kaldır
+    .replace(/\b(full hd|hd|full|türkçe dublaj|türkçe altyazı|dublaj)\b/gi, "") // diğerleri
+    .replace(/\s+/g, " ")
+    .replace(/[.,:]?\s*$/, "")                             // sondaki noktalama
+    .trim();
+};
+
+
+// Başlığı temizle ve parçala
+const temizlenmis = temizle(rawTitle); // Örn: "Klaus/Sihirli Plan"
+const parcalar = temizlenmis.split("/").map(p => p.trim()).filter(Boolean);
+
+// İlk parça title, ikincisi title2
+if (parcalar.length >= 2) {
+  title = parcalar[0];
+  title2 = parcalar[1];
+} else if (parcalar.length === 1) {
+  title = parcalar[0];
+}
+
+
+/**
+ * 2) Yedek: .data h1  (bazı film sayfaları için)
+ */
+if (!title) {
+  title = $(".data h1").first().text().trim();
+}
+
+/**
+ * 3) Yedek: sayfa <title> veya og:title
+ */
+if (!title) {
+  title = $('meta[property="og:title"]').attr("content") ||
+          $("title").text().replace(/ - .*$/, "").trim(); // " - dizipal" ekini at
+}
+
+
+
+title = temizleTitle(title);   // sadece başlık için özel temizlik
+title2 = temizle(title2);      // önceki temizle fonksiyonu burada yeterli
+
+// Tüm temizleme işlemleri yapıldıktan sonra, en sona ekle:
+if (title.toLowerCase() === title2.toLowerCase()) {
+  title2 = "";
+}
+
+
+    return res.json({
+      title,
+      title2,
+      plot,
+      year,
+      runtime,
+      rating,
+      genres,
+      videoSrc,
+      type: "film"
+    });
+
+  } catch (err) {
+    console.error("Dizipal film verisi çekme hatası:", err.message);
+    res.status(500).json({ error: "Film verisi çekilirken hata oluştu." });
+  }
+});
+
+
+
+
+
+
+
+
+
 
 // Sunucu Başlatma
 const PORT = process.env.PORT || 3000
@@ -2768,6 +3062,4 @@ app.get("/dizi/:id/sezon-:season/bolum-:episode", (req, res) => {
 app.get("/film/:id", (req, res) => {
   res.sendFile(path.join(__dirname, "../film.html"))
 })
-app.get(["/", "/index.html"], (req, res) => {
-  res.redirect(301, "/anasayfa")
-})
+

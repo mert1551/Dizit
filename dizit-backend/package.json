@@ -2,9 +2,10 @@
   "name": "dizit-backend",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "start": "node server.js"
+}
+,
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -20,7 +21,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
     "nodemailer": "^6.10.1",
-    "puppeteer": "^24.8.2",
+    "puppeteer": "^24.10.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "redis": "^5.0.1",
     "sanitize-html": "^2.16.0",
     "stripe": "^18.0.0"

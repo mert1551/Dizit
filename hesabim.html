@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
+        .movie-card{
+            border: 1px solid #cccccc2f;
+        }
         :root {
             --transition-speed: 0.4s;
             --shadow-light: 0 3px 10px rgba(0, 0, 0, 0.2);
@@ -676,6 +679,15 @@
             text-decoration: none;
             color: inherit;
         }
+        .movie-title{
+            margin: -10px 0px;
+            padding-bottom: 8px;
+        }
+        .imdb-rating{
+            padding: -5px;
+            margin: -5px;
+        }
+
     </style>
 </head>
 <body>
@@ -863,6 +875,7 @@
                     <div class="content-grid" id="liked-series-grid"></div>
                     <div class="pagination-controls" id="liked-series-pagination" style="display: none;">
                         <button class="pagination-btn" id="liked-series-show-more" onclick="showMore('liked-series')">
+                            
                             <i class="fas fa-plus"></i> Daha Fazla Göster
                         </button>
                         <button class="pagination-btn" id="liked-series-show-less" onclick="showLess('liked-series')" style="display: none;">
@@ -1260,39 +1273,52 @@
         }
 
         // Content rendering functions - URL düzeltmesi burada!
-        function renderContentItems(items, containerId) {
-            const container = document.getElementById(containerId);
-            if (!items || items.length === 0) {
-                const emptyMessages = {
-                    'favorite-series-grid': 'Henüz favori dizi eklenmemiş.',
-                    'favorite-movies-grid': 'Henüz favori film eklenmemiş.',
-                    'liked-series-grid': 'Henüz beğenilen dizi yok.',
-                    'liked-movies-grid': 'Henüz beğenilen film yok.',
-                    'watched-grid': 'Henüz izlenen içerik yok.',
-                    'watchlater-grid': 'Henüz daha sonra izlenecek içerik yok.'
-                };
-                
-                container.innerHTML = `<div class="empty-message">
-                    <i class="fas fa-film"></i>
-                    ${emptyMessages[containerId] || 'İçerik bulunamadı.'}
-                </div>`;
-                return;
-            }
+       function renderContentItems(items, containerId) {
+    const container = document.getElementById(containerId);
+    if (!items || items.length === 0) {
+        container.innerHTML = `<div class="empty-message">İçerik bulunamadı.</div>`;
+        return;
+    }
 
-            container.innerHTML = items.map(item => {
-                // URL düzeltmesi: type'a göre doğru URL oluştur
-                const url = item.type === 'film' ? `/film/${item.id}` : `/dizi/${item.id}`;
-                return `
-                    <a class="content-card" href="${url}">
-                        <img src="${item.poster || 'https://via.placeholder.com/300x450'}" class="content-poster" alt="${item.title}" onerror="this.src='https://via.placeholder.com/300x450'">
-                        <div class="content-info">
-                            <div class="content-title">${item.title}</div>
-                            <div class="content-meta">${item.year || 'N/A'}</div>
-                        </div>
-                    </a>
-                `;
-            }).join('');
+    container.innerHTML = items.map(item => {
+        const url = item.type === 'film' ? `/film/${item.id}` : `/dizi/${item.id}`;
+
+        // languageBadge'ı oluştur
+        let languageBadge = '';
+        const hasDublaj = item.language?.includes("Türkçe Dublaj");
+        const hasAltyazi = item.language?.includes("Türkçe Altyazı");
+        const isYerli = item.language?.includes("Yerli");
+
+        if (isYerli) {
+            languageBadge = '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>';
+        } else if (hasDublaj && hasAltyazi) {
+            languageBadge = '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>';
+        } else if (hasDublaj) {
+            languageBadge = '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>';
+        } else if (hasAltyazi) {
+            languageBadge = '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>';
         }
+
+        return `
+        <div class="movie-card" onclick="window.location.href='${url}'">
+            <div class="poster-wrapper">
+                <img src="${item.poster}" alt="${item.title}" class="movie-poster" onerror="this.src='https://via.placeholder.com/300x450'">
+                ${languageBadge}
+            </div>
+            <div class="movie-info">
+                <h3 class="movie-title">${item.title}</h3>
+                <div class="movie-meta">
+                    <span>${item.year || 'N/A'}</span>
+                    <div class="imdb-rating">
+                        <i class="fas fa-star"></i> ${item.rating || 'N/A'}
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    }).join('');
+}
+
 
         function renderContent(items, category, emptyMessage) {
             paginationState[category].data = items || [];
@@ -1375,16 +1401,25 @@
                 console.log('Liked IDs:', likedIds);
                 
                 const likedContent = movies.filter(m => likedIds.includes(m.id));
-                
-                // Beğenilen diziler ve filmler ayrı ayrı
-                const likedSeries = likedContent.filter(item => item.type === 'dizi');
-                const likedMovies = likedContent.filter(item => item.type === 'film');
-                
-                console.log('Liked series:', likedSeries.length);
-                console.log('Liked movies:', likedMovies.length);
-                
-                renderContent(likedSeries, 'liked-series', 'Henüz beğenilen dizi yok.');
-                renderContent(likedMovies, 'liked-movies', 'Henüz beğenilen film yok.');
+           
+           // Beğenilen filmler (seasonNumber === 0 && episodeNumber === 0)
+const likedMovieIds = user.likes
+    .filter(like => like.seasonNumber === 0 && like.episodeNumber === 0)
+    .map(like => like.seriesId);
+const likedMovies = movies.filter(m => likedMovieIds.includes(m.id) && m.type === 'film');
+
+// Beğenilen diziler (seasonNumber >= 1)
+const likedSeriesIds = user.likes
+    .filter(like => like.seasonNumber >= 1)
+    .map(like => like.seriesId);
+const uniqueSeriesIds = [...new Set(likedSeriesIds)];
+const likedSeries = movies.filter(m => uniqueSeriesIds.includes(m.id) && m.type === 'dizi');
+
+console.log('Liked movies:', likedMovies.length);
+console.log('Liked series:', likedSeries.length);
+
+renderContent(likedMovies, 'liked-movies', 'Henüz beğenilen film yok.');
+renderContent(likedSeries, 'liked-series', 'Henüz beğenilen dizi yok.');
 
                 // İzlenen içerikler (seasonNumber: 0, episodeNumber: 0 olanlar)
                 const watchedIds = user.watched

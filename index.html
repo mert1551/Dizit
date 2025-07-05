@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Loading Screen Styles */
         .loading-screen {
             position: fixed;
             top: 0;
@@ -78,7 +77,6 @@
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
     <div class="loading-screen" id="loading-screen">
         <div class="curtain-container">
             <div class="curtain-left"></div>
@@ -266,6 +264,7 @@
                 apiUrl = 'http://localhost:3000';
             }
         }
+
 
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -553,70 +552,130 @@
         }
 
         function displayItems(items, containerId, isSlider = true, isEpisode = false) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            container.innerHTML = '';
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
 
-            if (!items || !Array.isArray(items) || items.length === 0) {
-                container.innerHTML = '<p>İçerik bulunamadı.</p>';
-                return;
-            }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+        container.innerHTML = '<p>İçerik bulunamadı.</p>';
+        return;
+    }
 
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = isEpisode ? 'episode-card' : (isSlider ? 'slider-item' : 'movie-card');
-                
-                if (isEpisode) {
-                    const seriesTitle = item.seriesTitle || 'Başlık Yok';
-                    const seasonNumber = item.seasonNumber || 1;
-                    const episodeNumber = item.episodeNumber || 1;
-                    const seriesId = item.seriesId || '';
-                    const episodeDetails = `${seasonNumber}.Sezon ${episodeNumber}.Bölüm`;
-                    card.innerHTML = `
-                        <img src="${item.poster || 'https://via.placeholder.com/60x90'}" alt="${seriesTitle}" class="episode-poster">
-                        <div class="episode-info">
-                            <h3 class="episode-series-title">${seriesTitle}</h3>
-                            <div class="episode-details">${episodeDetails}</div>
+    items.forEach(item => {
+        let card;
+
+        if (isEpisode) {
+            const seriesTitle = item.seriesTitle || 'Başlık Yok';
+            const seasonNumber = item.seasonNumber || 1;
+            const episodeNumber = item.episodeNumber || 1;
+            const seriesId = item.seriesId || '';
+            const episodeDetails = `${seasonNumber}.Sezon ${episodeNumber}.Bölüm`;
+            const link = `/dizi/${seriesId}/sezon-${seasonNumber}/bolum-${episodeNumber}`;
+
+            card = document.createElement('div');
+            card.className = 'episode-card';
+            card.style.cursor = 'pointer';
+            card.onclick = () => {
+                console.log('Yönlendirme:', link);
+                window.location.href = link;
+            };
+
+            card.innerHTML = `
+                <img src="${item.poster || 'https://via.placeholder.com/60x90'}" alt="${seriesTitle}" class="episode-poster">
+                <div class="episode-info">
+                    <h3 class="episode-series-title">${seriesTitle}</h3>
+                    <div class="episode-details">${episodeDetails}</div>
+                </div>
+            `;
+        } else {
+            card = document.createElement('div');
+            card.className = isSlider ? 'slider-item' : 'movie-card';
+
+            const title = item.title || 'Başlık Yok';
+            const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
+                item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
+                    item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
+                        item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
+            const premiumIcon = item.premium ? '<i class="fas fa-crown premium-icon"></i>' : '';
+
+            card.innerHTML = `
+                <div class="poster-wrapper">
+                    <img src="${item.poster || 'https://via.placeholder.com/300x450'}" alt="${title}" class="${isSlider ? 'slider-poster' : 'movie-poster'}">
+                    ${badge}
+                    ${premiumIcon}
+                </div>
+                <div class="${isSlider ? 'slider-info' : 'movie-info'}">
+                    <h3 class="${isSlider ? 'slider-title' : 'movie-title'}">${title}</h3>
+                    <div class="${isSlider ? 'slider-meta' : 'movie-meta'}">
+                        <span>${item.year || 'Bilinmiyor'}</span>
+                        <div class="imdb-rating">
+                            <i class="fas fa-star"></i> ${item.rating || 'N/A'}
                         </div>
-                    `;
-                    console.log('Episode Card:', { seriesId, seasonNumber, episodeNumber, seriesTitle });
-                    card.onclick = () => {
-                        const url = `dizi.html?id=${seriesId}&season=${seasonNumber}&episode=${episodeNumber}`;
-                        console.log('Yönlendirme URL:', url);
-                        window.location.href = url;
-                    };
-                } else {
-                    const title = item.title || 'Başlık Yok';
-                    const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
-                                 item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
-                                 item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
-                                 item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
-                    const premiumIcon = item.premium ? '<i class="fas fa-crown premium-icon"></i>' : '';
-                    card.innerHTML = `
-                        <div class="poster-wrapper">
-                            <img src="${item.poster || 'https://via.placeholder.com/300x450'}" alt="${title}" class="${isSlider ? 'slider-poster' : 'movie-poster'}">
-                            ${badge}
-                            ${premiumIcon}
-                        </div>
-                        <div class="${isSlider ? 'slider-info' : 'movie-info'}">
-                            <h3 class="${isSlider ? 'slider-title' : 'movie-title'}">${title}</h3>
-                            <div class="${isSlider ? 'slider-meta' : 'movie-meta'}">
-                                <span>${item.year || 'Bilinmiyor'}</span>
-                                <div class="imdb-rating">
-                                    <i class="fas fa-star"></i> ${item.rating || 'N/A'}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    card.onclick = () => window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
-                }
-                container.appendChild(card);
-            });
+                    </div>
+                </div>
+            `;
+
+            card.onclick = () => {
+                window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
+            };
         }
+
+        container.appendChild(card);
+    });
+}
+
+
+
+
+ let homeMoviesLoaded = false;
+
+async function loadHomeContent() {
+    if (homeMoviesLoaded) {
+        console.log("Ana sayfa film/dizi içerikleri zaten yüklendi.");
+        return;
+    }
+
+    const loadingScreen = document.getElementById('loading-screen');
+    loadingScreen.classList.remove('hidden'); // Ekranı göster
+
+    try {
+        const res = await fetch(`${apiUrl}/api/movies/home`);
+        const data = await res.json();
+
+        if (Array.isArray(data.newFilms)) {
+            displayItems(data.newFilms, "new-films-slider-container", true);
+        }
+
+        if (Array.isArray(data.newSeries)) {
+            displayItems(data.newSeries, "new-series-slider-container", true);
+        }
+
+        if (Array.isArray(data.latestFilms)) {
+            displayItems(data.latestFilms, "all-films-grid", false);
+        }
+
+        if (Array.isArray(data.latestSeries)) {
+            displayItems(data.latestSeries, "all-series-grid", false);
+        }
+
+        homeMoviesLoaded = true;
+    } catch (error) {
+        console.error("Ana sayfa film/dizi içerikleri yüklenemedi:", error);
+        showToast("İçerikler yüklenemedi", "error");
+    } finally {
+        loadingScreen.classList.add('hidden'); // Ekranı gizle
+        setTimeout(() => loadingScreen.remove(), 500);
+    }
+}
+
+
+
+
+        
 
         async function fetchMovies(limit = 20) {
             try {
-                const response = await fetch(`${apiUrl}/api/movies?limit=${limit}&fields=title,title2,type,poster,year,rating,language,premium`);
+                const response = await fetch(`${apiUrl}/api/movies/home?limit=${limit}&fields=title,title2,type,poster,year,rating,language,premium`);
                 if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                 const movies = await response.json();
                 console.log('Çekilen filmler:', movies);
@@ -659,31 +718,13 @@
         }
 
         async function updateContent() {
-            const movies = await fetchMovies(20);
             const episodes = await fetchRecentEpisodes(6);
-            console.log('Gösterilecek filmler:', movies);
-            console.log('Gösterilecek bölümler:', episodes);
-
-            if (movies && Array.isArray(movies)) {
-                displayItems(getNewFilms(movies), 'new-films-slider-container', true);
-                displayItems(getNewSeries(movies), 'new-series-slider-container', true);
-                displayItems(getAllFilms(movies), 'all-films-grid', false);
-                displayItems(getAllSeries(movies), 'all-series-grid', false);
-                document.getElementById('show-all-films').style.display = 'block';
-                document.getElementById('show-all-series').style.display = 'block';
-            } else {
-                ['new-films-slider-container', 'new-series-slider-container', 'all-films-grid', 'all-series-grid'].forEach(id => {
-                    document.getElementById(id).innerHTML = '<p>İçerik bulunamadı.</p>';
-                });
-            }
-
             if (episodes && Array.isArray(episodes) && episodes.length > 0) {
                 displayItems(episodes, 'new-episodes-list', false, true);
             } else {
                 document.getElementById('new-episodes-list').innerHTML = '<p>İçerik bulunamadı.</p>';
                 console.warn('Gösterilecek bölüm yok');
             }
-
             // Hide loading screen after content is loaded
             const loadingScreen = document.getElementById('loading-screen');
             loadingScreen.classList.add('hidden');
@@ -802,12 +843,21 @@
             updateButtons();
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchApiUrl();
-            await checkAuth();
-            await updateContent();
-            initSlider('new-films-slider-container', 'new-films-prev', 'new-films-next');
-            initSlider('new-series-slider-container', 'new-series-prev', 'new-series-next');
+       document.addEventListener('DOMContentLoaded', async () => {
+    const loadingScreen = document.getElementById('loading-screen');
+    loadingScreen.classList.remove('hidden'); // Yükleme ekranını göster
+
+    await fetchApiUrl();
+    await checkAuth();
+    await updateContent();     // sadece yeni bölümler
+    await loadHomeContent();  // filmler/diziler
+
+    loadingScreen.classList.add('hidden'); // Ekranı gizle
+    setTimeout(() => loadingScreen.remove(), 500); // DOM'dan kaldır
+
+    // Sliderlar ve diğer event listener'lar
+    initSlider('new-films-slider-container', 'new-films-prev', 'new-films-next');
+    initSlider('new-series-slider-container', 'new-series-prev', 'new-series-next');
 
             const searchInput = document.getElementById('search-input');
             const searchOverlayInput = document.getElementById('search-overlay-input');

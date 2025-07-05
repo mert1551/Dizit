@@ -961,13 +961,154 @@
                 console.log('Filmler alındı:', allMovies.length);
                 updateStatistics();
                 renderMovies(allMovies);
-                populateGenreFilter();
+
             } catch (error) {
                 console.error('Film listeleme hatası:', error.message);
                 showToast('Filmler yüklenemedi');
                 document.getElementById('movie-list').innerHTML = '<tr><td colspan="6">Filmler yüklenemedi</td></tr>';
             }
         }
+
+
+
+
+
+
+    let movieSkip = 0;
+const movieLimit = 30;
+let loadingMovies = false;
+const movieListEl = document.getElementById("movie-list");
+const loadSentinel = document.getElementById("load-sentinel");
+
+async function fetchMovies(reset = false) {
+    if (loadingMovies) return;
+    loadingMovies = true;
+
+    if (reset) {
+        movieSkip = 0;
+        movieListEl.innerHTML = '';
+    }
+
+    const type = document.getElementById('type-filter')?.value || 'all';
+    const genre = document.getElementById('genre-filter')?.value || 'all';
+    const search = document.getElementById('movie-search')?.value || '';
+
+    let url = `/api/movies?limit=${movieLimit}&skip=${movieSkip}`;
+    if (type !== 'all') url += `&type=${type}`;
+    if (genre !== 'all') url += `&genres=${encodeURIComponent(genre)}`;
+    if (search.trim()) url += `&search=${encodeURIComponent(search.trim())}`;
+
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.length === 0 && movieSkip === 0) {
+            movieListEl.innerHTML = '<tr><td colspan="7" style="text-align:center;">Sonuç bulunamadı</td></tr>';
+        }
+
+        data.forEach(movie => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+    <td data-label="Poster"><img src="${movie.poster || 'placeholder.jpg'}" alt="${movie.title}" class="movie-poster"></td>
+    <td data-label="Başlık">${movie.title}</td>
+    <td data-label="Tür">${movie.type === 'film' ? 'Film' : 'Dizi'}</td>
+    <td data-label="Yıl">${movie.year || '-'}</td>
+    <td data-label="Kategoriler">${Array.isArray(movie.genres) ? movie.genres.join(', ') : '-'}</td>
+    <td data-label="İzlenme">${movie.views || 0}</td>
+    <td data-label="Eylemler" class="actions">
+        <button class="action-btn" onclick="editMovie('${movie.id}')">Düzenle</button>
+        <button class="action-btn delete-btn" onclick="deleteMovie('${movie.id}')">Sil</button>
+    </td>
+`;
+            movieListEl.appendChild(row);
+        });
+
+        if (data.length > 0) {
+            movieSkip += movieLimit;
+        } else {
+            loadSentinel.innerHTML = `<td colspan="7" style="text-align:center; color:#999;">Tüm veriler yüklendi.</td>`;
+        }
+
+    } catch (e) {
+        console.error("Film yükleme hatası:", e);
+    } finally {
+        loadingMovies = false;
+    }
+}
+// Filtre değişince tetiklenecek
+document.getElementById('type-filter').addEventListener('change', () => fetchMovies(true));
+document.getElementById('genre-filter').addEventListener('change', () => fetchMovies(true));
+document.getElementById('movie-search').addEventListener('input', () => {
+    clearTimeout(window.searchDebounce);
+    window.searchDebounce = setTimeout(() => fetchMovies(true), 400);
+});
+
+
+
+async function fetchContentStats() {
+    try {
+        const res = await fetch("/api/stats/content-counts", {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            document.getElementById("stats-movies").textContent = data.filmCount || 0;
+            document.getElementById("stats-series").textContent = data.diziCount || 0;
+        } else {
+            console.warn("İstatistik alınamadı:", data.error);
+        }
+    } catch (e) {
+        console.error("İstatistik hatası:", e);
+    }
+}
+
+async function populateGenreFilter() {
+    try {
+        const res = await fetch("/api/genres", {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+
+        const genres = await res.json();
+
+        const genreFilter = document.getElementById("genre-filter");
+        genreFilter.innerHTML = '<option value="all">Tümü</option>';
+        genres.forEach(genre => {
+            const option = document.createElement("option");
+            option.value = genre;
+            option.textContent = genre;
+            genreFilter.appendChild(option);
+        });
+    } catch (err) {
+        console.error("Kategori yükleme hatası:", err);
+    }
+}
+
+
+
+
+
+// İlk yükleme
+document.addEventListener("DOMContentLoaded", () => {
+    fetchContentStats();
+       fetchMovies(true);
+    populateGenreFilter(); // burada çağır
+});
+
+
+
+// Sonsuz kaydırma mantığı
+const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+        fetchMovies();
+    }
+});
+observer.observe(loadSentinel);
+        
 
         // Fetch Users
         async function fetchUsers() {
@@ -1016,8 +1157,6 @@
                 return num.toString();
             };
             
-            document.getElementById('stats-movies').textContent = formatNumber(movieCount);
-            document.getElementById('stats-series').textContent = formatNumber(seriesCount);
             document.getElementById('stats-users').textContent = formatNumber(userCount);
             document.getElementById('stats-banned').textContent = formatNumber(bannedCount);
         }
@@ -1188,23 +1327,6 @@ async function updatePremiumStatus(username, premiumType) {
             }
         }
 
-        // Populate Genre Filter
-        function populateGenreFilter() {
-            const genreFilter = document.getElementById('genre-filter');
-            genreFilter.innerHTML = '<option value="all">Tümü</option>';
-            const genres = new Set();
-            allMovies.forEach(movie => {
-                if (Array.isArray(movie.genres)) {
-                    movie.genres.forEach(genre => genres.add(genre));
-                }
-            });
-            genres.forEach(genre => {
-                const option = document.createElement('option');
-                option.value = genre;
-                option.textContent = genre;
-                genreFilter.appendChild(option);
-            });
-        }
 
         // Filter and Search Movies
         function filterMovies() {
@@ -1278,7 +1400,7 @@ function filterUsers() {
    }
    document.addEventListener('DOMContentLoaded', fetchPlatformContentCounts);
 
-   function filterByPlatform(platformName) {
+  function filterByPlatform(platformName) {
     const genreFilter = document.getElementById('genre-filter');
     let matched = false;
 
@@ -1287,11 +1409,9 @@ function filterUsers() {
         const isThisCard = card.textContent.startsWith(platformName);
 
         if (isThisCard && isSelected) {
-            // Aynı karta tekrar tıklandıysa kaldır ve filtreyi sıfırla
             card.classList.remove('selected');
             genreFilter.value = 'all';
         } else if (isThisCard) {
-            // Başka bir kart seçiliyorsa bu karta geç
             matched = true;
             card.classList.add('selected');
         } else {
@@ -1299,7 +1419,6 @@ function filterUsers() {
         }
     });
 
-    // Eğer yeni bir seçim yapıldıysa kategori filtresini değiştir
     if (matched) {
         for (let i = 0; i < genreFilter.options.length; i++) {
             if (genreFilter.options[i].value.toLowerCase() === platformName.toLowerCase()) {
@@ -1308,10 +1427,11 @@ function filterUsers() {
             }
         }
     }
-
-    // Filmleri filtrele
-    filterMovies();
+    fetchMovies(true);
 }
+
+
+
 
     </script>
 </body>

@@ -516,9 +516,18 @@
             <form id="movie-form" onsubmit="handleAddMovie(event)">
                 <div class="form-grid">
                     <div class="form-group" style="grid-column: span 2;">
+                          <div class="form-group">
+      <label for="sourceSelect">Kaynak Türü</label>
+      <select id="sourceSelect">
+        <option value="auto" selected>Otomatik Algıla</option>
+        <option value="dizipal">Dizipal</option>
+         <option value="sezonlukDizi">SezonlukDizi</option>
+      </select>
+    </div>
     <label for="dizipal-link">Dizipal Linki</label>
     <input type="url" id="dizipal-link" placeholder="https://dizipal...">
-    <button class="dizipal-btn" type="button" onclick="fetchDizipalEpisodes(); fetchDizipalMeta();">Bölümleri ve Bilgileri Getir</button>
+    <button class="dizipal-btn" type="button" onclick="fetchFromSelectedSource()">Bölümleri ve Bilgileri Getir</button>
+
 
 </div>
 
@@ -570,6 +579,7 @@
                             <option value="Bilim Kurgu">Bilim Kurgu</option>
                             <option value="Biyografi">Biyografi</option>
                             <option value="Dram">Dram</option>
+                            <option value="Erotik">Erotik</option>
                             <option value="Fantastik">Fantastik</option>
                             <option value="Gerilim">Gerilim</option>
                             <option value="Gizem">Gizem</option>
@@ -584,13 +594,17 @@
                             <option value="Spor">Spor</option>
                             <option value="Suç">Suç</option>
                             <option value="Tarih">Tarih</option>
+                            <option value="Marvel Studios">Marvel Studios</option>
+                            <option value="Star Wars">Star Wars</option>
                             <option value="Exxen">Exxen</option>
                             <option value="BluTV">BluTV</option>
                             <option value="Gain">Gain</option>
                             <option value="Disney+">Disney+</option>
                             <option value="Tod">TOD</option>
                             <option value="Amazon">Amazon</option>
+                            <option value="Tabii">Tabii</option>
                             <option value="Mubi">Mubi</option>
+                            
                         </select>
                         <button type="button" id="add-genre-btn">Tür Ekle</button>
                         <div class="genres-list" id="genres-list"></div>
@@ -805,7 +819,7 @@
             currentUser = null;
             isAdmin = false;
             updateAdminUI();
-            window.location.href = 'index.html';
+            window.location.href = 'admin-panel.html';
         }
 
         function showToast(message) {
@@ -1424,6 +1438,250 @@ async function fetchDizipalMeta() {
     console.error("Dizipal meta çekilemedi:", err.message);
   }
 }
+
+async function fetchFromSelectedSource() {
+  const url = document.getElementById("dizipal-link").value.trim();
+  const sourceSelect = document.getElementById("sourceSelect");
+
+  if (!url) return alert("Lütfen geçerli bir URL girin.");
+
+  let detectedSource = "unknown";
+  let contentType = "unknown"; // dizi | film
+
+  // 🔍 Kaynağı ve türü algıla
+  if (/sezonlukdizi\d*\.com/.test(url)) {
+    detectedSource = "sezonlukDizi";
+    contentType = "dizi";
+  } else if (/dizipal\d*\.com/.test(url)) {
+    detectedSource = "dizipal";
+    contentType = url.includes("/dizi/") ? "dizi" : "film";
+  }
+
+  if (detectedSource === "unknown") {
+    return alert("Kaynak algılanamadı. Lütfen geçerli bir dizipal veya sezonlukdizi linki girin.");
+  }
+
+  // 🎯 Seçim kutusunu güncelle (görsel)
+  sourceSelect.value = detectedSource;
+
+  try {
+    // 👉 DİZİPAL DİZİ
+    if (detectedSource === "dizipal" && contentType === "dizi") {
+      await fetchDizipalMeta(url);
+      await fetchDizipalEpisodes(url);
+    }
+
+    // 👉 DİZİPAL FİLM
+   else if (detectedSource === "dizipal" && contentType === "film") {
+      const lastPart = url.split("/").filter(Boolean).pop();
+      document.getElementById("movie-id").value = lastPart;
+      await fetchDizipalFilm(url);
+    }
+    // 👉 SEZONLUKDİZİ DİZİ
+    else if (detectedSource === "sezonlukDizi") {
+      await fetchSezonlukMeta(url);
+      await fetchSezonlukEpisodes(url);
+    }
+
+  } catch (err) {
+    console.error("Veri çekme hatası:", err);
+    alert("Veri çekilirken hata oluştu:\n" + err.message);
+  }
+}
+
+
+
+
+// Bu fonksiyonu ekle:
+async function fetchSezonlukDizi(mainUrl) {
+  try {
+    const response = await fetch(`/api/sezonlukdizi/embed-links?url=${encodeURIComponent(mainUrl)}`);
+    const data = await response.json();
+    console.log("SezonlukDizi verileri:", data);
+
+    if (!Array.isArray(data) || data.length === 0) {
+      return alert("Hiçbir embed linki bulunamadı.");
+    }
+
+    // Her embed'i dizi olarak episodes içine ekle
+    const seasonMap = {};
+    data.forEach(item => {
+      const match = item.episode.match(/\/(\d+)-sezon-(\d+)-bolum\.html/);
+      if (match) {
+        const sezon = parseInt(match[1], 10);
+        const bolum = parseInt(match[2], 10);
+        if (!seasonMap[sezon]) seasonMap[sezon] = [];
+        seasonMap[sezon].push({ episodeNumber: bolum, videoSrc: [{ type: "VidMoly", src: item.embed }] });
+      }
+    });
+
+    // UI'ya ekle (örnek — senin UI yapına göre uyarlayabiliriz)
+    for (const [seasonNumber, episodes] of Object.entries(seasonMap)) {
+      const seasonList = document.getElementById("season-list");
+      // Burada sezon ve bölüm inputları oluşturman gerekiyor.
+      // Dilersen otomatik doldurmayı entegre ederim.
+      console.log(`Sezon ${seasonNumber} için ${episodes.length} bölüm bulundu.`);
+    }
+
+    alert("Embed linkleri başarıyla getirildi!");
+  } catch (err) {
+    console.error("SezonlukDizi çekme hatası:", err);
+    alert("Embed linkleri alınırken hata oluştu.");
+  }
+}
+
+
+
+
+
+async function fetchDizipalFilm(url) {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Giriş yapılmamış!");
+
+    const res = await fetch("/api/scrape/dizipal-film", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ url })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Film verisi alınamadı");
+    
+    // Formu doldur
+    fillFormWithFilmData(data);
+  } catch (err) {
+    console.error("Film verisi çekme hatası:", err.message);
+    alert("Film verisi çekilemedi: " + err.message);
+  }
+}
+
+
+
+
+
+function fillFormWithFilmData(data) {
+  if (data.title) document.getElementById("movie-title").value = data.title;
+  if (data.title2) document.getElementById("movie-title2").value = data.title2;
+  if (data.year) document.getElementById("movie-year").value = data.year;
+  if (data.runtime) document.getElementById("movie-runtime").value = data.runtime;
+  if (data.rating) document.getElementById("movie-rating").value = data.rating;
+
+  // Ülke
+  if (data.country) {
+    const countries = Array.isArray(data.country) ? data.country.join(", ") : data.country;
+    document.getElementById("movie-country").value = countries;
+  }
+
+  // Dil
+  if (data.language) {
+    const languages = Array.isArray(data.language) ? data.language.join(", ") : data.language;
+    document.getElementById("movie-language").value = languages;
+  }
+
+  if (data.plot) document.getElementById("movie-plot").value = data.plot;
+
+  const type = data.type === "dizi" ? "dizi" : "film";
+  document.getElementById("movie-type").value = type;
+  document.getElementById("movie-type").dispatchEvent(new Event("change"));
+
+  if (typeof data.premium !== "undefined") {
+    document.getElementById("movie-premium").checked = !!data.premium;
+  }
+
+  // Türler
+const genreList = document.getElementById("genres-list");
+genreList.innerHTML = "";
+
+let rawGenres = [];
+
+if (Array.isArray(data.genres)) {
+  rawGenres = data.genres;
+} else if (typeof data.genre === "string") {
+  rawGenres = data.genre.split(",").map(g => g.trim());
+}
+
+// filtrele: "yerli", "editörün", "seçtikleri"
+const unwanted = ["yerli", "editörün", "seçtikleri"];
+
+rawGenres.forEach((g) => {
+  const trimmed = g.trim();
+  if (trimmed && !unwanted.some(u => trimmed.toLowerCase().includes(u))) {
+    const item = document.createElement("div");
+    item.className = "genre-item";
+
+    const span = document.createElement("span");
+    span.textContent = trimmed;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.innerHTML = "×";
+    removeBtn.onclick = function () {
+      this.parentElement.remove();
+    };
+
+    item.appendChild(span);
+    item.appendChild(removeBtn);
+    genreList.appendChild(item);
+  }
+});
+
+
+
+
+  // ✅ Video embed'lerini fetchDizipalEpisodes tarzında işle
+  const videoList = document.getElementById("video-source-list");
+  videoList.innerHTML = "";
+
+  const acceptedTypes = ["yerli", "dublaj", "altyazı", "türkçe dublaj", "türkçe altyazı", "türkçe dublaj & altyazı"];
+
+// ✅ formdaki kullanıcı dil inputundan embed türünü belirle
+const langRaw = document.getElementById("movie-language").value || "";
+const langLower = langRaw.toLowerCase();
+
+let selectedType = "Diğer";
+
+if (langLower.includes("türkçe dublaj") && langLower.includes("altyazı")) selectedType = "Türkçe Dublaj & Altyazı";
+else if (langLower.includes("türkçe dublaj")) selectedType = "Türkçe Dublaj";
+else if (langLower.includes("türkçe altyazı")) selectedType = "Türkçe Altyazı";
+else if (langLower.includes("yerli")) selectedType = "Yerli";
+else if (langLower.includes("dublaj")) selectedType = "Dublaj";
+else if (langLower.includes("altyazı")) selectedType = "Altyazı";
+
+  if (Array.isArray(data.videoSrc)) {
+    data.videoSrc.forEach((video) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "video-source-entry";
+      wrapper.innerHTML = `
+        <select class="video-type-select">
+          <option value="Dublaj" ${selectedType === "Dublaj" ? "selected" : ""}>Dublaj</option>
+          <option value="Altyazı" ${selectedType === "Altyazı" ? "selected" : ""}>Altyazı</option>
+          <option value="Türkçe Dublaj & Altyazı" ${selectedType === "Türkçe Dublaj & Altyazı" ? "selected" : ""}>Türkçe Dublaj & Altyazı</option>
+          <option value="Yerli" ${selectedType === "Yerli" ? "selected" : ""}>Yerli</option>
+          <option value="Özel Başlık">Özel Başlık</option>
+          <option value="Diğer" ${selectedType === "Diğer" ? "selected" : ""}>Diğer (özel tür girin)</option>
+        </select>
+        <input type="text" class="video-type-custom" placeholder="Özel tür veya başlık" style="${selectedType === 'Diğer' || selectedType === 'Özel Başlık' ? '' : 'display:none;'}" value="${selectedType === 'Diğer' ? langRaw : ''}">
+        <input type="url" class="video-src" value="${video.src || ""}" required>
+        <button type="button" class="remove-video">Kaldır</button>
+        <span class="validation-message video-error"></span>
+      `;
+      wrapper.querySelector(".remove-video").addEventListener("click", () => wrapper.remove());
+      wrapper.querySelector(".video-type-select").addEventListener("change", function () {
+        const customInput = wrapper.querySelector(".video-type-custom");
+        customInput.style.display = this.value === "Diğer" || this.value === "Özel Başlık" ? "block" : "none";
+      });
+
+      videoList.appendChild(wrapper);
+    });
+  }
+
+  document.getElementById("episodes-section").style.display = type === "dizi" ? "block" : "none";
+  document.getElementById("video-sources-section").style.display = type === "film" ? "block" : "none";
+}
+
 
 
     </script>

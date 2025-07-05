@@ -115,7 +115,7 @@
         </div>
         <div class="profile-wrapper">
             <div class="profile-card" onclick="toggleProfileMenu()">
-                <img src="/resim/avatar/user.png" alt="Profile Avatar" class="profile-avatar">
+                <img src="/resim/avatar/user.png" alt="Profile Avatar" title="Profil" class="profile-avatar">
                 <span class="profile-username"></span>
                 <i class="fas fa-chevron-down profile-arrow"></i>
             </div>
@@ -667,6 +667,11 @@
             document.title = `${series.title || 'Dizi'} (${series.year || 'N/A'}) - DİZİT`;
         }
 
+        function searchByGenre(genre) {
+    const encodedGenre = encodeURIComponent(genre);
+    window.location.href = `/arama/film-dizi-arama.html?genre=${encodedGenre}`;
+}
+
         function createMetaItem(icon, text) {
             const item = document.createElement('div');
             item.className = 'series-meta-item';
@@ -682,8 +687,22 @@
             let isDisliked = false;
             let isWatched = false;
             let isFavorited = false;
+            let isWatchLater = false;
             let likeCount = 0;
             let dislikeCount = 0;
+try {
+  const favRes = await fetch(`${apiUrl}/api/movie-status/${seriesId}`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  });
+  if (favRes.ok) {
+    const favData = await favRes.json();
+    isFavorited = favData.isFavorited;
+    isWatchLater = favData.isWatchLater; // 👈 buraya eklendi!
+  }
+} catch (error) {
+  console.error('Favori durumu alınamadı:', error);
+}
+
 
 if (!seriesId || !seasonNumber || !episodeNumber) {
   console.warn("Eksik parametre ile watchSeries çağrısı engellendi.");
@@ -739,11 +758,18 @@ if (!seriesId || !seasonNumber || !episodeNumber) {
   <a href="/dizi/${seriesId}" style="color: inherit; text-decoration: none;">${seriesTitle || 'Bilinmeyen Dizi'}</a>
 </h2>
 
-  <button class="favorite-btn ${isLoggedIn ? '' : 'disabled'} ${isFavorited ? 'active' : ''}" id="favorite-btn-${seriesId}" 
+  <button title="Favorilere Ekle" class="favorite-btn ${isLoggedIn ? '' : 'disabled'} ${isFavorited ? 'active' : ''}" id="favorite-btn-${seriesId}" 
            ${isFavorited ? 'red' : '#fff'}">
     <i class="${isFavorited ? 'fas' : 'far'} fa-plus"></i>
   </button>
+
+ <button title="Daha Sonra İzle" class="watchLaterBtn  ${isLoggedIn ? '' : 'disabled'} ${isWatchLater ? 'active' : ''}" id="watchLaterBtn-${seriesId}">
+  <i class="${isWatchLater ? 'fas' : 'far'} fa-clock"></i>
+</button>
+
+  
 </div>
+
 <p class="episode-info">Sezon ${seasonNumber} Bölüm ${episodeNumber}${episodeTitle ? ` ` : ''}</p>
 
 
@@ -802,6 +828,42 @@ if (!seriesId || !seasonNumber || !episodeNumber) {
             const dislikeBtn = document.getElementById(`dislike-btn-${seriesId}-${seasonNumber}-${episodeNumber}`);
             const favoriteBtn = document.getElementById(`favorite-btn-${seriesId}`);
             const watchedCheckbox = document.getElementById(`watched-checkbox-${seriesId}-${seasonNumber}-${episodeNumber}`);
+      const watchLaterBtn = document.getElementById(`watchLaterBtn-${seriesId}`);
+if (watchLaterBtn) {
+  watchLaterBtn.addEventListener('click', async () => {
+    if (!isLoggedIn) {
+      openAuthModal('login');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${apiUrl}/api/watch-later`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ movieId: seriesId })
+      });
+
+      const data = await res.json();
+      const icon = watchLaterBtn.querySelector('i');
+      const isNowWatchLater = data.isWatchLater;
+
+      watchLaterBtn.classList.toggle('active', isNowWatchLater);
+      icon.classList.toggle('fas', isNowWatchLater);
+      icon.classList.toggle('far', !isNowWatchLater);
+
+      // ✅ Toast bildirimi
+      showToast(isNowWatchLater ? 'Dizi "Daha Sonra İzle" listesine eklendi.' : 'Dizi listeden çıkarıldı.');
+    } catch (err) {
+      console.error('Watch Later error:', err);
+      showToast('İşlem sırasında hata oluştu.', 'error');
+    }
+  });
+}
+
+
 
             likeBtn.addEventListener('click', async () => {
                 if (!isLoggedIn) {
@@ -1217,15 +1279,6 @@ if (!seriesId || !seasonNumber || !episodeNumber) {
 
             container.addEventListener('scroll', updateButtons);
             updateButtons();
-        }
-
-        function searchByGenre(genre) {
-            const searchOverlay = document.getElementById('search-overlay');
-            const searchOverlayInput = document.getElementById('search-overlay-input');
-            searchOverlay.classList.add('active');
-            searchOverlayInput.value = genre;
-            searchOverlayInput.focus();
-            performSearch(genre);
         }
 
         async function performSearch(query) {

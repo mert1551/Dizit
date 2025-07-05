@@ -183,6 +183,10 @@
                                     <input type="checkbox" id="genre-dram" name="genre" value="Dram">
                                     <label for="genre-dram">Dram</label>
                                 </div>
+                                 <div class="genre-checkbox-container">
+                                    <input type="checkbox" id="genre-erotik" name="genre" value="Erotik">
+                                    <label for="genre-erotik">Erotik</label>
+                                </div>
                                 <div class="genre-checkbox-container">
                                     <input type="checkbox" id="genre-fantastik" name="genre" value="Fantastik">
                                     <label for="genre-fantastik">Fantastik</label>
@@ -239,9 +243,56 @@
                                     <input type="checkbox" id="genre-tarih" name="genre" value="Tarih">
                                     <label for="genre-tarih">Tarih</label>
                                 </div>
+                                 <div class="genre-checkbox-container">
+                                    <input type="checkbox" id="genre-marvel-studios" name="genre" value="Marvel Studios">
+                                    <label for="genre-marvel-studios">Marvel Studios</label>
+                                </div>
+                                 <div class="genre-checkbox-container">
+                                    <input type="checkbox" id="genre-star-wars" name="genre" value="Star Wars">
+                                    <label for="genre-star-wars">Star Wars</label>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="search-form-group">
+ <label for="genre">Platform</label>
+    <div class="genre-picker">
+     <div class="genre-checkbox-container">
+         <input type="checkbox" id="platform-exxen" name="platform" value="Exxen">
+            <label for="platform-exxen">Exxen</label>
+       </div>
+         <div class="genre-checkbox-container">
+         <input type="checkbox" id="platform-blutv" name="platform" value="BluTV">
+            <label for="platform-blutv">BluTV</label>
+       </div>
+         <div class="genre-checkbox-container">
+         <input type="checkbox" id="platform-gain" name="platform" value="Gain">
+            <label for="platform-gain">Gain</label>
+       </div>
+         <div class="genre-checkbox-container">
+         <input type="checkbox" id="platform-disney" name="platform" value="Disney+">
+            <label for="platform-disney">Disney+</label>
+       </div>
+                <div class="genre-checkbox-container">
+         <input type="checkbox" id="platform-tod" name="platform" value="Tod">
+            <label for="platform-tod">TOD</label>
+       </div>
+         <div class="genre-checkbox-container">
+         <input type="checkbox" id="platform-amazon" name="platform" value="Amazon">
+            <label for="platform-amazon">Amazon</label>
+        </div>
+         <div class="genre-checkbox-container">
+         <input type="checkbox" id="platform-tabii" name="platform" value="Tabii">
+            <label for="platform-tabii">Tabii</label>
+        </div>
+         <div class="genre-checkbox-container">
+         <input type="checkbox" id="platform-mubi" name="platform" value="Mubi">
+            <label for="platform-mubi">Mubi</label>
+       </div>
+
+    </div>
+</div>
                     
                     <div class="search-form-row">
                         <div class="search-form-group">
@@ -297,19 +348,13 @@
             <!-- Film veya Dizi Sonuçları -->
             <div class="search-results-container">
                 <div class="movie-grid" id="search-results-grid"></div>
+                <div id="loading-indicator" style="display: none; text-align: center; margin: 20px;">
+  <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #ffcc00;"></i> Yükleniyor...
+</div>
+<div id="end-of-content-message" style="display: none; text-align: center; color: #aaa; margin: 20px 0; font-style: italic;">
+  🎉 Tüm içerikler gösterildi.
+</div>
                 
-                <!-- Sayfalama -->
-                <div class="pagination" id="pagination">
-                    <button class="pagination-btn prev" id="prev-page" disabled>
-                        <i class="fas fa-chevron-left"></i> Önceki
-                    </button>
-                    <div class="pagination-info" id="pagination-info">
-                        Sayfa <span id="current-page">1</span> / <span id="total-pages">1</span>
-                    </div>
-                    <button class="pagination-btn next" id="next-page" disabled>
-                        Sonraki <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
             </div>
         </div>
     </main>
@@ -634,7 +679,31 @@
             await fetchApiUrl();
             await checkAuth();
         });
+        function getQueryParam(name) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(name);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const genre = getQueryParam("genre");
+    const type = getQueryParam("type");
+
+    if (genre) {
+        const checkbox = document.querySelector(`input[name="genre"][value="${genre}"]`);
+        if (checkbox) checkbox.checked = true;
+    }
+
+    if (type) {
+        const typeSelect = document.getElementById("type");
+        if (typeSelect) typeSelect.value = type;
+    }
+
+    // Otomatik arama başlat
+    document.getElementById("search-button").click();
+});
+
     </script>
+    
     <script src="film-arama.js"></script>
 </body>
 </html>

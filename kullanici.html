@@ -628,6 +628,45 @@
             justify-content: center;
             text-align: center;
         }
+ /* Kullanıcı bulunamadı stil (Farklı kutu tasarımı) */
+       .kullanici-err {
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 400px;
+            font-size: 16px;
+            color: var(--text-secondary);
+            text-align: center;
+           
+        }
+        .kullanici-err::before {
+            content: "!";
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            background-color: #ff6f61;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 10px;
+             margin-right: 10px;
+        }
+        .kullanici-err a {
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 14px;
+            color:black;
+            font-weight: 600;
+            background-color: var(--accent-color);
+            padding: 6px 12px;
+            border-radius: 3px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .kullanici-err a:hover {
+            background-color: #c9a208;
+        }
     </style>
 <body>
     <header id="header">
@@ -736,10 +775,10 @@
                 </div>
               </div>`).join("")
           : "<p style='color: var(--text-secondary); text-align: center;'>Favori dizi yok.</p>";
-      } catch (err) {
-        document.body.innerHTML = `<p style=\"color:red;text-align:center;\">Kullanıcı bulunamadı.</p>`;
-        console.error(err);
-      }
+      }  catch (err) {
+            document.querySelector('.profile-container').innerHTML = `<p class="kullanici-err">Kullanıcı bulunamadı.<br><a href="index.html">Ana Sayfaya Dön</a></p>`;
+            console.error(err);
+        }
     }
 
     document.querySelectorAll('.tab-btn').forEach(btn => {

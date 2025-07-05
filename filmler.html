@@ -120,6 +120,13 @@
             <section>
                 <h2 class="section-title" id="content-title">Tüm Filmler</h2>
                 <div class="movie-grid" id="content-grid"></div>
+                <div id="loading-indicator" style="display: none; text-align: center; margin: 20px;">
+  <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #ffcc00;"></i> Yükleniyor...
+</div>
+<div id="end-of-content-message" style="display: none; text-align: center; color: #aaa; margin: 20px 0; font-style: italic;">
+  🎉 Tüm içerikler gösterildi.
+</div>
+
             </section>
         </div>
     </main>
@@ -432,31 +439,119 @@
             });
         }
     
-        async function updateContent() {
-            const contentTitle = document.getElementById('content-title');
-            contentTitle.textContent = 'Tüm Filmler';
-    
-            try {
-                // API'den type=film olan içerikleri çek
-                const response = await fetch(`${API_URL}/api/movies?type=film`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-                    }
-                });
-    
-                if (!response.ok) {
-                    throw new Error('Filmler yüklenirken hata oluştu');
-                }
-    
-                const movies = await response.json();
-                displayItems(movies, 'content-grid');
-            } catch (error) {
-                console.error('Filmler çekilirken hata:', error);
-                const container = document.getElementById('content-grid');
-                container.innerHTML = '<p>Filmler yüklenemedi. Lütfen daha sonra tekrar deneyin.</p>';
-            }
+      function appendItems(itemList, containerId) {
+    const container = document.getElementById(containerId);
+
+    if (itemList.length === 0 && container.children.length === 0) {
+        container.innerHTML = '<p>İçerik bulunamadı.</p>';
+        return;
+    }
+
+    itemList.forEach(item => {
+        let languageBadge = '';
+        const hasDublaj = item.language?.includes("Türkçe Dublaj");
+        const hasAltyazi = item.language?.includes("Türkçe Altyazı");
+        const isYerli = item.language?.includes("Yerli");
+
+        if (isYerli) {
+            languageBadge = '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>';
+        } else if (hasDublaj && hasAltyazi) {
+            languageBadge = '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>';
+        } else if (hasDublaj) {
+            languageBadge = '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>';
+        } else if (hasAltyazi) {
+            languageBadge = '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>';
         }
+
+        const itemCard = document.createElement('div');
+        itemCard.className = 'movie-card';
+        itemCard.innerHTML = `
+            <div class="poster-wrapper">
+                <img src="${item.poster}" alt="${item.title}" class="movie-poster">
+                ${languageBadge}
+            </div>
+            <div class="movie-info">
+                <h3 class="movie-title">${item.title}</h3>
+                <div class="movie-meta">
+                    <span>${item.year}</span>
+                    <div class="imdb-rating">
+                        <i class="fas fa-star"></i> ${item.rating}
+                    </div>
+                </div>
+            </div>
+        `;
+        itemCard.onclick = () => window.location.href = `film.html?id=${item.id}`;
+        container.appendChild(itemCard);
+    });
+}
+
     
+let currentSkip = 0;
+const limit = 20;
+let isLoading = false;
+
+async function loadMoreSeries() {
+    if (isLoading) return;
+    isLoading = true;
+
+    const loadingEl = document.getElementById("loading-indicator");
+    if (loadingEl) loadingEl.style.display = "block";
+
+    try {
+         await new Promise(resolve => setTimeout(resolve, 1000));
+        const response = await fetch(`${API_URL}/api/films?skip=${currentSkip}&limit=${limit}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+            }
+        });
+
+        const data = await response.json();
+        appendItems(data, "content-grid");
+
+        currentSkip += limit;
+
+       if (data.length < limit) {
+    window.removeEventListener("scroll", onScrollLoadMore);
+
+    const endMessage = document.getElementById("end-of-content-message");
+    if (endMessage) endMessage.style.display = "block";
+}
+
+    } catch (err) {
+        console.error("Film yüklenirken hata oluştu:", err);
+    } finally {
+        isLoading = false;
+        if (loadingEl) loadingEl.style.display = "none";
+    }
+}
+
+
+async function ensureEnoughContent() {
+    while (
+        document.body.scrollHeight <= window.innerHeight + 100 &&
+        !isLoading
+    ) {
+        await loadMoreSeries();
+    }
+}
+
+
+function onScrollLoadMore() {
+    const preloadOffset = Math.max(600, window.innerHeight * 0.75);
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - preloadOffset) {
+        loadMoreSeries();
+    }
+}
+
+// Tek DOMContentLoaded!
+document.addEventListener("DOMContentLoaded", async () => {
+    await fetchApiUrl();
+    await checkAuth();
+    await loadMoreSeries();
+     await ensureEnoughContent();
+    window.addEventListener("scroll", onScrollLoadMore);
+});
+
         function displaySearchResults(results) {
             const searchResults = document.getElementById('search-results');
             searchResults.innerHTML = results.length ? '' : '<p>Sonuç bulunamadı.</p>';
@@ -523,12 +618,7 @@
             navContainer.classList.toggle('active');
         });
     
-        // Sayfa Yüklenmesi
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchApiUrl(); // API_URL'yi çek
-            checkAuth();
-            updateContent();
-        });
+  
     </script>
 </body>
 </html>

@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('API_URL fetched:', API_URL);
         } catch (error) {
             console.error('API_URL alınırken hata:', error);
-            // Hata durumunda varsayılan URL kullanılacak
         }
     }
 
@@ -25,10 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closeOverlayBtn = document.getElementById('close-overlay');
     const searchResultsGrid = document.getElementById('search-results-grid');
     const totalResults = document.getElementById('total-results');
-    const currentPageSpan = document.getElementById('current-page');
-    const totalPagesSpan = document.getElementById('total-pages');
-    const prevPageBtn = document.getElementById('prev-page');
-    const nextPageBtn = document.getElementById('next-page');
+    const activeFilters = document.getElementById('active-filters');
     const yearSelect = document.getElementById('year');
     const sortSelect = document.getElementById('sort');
     const dublajCheckbox = document.getElementById('dublaj');
@@ -39,57 +35,113 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resetButton = document.getElementById('reset-button');
     const burgerMenu = document.getElementById('burger-menu');
     const navContainer = document.getElementById('nav-container');
-    const activeFilters = document.getElementById('active-filters');
+    const exxenCheckbox = document.getElementById('platform-exxen');
+    const gainCheckbox = document.getElementById('platform-gain');
+    const blutvCheckbox = document.getElementById('platform-blutv');
+    const disneyCheckbox = document.getElementById('platform-disney');
+    const tabiCheckbox = document.getElementById('platform-tabii');
+    const todCheckbox = document.getElementById('platform-tod');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const endOfContentMessage = document.getElementById('end-of-content-message');
 
-    // Sayfalama Değişkenleri
-    const itemsPerPage = 18;
+    // Sonsuz kaydırma değişkenleri
+    const itemsPerPage = 12;
     let currentPage = 1;
     let filteredContent = [];
+    let isLoading = false;
+    let hasMore = true;
 
     // Veritabanından veri çekme
-    async function fetchMovies(filters = {}) {
-        try {
-            const queryParams = new URLSearchParams();
-    
-            if (filters.type) queryParams.append('type', filters.type);
-            if (filters.year) queryParams.append('year', filters.year);
-            if (filters.genres && filters.genres.length > 0) {
-                queryParams.append('genres', filters.genres.join(','));
+   async function fetchMovies(filters = {}, page = 1, append = false) {
+    if (isLoading || !hasMore) return;
+
+    // Göstergeleri yönet
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const endOfContentMessage = document.getElementById('end-of-content-message');
+
+    loadingIndicator.style.display = 'block';
+    endOfContentMessage.style.display = 'none';
+
+    isLoading = true;
+    try {
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', page);
+        queryParams.append('limit', itemsPerPage);
+
+        if (filters.type) queryParams.append('type', filters.type);
+        if (filters.year) queryParams.append('year', filters.year);
+        if (filters.genres && filters.genres.length > 0) {
+            queryParams.append('genres', filters.genres.join(','));
+        }
+
+        const languages = [];
+        if (filters.dublaj) languages.push('Türkçe Dublaj');
+        if (filters.altyazi) languages.push('Türkçe Altyazı');
+        if (filters.yerli) languages.push('Yerli');
+        if (languages.length > 0) {
+            queryParams.append('language', languages.join(','));
+        }
+
+        if (filters.sort) queryParams.append('sort', filters.sort);
+
+        console.log('Gönderilen sorgu:', queryParams.toString());
+
+        const response = await fetch(`${API_URL}/api/all-movies?${queryParams.toString()}`);
+        if (!response.ok) throw new Error(`HTTP hatası: ${response.status}`);
+        const data = await response.json();
+        console.log('Dönen içerik:', {
+            total: data.total,
+            currentPage: data.currentPage,
+            totalPages: data.totalPages,
+            results: data.results.slice(0, 5)
+        });
+
+        // 2000 öncesi filtresi
+        if (filters.year === 'before-2000') {
+            const invalidMovies = data.results.filter(m => m.year > 2000);
+            if (invalidMovies.length > 0) {
+                console.warn('HATA: 2000 sonrası içerikler alındı:', invalidMovies.map(m => ({ id: m.id, title: m.title, year: m.year })));
+                data.results = data.results.filter(m => m.year <= 2000);
             }
-            const languages = [];
-            if (filters.dublaj) languages.push('Türkçe Dublaj');
-            if (filters.altyazi) languages.push('Türkçe Altyazı');
-            if (filters.yerli) languages.push('Yerli');
-            if (languages.length > 0) {
-                queryParams.append('language', languages.join(','));
-            }
-            if (filters.sort) queryParams.append('sort', filters.sort);
-    
-            console.log('Gönderilen sorgu:', queryParams.toString());
-    
-            const response = await fetch(`${API_URL}/api/movies?${queryParams.toString()}`);
-            if (!response.ok) throw new Error(`HTTP hatası: ${response.status}`);
-            const movies = await response.json();
-            console.log('Dönen içerik:', {
-                total: movies.length,
-                years: movies.map(m => m.year),
-                sample: movies.slice(0, 5)
-            });
-            // 2000 öncesi filtresi için doğrulama
-            if (filters.year === 'before-2000') {
-                const invalidMovies = movies.filter(m => m.year > 2000);
-                if (invalidMovies.length > 0) {
-                    console.warn('HATA: 2000 sonrası içerikler alındı:', invalidMovies.map(m => ({ id: m.id, title: m.title, year: m.year })));
-                    // 2000 sonrası içerikleri filtrele
-                    return movies.filter(m => m.year <= 2000);
-                }
-            }
-            return movies;
-        } catch (error) {
-            console.error('Veri çekme hatası:', error);
-            return [];
+        }
+
+        if (!append) {
+            filteredContent = data.results;
+        } else {
+            filteredContent = [...filteredContent, ...data.results];
+        }
+
+        hasMore = data.currentPage < data.totalPages;
+
+        displayContent(data.results, append);
+        updateActiveFilters(filters, data.total);
+    } catch (error) {
+        console.error('Veri çekme hatası:', error);
+        hasMore = false;
+    } finally {
+        isLoading = false;
+        loadingIndicator.style.display = 'none';
+
+        // Eğer daha fazla içerik yoksa "tüm içerikler gösterildi" mesajını göster
+        if (!hasMore) {
+            endOfContentMessage.style.display = 'block';
         }
     }
+}
+
+
+const platformCheckboxes = document.querySelectorAll('input[name="platform"]');
+
+platformCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', () => {
+        if (checkbox.checked) {
+            platformCheckboxes.forEach(other => {
+                if (other !== checkbox) other.checked = false;
+            });
+        }
+    });
+});
+
 
     // Arama Overlay için veri çekme
     async function fetchSearchResults(query) {
@@ -105,9 +157,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Aktif filtreleri gösterme
-    function updateActiveFilters(filters) {
-        activeFilters.innerHTML = `<span class="total-results" id="total-results">${filteredContent.length} film veya dizi bulundu</span>`;
-        
+    function updateActiveFilters(filters, totalItems) {
+        activeFilters.innerHTML = `<span class="total-results" id="total-results">${totalItems} film veya dizi bulundu</span>`;
+
         if (filters.type) {
             const tag = document.createElement('span');
             tag.className = 'filter-tag';
@@ -124,7 +176,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             filters.genres.forEach(genre => {
                 const tag = document.createElement('span');
                 tag.className = 'filter-tag';
-                tag.innerHTML = `Tür: ${genre} <i class="fas fa-times" data-filter="genre" data-value="${genre}"></i>`;
+                const label = ['Exxen', 'Gain', 'BluTV', 'Disney+', 'Tabii', 'Tod'].includes(genre) ? 'Platform' : 'Tür';
+                tag.innerHTML = `${label}: ${genre} <i class="fas fa-times" data-filter="${label.toLowerCase()}" data-value="${genre}"></i>`;
                 activeFilters.appendChild(tag);
             });
         }
@@ -154,8 +207,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const filterValue = e.target.dataset.value;
                 if (filterType === 'type') typeSelect.value = '';
                 if (filterType === 'year') yearSelect.value = '';
-                if (filterType === 'genre') {
+                if (filterType === 'tür') {
                     const checkbox = document.getElementById(`genre-${filterValue.toLowerCase().replace(' ', '-')}`);
+                    if (checkbox) checkbox.checked = false;
+                }
+                if (filterType === 'platform') {
+                    const checkbox = document.getElementById(`platform-${filterValue.toLowerCase().replace('+', '').replace(' ', '-')}`);
                     if (checkbox) checkbox.checked = false;
                 }
                 if (filterType === 'dublaj') dublajCheckbox.checked = false;
@@ -191,13 +248,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 break;
         }
 
-        const selectedGenres = Array.from(document.querySelectorAll('input[name="genre"]:checked'))
-            .map(checkbox => checkbox.value);
+        const selectedGenres = Array.from(document.querySelectorAll('input[name="genre"]:checked')).map(checkbox => checkbox.value);
+        const selectedPlatforms = Array.from(document.querySelectorAll('input[name="platform"]:checked')).map(checkbox => checkbox.value);
+        const allGenres = [...selectedGenres, ...selectedPlatforms];
 
         return {
             type: typeSelect.value,
             year: yearSelect.value,
-            genres: selectedGenres,
+            genres: allGenres,
             dublaj: dublajCheckbox.checked,
             altyazi: altyaziCheckbox.checked,
             yerli: yerliCheckbox.checked,
@@ -206,102 +264,96 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Sonuçları Gösterme
-    function displayContent(contentList, page) {
-        const searchResultsGrid = document.getElementById('search-results-grid');
-        const searchResultsContainer = document.querySelector('.search-results-container');
-        const pagination = document.getElementById('pagination');
-        searchResultsGrid.innerHTML = '';
+    function displayContent(contentList, append = false) {
+    const searchResultsGrid = document.getElementById('search-results-grid');
+    const searchResultsContainer = document.querySelector('.search-results-container');
+    const existingNoResults = searchResultsContainer.querySelector('.no-results');
+    if (existingNoResults) existingNoResults.remove();
 
-        // Mevcut no-results div'ini temizle
-        const existingNoResults = searchResultsContainer.querySelector('.no-results');
-        if (existingNoResults) {
-            existingNoResults.remove();
-        }
-
-        const start = (page - 1) * itemsPerPage;
-        const end = start + itemsPerPage;
-        const paginatedContent = contentList.slice(start, end);
-
-        if (paginatedContent.length === 0) {
-            const noResultsDiv = document.createElement('div');
-            noResultsDiv.className = 'no-results';
-            noResultsDiv.innerHTML = `
-                <i class="fas fa-film"></i>
-                <p>Aradığınız kriterlere uygun film veya dizi bulunamadı.</p>
-            `;
-            searchResultsContainer.insertBefore(noResultsDiv, pagination);
-            pagination.style.display = 'none';
-        } else {
-            if (yearSelect.value === 'before-2000') {
-                const invalidMovies = paginatedContent.filter(item => item.year > 2000);
-                if (invalidMovies.length > 0) {
-                    console.warn('HATA: 2000 sonrası içerikler görüntüleniyor:', invalidMovies.map(m => ({ id: m.id, title: m.title, year: m.year })));
-                }
-            }
-            paginatedContent.forEach(item => {
-                if (yearSelect.value === 'before-2000' && item.year > 2000) {
-                    return; // 2000 sonrası içerikleri gösterme
-                }
-                const contentCard = document.createElement('div');
-                contentCard.className = 'movie-card';
-                let languageBadge = '';
-                const hasDublaj = item.language.includes("Türkçe Dublaj");
-                const hasAltyazi = item.language.includes("Türkçe Altyazı");
-                const isYerli = item.language.includes("Yerli");
-                if (isYerli) {
-                    languageBadge = `
-                        <span class="language-badge">
-                            <img src="../resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli
-                        </span>
-                    `;
-                } else if (hasDublaj && hasAltyazi) {
-                    languageBadge = `
-                        <span class="language-badge">
-                            <img src="../resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj
-                            <i class="fas fa-closed-captioning"></i> Altyazı
-                        </span>
-                    `;
-                } else if (hasDublaj) {
-                    languageBadge = `
-                        <span class="language-badge">
-                            <img src="../resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj
-                        </span>
-                    `;
-                } else if (hasAltyazi) {
-                    languageBadge = `
-                        <span class="language-badge">
-                            <i class="fas fa-closed-captioning"></i> Altyazı
-                        </span>
-                    `;
-                }
-                contentCard.innerHTML = `
-                    <div class="poster-wrapper">
-                        <img src="${item.poster}" alt="${item.title}" class="movie-poster">
-                        ${languageBadge}
-                    </div>
-                    <div class="movie-info">
-                        <h3 class="movie-title">${item.title}${item.title2 ? ` <span class="search-title2">(${item.title2})</span>` : ''}</h3>
-                        <div class="movie-meta">
-                            <span>${item.year}</span>
-                            <span class="rating"><i class="fas fa-star"></i> ${item.rating}</span>
-                        </div>
-                    </div>
-                `;
-                contentCard.onclick = () => window.location.href = item.type === "dizi" ? `../dizi.html?id=${item.id}` : `../film.html?id=${item.id}`;
-                searchResultsGrid.appendChild(contentCard);
-            });
-            pagination.style.display = 'flex';
-        }
-
-        const totalItems = contentList.length;
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
-        totalResults.textContent = `${totalItems} film veya dizi bulundu`;
-        currentPageSpan.textContent = page;
-        totalPagesSpan.textContent = totalPages;
-
-        prevPageBtn.disabled = page === 1;
-        nextPageBtn.disabled = page === totalPages;
+    // Eğer içerik yoksa mesaj göster
+    if (!contentList.length) {
+        const noResultsDiv = document.createElement('div');
+        noResultsDiv.className = 'no-results';
+        noResultsDiv.innerHTML = `
+            <i class="fas fa-film"></i>
+            <p>Aradığınız kriterlere uygun film veya dizi bulunamadı.</p>
+        `;
+        searchResultsContainer.appendChild(noResultsDiv);
+        return;
     }
+
+    // Eğer append değilse temizle
+    if (!append) {
+        searchResultsGrid.innerHTML = '';
+    }
+
+    // Mevcut içeriklerin id'lerini al
+    const existingIds = new Set(
+        Array.from(searchResultsGrid.children).map(el => el.dataset.id)
+    );
+
+    contentList.forEach(item => {
+        if (existingIds.has(String(item.id))) return;
+        if (yearSelect.value === 'before-2000' && item.year > 2000) return;
+
+        const contentCard = document.createElement('div');
+        contentCard.className = 'movie-card';
+        contentCard.dataset.id = item.id;
+
+        let languageBadge = '';
+        const hasDublaj = item.language.includes("Türkçe Dublaj");
+        const hasAltyazi = item.language.includes("Türkçe Altyazı");
+        const isYerli = item.language.includes("Yerli");
+
+        if (isYerli) {
+            languageBadge = `
+                <span class="language-badge">
+                    <img src="../resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli
+                </span>
+            `;
+        } else if (hasDublaj && hasAltyazi) {
+            languageBadge = `
+                <span class="language-badge">
+                    <img src="../resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj
+                    <i class="fas fa-closed-captioning"></i> Altyazı
+                </span>
+            `;
+        } else if (hasDublaj) {
+            languageBadge = `
+                <span class="language-badge">
+                    <img src="../resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj
+                </span>
+            `;
+        } else if (hasAltyazi) {
+            languageBadge = `
+                <span class="language-badge">
+                    <i class="fas fa-closed-captioning"></i> Altyazı
+                </span>
+            `;
+        }
+
+        contentCard.innerHTML = `
+            <div class="poster-wrapper">
+                <img src="${item.poster}" alt="${item.title}" class="movie-poster">
+                ${languageBadge}
+            </div>
+            <div class="movie-info">
+                <h3 class="movie-title">${item.title}</h3>
+                <div class="movie-meta">
+                    <span>${item.year}</span>
+                    <div class="imdb-rating">
+                        <i class="fas fa-star"></i> ${item.rating}
+                    </div>
+                </div>
+            </div>
+        `;
+        contentCard.onclick = () => window.location.href = item.type === "dizi"
+            ? `../dizi.html?id=${item.id}`
+            : `../film.html?id=${item.id}`;
+        searchResultsGrid.appendChild(contentCard);
+    });
+}
+
 
     // Arama Overlay Sonuçları
     function displaySearchOverlayResults(results) {
@@ -330,14 +382,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Arama ve Sayfalama Kontrolleri
+    // Arama ve Sonsuz Kaydırma Kontrolleri
     async function performSearch() {
-        const filters = getFilters();
-        console.log('Uygulanan filtreler:', filters); // Hata ayıklama için
-        filteredContent = await fetchMovies(filters);
         currentPage = 1;
-        displayContent(filteredContent, currentPage);
-        updateActiveFilters(filters);
+        hasMore = true;
+        searchResultsGrid.innerHTML = '';
+        const filters = getFilters();
+        console.log('Uygulanan filtreler:', filters);
+        await fetchMovies(filters, currentPage);
     }
 
     searchButton.addEventListener('click', performSearch);
@@ -345,6 +397,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     resetButton.addEventListener('click', () => {
         yearSelect.value = '';
         document.querySelectorAll('input[name="genre"]:checked').forEach(cb => cb.checked = false);
+        document.querySelectorAll('input[name="platform"]:checked').forEach(cb => cb.checked = false);
         sortSelect.value = 'year-desc';
         dublajCheckbox.checked = false;
         altyaziCheckbox.checked = false;
@@ -353,18 +406,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         performSearch();
     });
 
-    prevPageBtn.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            displayContent(filteredContent, currentPage);
-        }
-    });
+    // Sonsuz kaydırma için olay dinleyici
+    window.addEventListener('scroll', async () => {
+        if (isLoading || !hasMore) return;
 
-    nextPageBtn.addEventListener('click', () => {
-        const totalPages = Math.ceil(filteredContent.length / itemsPerPage);
-        if (currentPage < totalPages) {
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        if (scrollTop + clientHeight >= scrollHeight - 100) {
             currentPage++;
-            displayContent(filteredContent, currentPage);
+            const filters = getFilters();
+            await fetchMovies(filters, currentPage, true);
         }
     });
 
@@ -402,7 +452,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Auth Modal
 function openAuthModal(type = 'login') {
-
     const modal = document.getElementById('auth-modal');
     modal.classList.add('active');
     switchTab(type);

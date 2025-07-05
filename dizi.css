@@ -209,6 +209,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     margin-top: 20px;
+    padding: 0px 0px;
 }
 
 .episode-card {
@@ -219,6 +220,7 @@
     cursor: pointer;
     transition: all 0.3s ease;
     overflow: hidden;
+    padding: 0;
 }
 
 .episode-card::before {
@@ -325,7 +327,7 @@
     flex-wrap: wrap;
 }
 
-.like-btn, .dislike-btn, .favorite-btn {
+.like-btn, .dislike-btn, .favorite-btn, .watchLaterBtn {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -344,7 +346,7 @@
     color: var(--accent-color);
 }
 
-.like-btn:hover:not(.active), .dislike-btn:hover:not(.active), .favorite-btn:hover:not(.active) {
+.like-btn:hover:not(.active), .dislike-btn:hover:not(.active), .favorite-btn:hover:not(.active), .watchLaterBtn:hover:not(.active) {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -368,14 +370,17 @@
     color: var(--accent-color);
 }
 
-.favorite-btn.active {
+.favorite-btn{
+    margin-right: 5px;
+}
+
+.favorite-btn.active, .watchLaterBtn.active{
     background-color: transparent;
     border-color: var(--accent-color);
     color: var(--accent-color);
-
 }
 
-.favorite-btn.active i {
+.favorite-btn.active i ,.watchLaterBtn.active i {
     color: var(--accent-color);
     animation: heartbeat 0.5s ease;
 }
@@ -386,11 +391,11 @@
     100% { transform: scale(1); }
 }
 
-.like-btn.active:hover, .dislike-btn.active:hover, .favorite-btn.active:hover {
+.like-btn.active:hover, .dislike-btn.active:hover, .favorite-btn.active:hover , .watchLaterBtn.active:hover {
     opacity: 0.9;
 }
 
-.like-btn.disabled, .dislike-btn.disabled, .favorite-btn.disabled {
+.like-btn.disabled, .dislike-btn.disabled, .favorite-btn.disabled, .watchLaterBtn.disabled {
     cursor: not-allowed;
     opacity: 0.5;
 }
@@ -634,7 +639,7 @@
         gap: 10px;
     }
 
-    .like-btn, .dislike-btn, .favorite-btn {
+    .like-btn, .dislike-btn, .favorite-btn, .watchLaterBtn {
         padding: 6px 12px;
         font-size: 0.9rem;
     }
@@ -729,7 +734,7 @@ padding: 8px;
         font-size: 0.9rem;
     }
 
-    .like-btn, .dislike-btn, .favorite-btn {
+    .like-btn, .dislike-btn, .favorite-btn , .watchLaterBtn {
         padding: 5px 10px;
         font-size: 0.85rem;
     }
