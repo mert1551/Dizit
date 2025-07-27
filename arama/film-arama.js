@@ -1,11 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // API_URL'yi global olarak tanımla
-    let API_URL = 'http://localhost:3000'; // Varsayılan değer, config'den güncellenecek
-
-    // API_URL'yi çekme fonksiyon
-
-
-
+  const API_URL = 'https://dizit.onrender.com';
     // DOM Elemanları
     const searchOverlayInput = document.getElementById('search-overlay-input');
     const searchOverlay = document.getElementById('search-overlay');
