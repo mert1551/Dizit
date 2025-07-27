@@ -463,15 +463,15 @@
 
         // API URL'sini dinamik olarak al
         async function fetchApiUrl() {
-    try {
-        const response = await fetch('/api/config');
-        const data = await response.json();
-        apiUrl = data.apiUrl || 'http://localhost:3000';
-    } catch (err) {
-        console.error('API URL alınamadı:', err);
-        apiUrl = 'http://localhost:3000'; // fallback
-    }
-}
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                API_URL = data.apiUrl;
+            } catch (error) {
+                console.error('API_URL alınırken hata:', error);
+                // Hata durumunda varsayılan URL kullanılacak
+            }
+        }
 
 
         function showToast(message, type = 'success') {
