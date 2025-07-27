@@ -269,7 +269,7 @@
 </head>
 <body>
     <header id="header">
-        <a href="index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="burger-menu" id="burger-menu">
                 <i class="fas fa-bars"></i>
@@ -277,7 +277,7 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="index.html">Anasayfa</a></li>
+                <li><a href="/">Anasayfa</a></li>
                 <li><a href="filmler.html?type=film">Filmler</a></li>
                 <li><a href="diziler.html?type=dizi">Diziler</a></li>
                 <li><a href="arama/film-dizi-arama.html">Detaylı Arama (Keşfet)</a></li>
@@ -383,7 +383,7 @@
                 currentUser = null;
                 updateAuthUI();
                 showToast('Oturum bulunamadı, lütfen giriş yapın', 'error');
-                window.location.href = 'index.html';
+                window.location.href = '/';
                 return false;
             }
             try {
@@ -406,7 +406,7 @@
                     currentUser = null;
                     updateAuthUI();
                     showToast(errorData.error || 'Oturum geçersiz, lütfen yeniden giriş yapın', 'error');
-                    window.location.href = 'index.html';
+                    window.location.href = '/';
                     return false;
                 }
             } catch (error) {
@@ -417,16 +417,14 @@
                 currentUser = null;
                 updateAuthUI();
                 showToast('Sunucuya bağlanılamadı, lütfen internet bağlantınızı kontrol edin', 'error');
-                window.location.href = 'index.html';
+                window.location.href = '/';
                 return false;
             }
         }
 
-        function updateAuthUI() {
-            document.getElementById('user-info').style.display = isLoggedIn ? 'flex' : 'none';
-            if (isLoggedIn) document.getElementById('username-display').textContent = currentUser;
-        }
-
+       function updateAuthUI() {
+    
+}
         async function loadSettings() {
             try {
                 const token = localStorage.getItem('token');
@@ -491,7 +489,7 @@
             isLoggedIn = false;
             currentUser = null;
             updateAuthUI();
-            window.location.href = 'index.html';
+            window.location.href = '/';
         }
 
         document.addEventListener('DOMContentLoaded', async () => {

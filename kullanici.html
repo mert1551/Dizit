@@ -776,7 +776,7 @@
               </div>`).join("")
           : "<p style='color: var(--text-secondary); text-align: center;'>Favori dizi yok.</p>";
       }  catch (err) {
-            document.querySelector('.profile-container').innerHTML = `<p class="kullanici-err">Kullanıcı bulunamadı.<br><a href="index.html">Ana Sayfaya Dön</a></p>`;
+            document.querySelector('.profile-container').innerHTML = `<p class="kullanici-err">Kullanıcı bulunamadı.<br><a href="/">Ana Sayfaya Dön</a></p>`;
             console.error(err);
         }
     }

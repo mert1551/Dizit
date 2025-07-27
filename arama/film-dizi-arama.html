@@ -5,42 +5,110 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Film veya Dizi Arama - DİZİT</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="film-dizi-arama.css">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/arama/film-dizi-arama.css">
+    <link rel="icon" href="/resim/dizit-favicon.ico" type="image/x-icon">
+<meta name="description" content="DİZİT arama sayfası ile yüzlerce film ve dizi arasında tür, yıl, IMDB puanı ve platforma göre filtreleme yaparak tam aradığınızı bulun.">
+<meta name="keywords" content="film arama, dizi arama, gelişmiş filtreleme, dizi türleri, IMDB sıralama, dizit arama">
+<meta name="robots" content="index, follow">
+<meta name="author" content="DİZİT">
+<meta name="theme-color" content="#121212">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Film ve Dizi Arama | DİZİT">
+<meta property="og:description" content="Dizit'in gelişmiş arama motoruyla istediğiniz türde film veya diziyi saniyeler içinde bulun. Yıl, tür, dil, IMDB puanı ve daha fazlasına göre filtrele!">
+<meta property="og:image" content="https://dizit.onrender.com/resim/dizit-logo-og-1200x630.png">
+<meta property="og:url" content="https://dizit.onrender.com/film-dizi-arama.html">
+<meta property="og:site_name" content="DİZİT">
+<meta property="og:locale" content="tr_TR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Film ve Dizi Arama | DİZİT">
+<meta name="twitter:description" content="Filmleri ve dizileri detaylı filtrelerle arayın: yıl, tür, platform, dil seçimi ve IMDB puanı gibi birçok özellikle en doğru sonucu bulun.">
+<meta name="twitter:image" content="https://dizit.onrender.com/resim/dizit-logo-og-1200x630.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "DİZİT",
+  "url": "https://dizit.onrender.com",
+  "description": "DİZİT arama sayfası ile yüzlerce film ve diziyi gelişmiş filtreler sayesinde kolayca bulun. Yıl, tür, dil, IMDB puanı ve platforma göre arama yapın.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "DİZİT",
+    "url": "https://dizit.onrender.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dizit.onrender.com/resim/dizit-logo-og-1200x630.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://dizit.onrender.com/film-dizi-arama.html?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "Film ve Dizi Arama Sonuçları",
+    "description": "Tür, yıl, IMDB puanı, platform ve dile göre filtrelenmiş film veya dizi listesi.",
+    "itemListOrder": "http://schema.org/ItemListOrderDescending",
+    "numberOfItems": 100,
+    "itemListElement": []
+  }
+}
+</script>
+<style>
+
+
+</style>
+</script>
+
 </head>
 <body>
-    <!-- Header -->
+    <div class="loading-screen" id="loading-screen">
+    <div class="curtain-container">
+        <div class="curtain-left"></div>
+        <div class="curtain-right"></div>
+    </div>
+    <div class="loading-logo">DİZİT</div>
+    <div class="popcorn-loader">
+        <div class="popcorn"></div>
+        <div class="popcorn"></div>
+        <div class="popcorn"></div>
+    </div>
+</div>
+
     <header id="header">
-        <a href="../index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
-            <div class="search-box">
-                <input type="text" id="search-input" placeholder="Film veya dizi ara...">
-                <button id="search-btn"><i class="fas fa-search"></i></button>
-            </div>
             <div class="burger-menu" id="burger-menu">
                 <i class="fas fa-bars"></i>
             </div>
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="../index.html" class="home-link">Anasayfa</a></li>
-                <li><a href="#" class="active">Filmler</a></li>
-                <li><a href="#">Diziler</a></li>
-                <li><a href="#">Kategoriler</a></li>
-                <li><a href="#">Trend</a></li>
+                <li><a href="/">Anasayfa</a></li>
+                <li><a href="/filmler">Filmler</a></li>
+                <li><a href="/diziler">Diziler</a></li>
+                <li><a href="#">Keşfet</a></li>
+                <li><a href="/istek-ve-sikayet">İstek ve Şikayet</a></li>
             </ul>
-            <div class="auth-buttons" id="auth-buttons">
-                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
-                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
-            </div>
-            <div class="user-info" id="user-info" style="display: none;">
-                <div class="user-profile">
-                    <span class="user-greeting">Merhaba,</span>
-                    <span class="username-display" id="username-display"></span>
-                </div>
-                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
-            </div>
         </div>
+        <div class="profile-wrapper">
+    <div class="profile-card" onclick="toggleProfileMenu()">
+        <img src="/resim/avatar/user.png" alt="Profile Avatar" class="profile-avatar">
+        <span class="profile-username"></span>
+        <i class="fas fa-chevron-down profile-arrow"></i>
+    </div>
+    <div class="profile-dropdown" id="profile-dropdown">
+        <ul class="profile-menu">
+            <li><a href="hesabim.html"><i class="fas fa-user"></i> Profilim</a></li>
+            <li><a href="ayarlar.html"><i class="fas fa-cog"></i> Ayarlar</a></li>
+            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</a></li>
+        </ul>
+    </div>
+</div>
+
     </header>
 
     <!-- Arama Overlay -->
@@ -125,6 +193,12 @@
             <div class="advanced-search-container">
                 <div class="search-form">
                     <!-- İçerik Seçimi -->
+                       <div class="search-form-row">
+  <div class="search-form-group">
+    <label for="title">Film veya Dizi Adı</label>
+    <input class="styled-input " type="text" id="title" placeholder="Örn: İnception, The Office, Behzat Ç...">
+  </div>
+</div>
                     <div class="search-form-row">
                         <div class="search-form-group">
                             <label for="type">İçerik</label>
@@ -166,6 +240,10 @@
                                 <div class="genre-checkbox-container">
                                     <input type="checkbox" id="genre-animasyon" name="genre" value="Animasyon">
                                     <label for="genre-animasyon">Animasyon</label>
+                                </div>
+                                <div class="genre-checkbox-container">
+                                    <input type="checkbox" id="genre-anime" name="genre" value="Anime">
+                                    <label for="genre-anime">Anime</label>
                                 </div>
                                 <div class="genre-checkbox-container">
                                     <input type="checkbox" id="genre-belgesel" name="genre" value="Belgesel">
@@ -373,24 +451,28 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="../movies.js"></script>
     <script>
+
+
+
         let isLoggedIn = !!localStorage.getItem('token');
         let currentUser = localStorage.getItem('username') || null;
         let apiUrl = '';
 
+
+
         // API URL'sini dinamik olarak al
         async function fetchApiUrl() {
-            try {
-                const response = await fetch('/api/config');
-                const data = await response.json();
-                apiUrl = data.apiUrl;
-                console.log('API URL alındı:', apiUrl);
-            } catch (error) {
-                console.error('API URL alınamadı:', error);
-                apiUrl = 'http://localhost:3000'; // Fallback URL
-            }
-        }
+    try {
+        const response = await fetch('/api/config');
+        const data = await response.json();
+        apiUrl = data.apiUrl || 'http://localhost:3000';
+    } catch (err) {
+        console.error('API URL alınamadı:', err);
+        apiUrl = 'http://localhost:3000'; // fallback
+    }
+}
+
 
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
@@ -406,49 +488,10 @@
             }, 3000);
         }
 
-        async function checkAuth() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                isLoggedIn = false;
-                currentUser = null;
-                updateAuthUI();
-                return false;
-            }
-            try {
-                const res = await fetch(`${apiUrl}/api/verify-token`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    isLoggedIn = true;
-                    currentUser = data.username;
-                    localStorage.setItem('username', data.username);
-                    updateAuthUI();
-                    return true;
-                } else {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('username');
-                    isLoggedIn = false;
-                    currentUser = null;
-                    updateAuthUI();
-                    return false;
-                }
-            } catch (error) {
-                console.error('Token doğrulama hatası:', error);
-                localStorage.removeItem('token');
-                localStorage.removeItem('username');
-                isLoggedIn = false;
-                currentUser = null;
-                updateAuthUI();
-                return false;
-            }
-        }
+       function updateAuthUI() {
+    
+}
 
-        function updateAuthUI() {
-            document.getElementById('auth-buttons').style.display = isLoggedIn ? 'none' : 'flex';
-            document.getElementById('user-info').style.display = isLoggedIn ? 'flex' : 'none';
-            if (isLoggedIn) document.getElementById('username-display').textContent = currentUser;
-        }
 
         function openAuthModal(type = 'login') {
             const modal = document.getElementById('auth-modal');
@@ -510,18 +553,17 @@
 
         async function handleLogin(event) {
             event.preventDefault();
+             await fetchApiUrl();
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
             const errorEl = document.getElementById('login-error');
             try {
-                console.log('Giriş denemesi:', { username });
                 const res = await fetch(`${apiUrl}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
-                console.log('Sunucu yanıtı:', data);
                 if (res.ok) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('username', data.username);
@@ -531,15 +573,12 @@
                     closeAuthModal();
                     updateAuthUI();
                     if (data.isAdmin) {
-                        console.log('Admin kullanıcısı, yönlendiriliyor: /admin/admin-panel.html');
-                        window.location.href = '/admin/admin-panel.html';
+                        window.location.href = 'admin/admin-panel.html';
                     } else {
-                        console.log('Admin olmayan kullanıcı, sayfa yeniden yükleniyor');
                         window.location.reload();
                     }
                 } else {
                     errorEl.textContent = data.error || 'Giriş başarısız';
-                    console.log('Giriş hatası:', data.error);
                 }
             } catch (error) {
                 errorEl.textContent = 'Sunucuyla bağlantı hatası';
@@ -625,60 +664,20 @@
         }
 
         function logout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('username');
-            isLoggedIn = false;
-            currentUser = null;
-            updateAuthUI();
-            window.location.href = '../index.html';
-        }
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    isLoggedIn = false;
+    currentUser = null;
+    updateAuthUI();
+    updateProfileAvatar();
+    window.location.href = window.location.pathname; // temiz yönlendirme
+}
 
-        // Arama Overlay İşlevselliği
-        const searchInput = document.getElementById('search-input');
-        const searchOverlay = document.getElementById('search-overlay');
-        const searchOverlayInput = document.getElementById('search-overlay-input');
-        const closeOverlayBtn = document.getElementById('close-overlay');
-        const searchResults = document.getElementById('search-results');
 
-        function openSearchOverlay() {
-            searchOverlay.classList.add('active');
-            searchOverlayInput.focus();
-            searchOverlayInput.value = searchInput.value;
-            performSearch(searchOverlayInput.value);
-        }
 
-        function closeSearchOverlay() {
-            searchOverlay.classList.remove('active');
-            searchResults.innerHTML = '';
-            searchOverlayInput.value = '';
-            searchInput.value = '';
-        }
 
-        async function performSearch(query) {
-            const searchResults = document.getElementById('search-results');
-            if (!query.trim()) {
-                searchResults.innerHTML = '';
-                return;
-            }
-            try {
-                const res = await fetch(`${apiUrl}/api/search?q=${encodeURIComponent(query)}`);
-                if (!res.ok) throw new Error('Arama başarısız');
-                const data = await res.json();
-                displaySearchOverlayResults(data);
-            } catch (error) {
-                searchResults.innerHTML = '';
-                console.error('Arama hatası:', error);
-            }
-        }
 
-        searchInput.addEventListener('focus', openSearchOverlay);
-        searchOverlayInput.addEventListener('input', () => performSearch(searchOverlayInput.value));
-        closeOverlayBtn.addEventListener('click', closeSearchOverlay);
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchApiUrl();
-            await checkAuth();
-        });
+       
         function getQueryParam(name) {
     const params = new URLSearchParams(window.location.search);
     return params.get(name);
@@ -701,9 +700,116 @@ document.addEventListener("DOMContentLoaded", () => {
     // Otomatik arama başlat
     document.getElementById("search-button").click();
 });
+ 
+
+
+function toggleProfileMenu() {
+        const dropdown = document.getElementById('profile-dropdown');
+        if (!isLoggedIn) {
+            openAuthModal('login');
+        } else {
+            dropdown.classList.toggle('active');
+        }
+    }
+
+    function closeProfileMenu() {
+        const dropdown = document.getElementById('profile-dropdown');
+        dropdown.classList.remove('active');
+    }
+
+    async function updateProfileAvatar() {
+        const profileAvatar = document.querySelector('.profile-avatar');
+        const profileUsername = document.querySelector('.profile-username');
+        if (!isLoggedIn) {
+            profileAvatar.src = '/resim/avatar/user.png';
+            profileUsername.textContent = 'Giriş Yap';
+            return;
+        }
+        try {
+            const response = await fetch(`${apiUrl}/api/user-profile?t=${Date.now()}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('username');
+                    isLoggedIn = false;
+                    currentUser = null;
+                    openAuthModal('login');
+                }
+                throw new Error('Kullanıcı verileri alınamadı');
+            }
+            const user = await response.json();
+            profileAvatar.src = user.avatar || '/resim/avatar/user.png';
+            profileAvatar.onerror = () => {
+                profileAvatar.src = '/resim/avatar/user.png';
+            };
+            profileUsername.textContent = user.username || 'Kullanıcı';
+            localStorage.setItem('username', user.username);
+        } catch (error) {
+            console.error('Profil verileri yüklenemedi:', error);
+            profileAvatar.src = '/resim/avatar/user.png';
+            profileUsername.textContent = localStorage.getItem('username') || 'Giriş Yap';
+        }
+    }
+
+    async function checkAuth() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            isLoggedIn = false;
+            currentUser = null;
+            await updateProfileAvatar();
+            return false;
+        }
+        try {
+            const res = await fetch(`${apiUrl}/api/verify-token`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                isLoggedIn = true;
+                currentUser = data.username;
+                localStorage.setItem('username', data.username);
+                await updateProfileAvatar();
+                return true;
+            } else {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                await updateProfileAvatar();
+                return false;
+            }
+        } catch (error) {
+            console.error('Token doğrulama hatası:', error);
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            await updateProfileAvatar();
+            return false;
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        isLoggedIn = false;
+        currentUser = null;
+        updateProfileAvatar();
+        window.location.reload();
+    }
+
+   document.addEventListener("DOMContentLoaded", async () => {
+   
+    await checkAuth();
+ 
+     document.getElementById('loading-screen').classList.add('hidden');
+});
+
+
 
     </script>
-    
-    <script src="film-arama.js"></script>
+    <script src="/arama/film-arama.js"></script>
 </body>
 </html>

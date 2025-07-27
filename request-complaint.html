@@ -6,6 +6,7 @@
     <title>DİZİT - İstek ve Şikayet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="/resim/dizit-favicon.ico" type="image/x-icon">
 </head>
 <style>
     /* Request and Complaint Form Styles */
@@ -359,34 +360,67 @@
             font-size: 0.65rem;
         }
     }
+    #burger-menu {
+  position: absolute;
+  right: 155px;
+  z-index: 2000;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+
+@media screen and (max-width: 480px) {
+    #burger-menu {
+        right: 60px;
+    }
+}
+
+
     </style>
 <body>
+    <div class="loading-screen" id="loading-screen">
+  <div class="curtain-container">
+    <div class="curtain-left"></div>
+    <div class="curtain-right"></div>
+  </div>
+  <div class="loading-logo">DİZİT</div>
+  <div class="popcorn-loader">
+    <div class="popcorn"></div>
+    <div class="popcorn"></div>
+    <div class="popcorn"></div>
+  </div>
+</div>
+
     <!-- Header -->
-    <header id="header">
+<header id="header">
         <a href="/" class="logo">DİZİT</a>
-        <div class="header-right">
             <div class="burger-menu" id="burger-menu">
                 <i class="fas fa-bars"></i>
             </div>
         </div>
         <div class="nav-container" id="nav-container">
-            <ul class="nav-links">
-                <li><a href="/" class="home-link active">Anasayfa</a></li>
-                <li><a href="/filmler.html?type=film">Filmler</a></li>
-                <li><a href="/diziler.html?type=dizi">Diziler</a></li>
-                <li><a href="/arama/film-dizi-arama.html">Detaylı Arama (Keşfet)</a></li>
-                <li><a href="/istek-form/request-complaint.html">İstek ve Şikayet</a></li>
+             <ul class="nav-links">
+                <li><a href="/">Anasayfa</a></li>
+                <li><a href="/filmler">Filmler</a></li>
+                <li><a href="/diziler">Diziler</a></li>
+                <li><a href="/kesfet">Keşfet</a></li>
+                <li><a href="#">İstek ve Şikayet</a></li>
             </ul>
-            <div class="auth-buttons" id="auth-buttons">
-                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
-                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+        </div>
+        <div class="profile-wrapper">
+            <div class="profile-card" onclick="toggleProfileMenu()">
+                <img src="/resim/avatar/user.png" alt="Profile Avatar" class="profile-avatar">
+                <span class="profile-username"></span>
+                <i class="fas fa-chevron-down profile-arrow"></i>
             </div>
-            <div class="user-info" id="user-info" style="display: none;">
-                <div class="user-profile">
-                    <span class="user-greeting">Merhaba,</span>
-                    <span class="username-display" id="username-display"></span>
-                </div>
-                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            <div class="profile-dropdown" id="profile-dropdown">
+                <ul class="profile-menu">
+                    <li><a href="hesabim.html"><i class="fas fa-user"></i> Profilim</a></li>
+                    <li><a href="ayarlar.html"><i class="fas fa-cog"></i> Ayarlar</a></li>
+                    <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</a></li>
+                </ul>
             </div>
         </div>
     </header>
@@ -509,37 +543,53 @@
 
     <!-- Scripts -->
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-    const form = document.getElementById('request-complaint-form');
-    const formMessage = document.getElementById('form-message');
-    const authMessage = document.getElementById('auth-message');
-    const formContainer = document.getElementById('form-container');
-    const requestsList = document.getElementById('requests-list');
-    const burgerMenu = document.getElementById('burger-menu');
-    const navContainer = document.getElementById('nav-container');
-    const authButtons = document.getElementById('auth-buttons');
-    const userInfo = document.getElementById('user-info');
-    const usernameDisplay = document.getElementById('username-display');
-    let isLoggedIn = !!localStorage.getItem('token');
-    let currentUser = localStorage.getItem('username') || null;
-    let API_URL = 'http://localhost:3000'; // Varsayılan, yapılandırmadan güncellenecek
+        let isLoggedIn = !!localStorage.getItem('token');
+let currentUser = localStorage.getItem('username') || null;
 
-    if (!form || !formMessage || !authMessage || !formContainer || !requestsList || !burgerMenu || !navContainer || !authButtons || !userInfo || !usernameDisplay) {
-        console.error('Gerekli elementler bulunamadı.');
-        return;
-    }
+        let API_URL = 'http://localhost:3000'; // Varsayılan, yapılandırmadan güncellenecek
+       document.addEventListener('DOMContentLoaded', async () => {
+  // 🔁 DOM elementlerini en BAŞTA tanımla
+  const form = document.getElementById('request-complaint-form');
+  const formMessage = document.getElementById('form-message');
+  const authMessage = document.getElementById('auth-message');
+  const formContainer = document.getElementById('form-container');
+  const requestsList = document.getElementById('requests-list');
+  const burgerMenu = document.getElementById('burger-menu');
+  const navContainer = document.getElementById('nav-container');
+  const authButtons = document.getElementById('auth-buttons');
+  const userInfo = document.getElementById('user-info');
+  const usernameDisplay = document.getElementById('username-display');
+  
+
+  // Sonra fonksiyonları çağır
+  await fetchApiUrl();
+  await checkAuth();           // ✅ Artık form tanımlı
+  await updateProfileAvatar();
+  await loadRequests();
+
+  // Loading ekranını kaldır
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    loadingScreen.classList.add('hidden');
+    setTimeout(() => loadingScreen.remove(), 800);
+  }
+
+
+  if (!form || !formMessage || !authMessage || !formContainer || !requestsList || !burgerMenu || !navContainer) {
+    console.error('Gerekli elementler bulunamadı.');
+    return;
+}
+
 
     // API_URL'yi al
     async function fetchApiUrl() {
         try {
-            console.log('API_URL isteği gönderiliyor:', '/api/config');
             const response = await fetch('/api/config');
             if (!response.ok) {
                 throw new Error(`HTTP hatası: ${response.status} ${response.statusText}`);
             }
             const config = await response.json();
             API_URL = config.apiUrl || 'http://localhost:3000';
-            console.log('API_URL alındı:', API_URL);
         } catch (error) {
             console.error('API_URL alınamadı:', error.message);
             formMessage.textContent = 'Bağlantı yapılandırması yüklenemedi.';
@@ -548,65 +598,65 @@
     }
 
     // Kullanıcı giriş durumunu kontrol et
-    async function checkAuth() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            isLoggedIn = false;
-            currentUser = null;
-            updateAuthUI();
-            authMessage.style.display = 'block';
-            form.style.display = 'none';
-            return false;
-        }
-        try {
-            console.log('Token doğrulama isteği:', `${API_URL}/api/verify-token`);
-            const response = await fetch(`${API_URL}/api/verify-token`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                isLoggedIn = true;
-                currentUser = data.username;
-                localStorage.setItem('username', data.username);
-                updateAuthUI();
-                authMessage.style.display = 'none';
-                form.style.display = 'block';
-                return true;
-            } else {
-                localStorage.removeItem('token');
-                localStorage.removeItem('username');
-                isLoggedIn = false;
-                currentUser = null;
-                updateAuthUI();
-                authMessage.style.display = 'block';
-                form.style.display = 'none';
-                formMessage.textContent = 'Oturumunuz sona erdi, lütfen tekrar giriş yapın.';
-                formMessage.className = 'form-message error';
-                return false;
-            }
-        } catch (error) {
-            console.error('Token doğrulama hatası:', error.message);
-            localStorage.removeItem('token');
-            localStorage.removeItem('username');
-            isLoggedIn = false;
-            currentUser = null;
-            updateAuthUI();
-            authMessage.style.display = 'block';
-            form.style.display = 'none';
-            formMessage.textContent = 'Bağlantı hatası, lütfen daha sonra tekrar deneyin.';
-            formMessage.className = 'form-message error';
-            return false;
-        }
+async function checkAuth() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    isLoggedIn = false;
+    currentUser = null;
+    updateAuthUI();
+    authMessage.style.display = 'block';
+    form.style.display = 'none';
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/verify-token`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      isLoggedIn = true;
+      currentUser = data.username;
+      localStorage.setItem('username', data.username);
+      updateAuthUI();
+
+      // ✅ FORMU AÇ
+      form.style.display = 'block';
+      authMessage.style.display = 'none';
+      return true;
+    } else {
+      // ❗ token geçersizse sil
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      isLoggedIn = false;
+      currentUser = null;
+      updateAuthUI();
+      authMessage.style.display = 'block';
+      form.style.display = 'none';
+      formMessage.textContent = 'Oturumunuz sona erdi. Lütfen tekrar giriş yapın.';
+      formMessage.className = 'form-message error';
+      return false;
     }
+  } catch (error) {
+    console.error('Token doğrulama hatası:', error.message);
+    isLoggedIn = false;
+    currentUser = null;
+    updateAuthUI();
+    authMessage.style.display = 'block';
+    form.style.display = 'none';
+    formMessage.textContent = 'Bağlantı hatası';
+    formMessage.className = 'form-message error';
+    return false;
+  }
+}
+
 
     // Authentication UI güncelle
-    function updateAuthUI() {
-        authButtons.style.display = isLoggedIn ? 'none' : 'flex';
-        userInfo.style.display = isLoggedIn ? 'flex' : 'none';
-        if (isLoggedIn) {
-            usernameDisplay.textContent = currentUser;
-        }
-    }
+  function updateAuthUI() {
+    
+}
+
 
     // Toast bildirimi göster
     function showToast(message, type = 'success') {
@@ -688,14 +738,12 @@
         const password = document.getElementById('login-password').value;
         const errorEl = document.getElementById('login-error');
         try {
-            console.log('Giriş denemesi:', { username });
             const res = await fetch(`${API_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
             const data = await res.json();
-            console.log('Sunucu yanıtı:', data);
             if (res.ok) {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('username', data.username);
@@ -706,10 +754,9 @@
                 updateAuthUI();
                 await checkAuth();
                 await loadRequests();
-                showToast('Giriş başarılı!', 'success');
+                window.location.reload();  
             } else {
                 errorEl.textContent = data.error || 'Giriş başarısız';
-                console.log('Giriş hatası:', data.error);
             }
         } catch (error) {
             errorEl.textContent = 'Sunucuyla bağlantı hatası';
@@ -805,7 +852,8 @@
         authMessage.style.display = 'block';
         form.style.display = 'none';
         requestsList.innerHTML = '<p>Geçmiş istek/şikayetleri görmek için lütfen giriş yapın.</p>';
-        showToast('Çıkış yapıldı.', 'success');
+        window.location.reload();
+        
     };
 
     // Kullanıcının istek/şikayetlerini yükle
@@ -815,7 +863,6 @@
             return;
         }
         try {
-            console.log('İstek/Şikayet yükleme isteği:', `${API_URL}/api/requests/user`);
             const response = await fetch(`${API_URL}/api/requests/user`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
@@ -823,7 +870,6 @@
                 throw new Error(`HTTP hatası: ${response.status} ${response.statusText}`);
             }
             const requests = await response.json();
-            console.log('İstek/Şikayet API yanıtı:', requests);
 
             if (!Array.isArray(requests)) {
                 console.error('API yanıtı dizi değil:', requests);
@@ -904,7 +950,6 @@
         }
 
         try {
-            console.log('Form gönderim isteği:', `${API_URL}/api/requests`);
             const response = await fetch(`${API_URL}/api/requests`, {
                 method: 'POST',
                 headers: {
@@ -919,7 +964,6 @@
             });
 
             const result = await response.json();
-            console.log('Form gönderim yanıtı:', result);
 
             if (response.ok) {
                 formMessage.textContent = result.message || 'Mesajınız başarıyla gönderildi!';
@@ -957,7 +1001,6 @@
         }
 
         try {
-            console.log('Yanıt gönderim isteği:', `${API_URL}/api/requests/${requestId}/reply`);
             const response = await fetch(`${API_URL}/api/requests/${requestId}/reply`, {
                 method: 'POST',
                 headers: {
@@ -968,7 +1011,6 @@
             });
 
             const result = await response.json();
-            console.log('Yanıt gönderim yanıtı:', result);
 
             if (response.ok) {
                 const formMessage = document.createElement('div');
@@ -1008,11 +1050,76 @@
         }
     });
 
-    // İlk yükleme
-    await fetchApiUrl();
-    await checkAuth();
-    await loadRequests();
+ function toggleProfileMenu() {
+  const dropdown = document.getElementById('profile-dropdown');
+  if (!isLoggedIn) {
+    openAuthModal('login');
+  } else {
+    dropdown.classList.toggle('active');
+  }
+}
+
+
+  function closeProfileMenu() {
+    const dropdown = document.getElementById('profile-dropdown');
+    dropdown.classList.remove('active');
+  }
+
+  async function updateProfileAvatar() {
+    const profileAvatar = document.querySelector('.profile-avatar');
+    const profileUsername = document.querySelector('.profile-username');
+    if (!isLoggedIn) {
+      profileAvatar.src = '/resim/avatar/user.png';
+      profileUsername.textContent = 'Giriş Yap';
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/api/user-profile?t=${Date.now()}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (!response.ok) throw new Error('Kullanıcı bilgisi alınamadı');
+
+      const user = await response.json();
+      profileAvatar.src = user.avatar || '/resim/avatar/user.png';
+      profileUsername.textContent = user.username || 'Kullanıcı';
+
+      // Admin ise menüye link ekle
+      if (user.isAdmin) {
+        const menu = document.querySelector('.profile-menu');
+        if (!menu.querySelector('a[href="/admin/admin-panel.html"]')) {
+          const li = document.createElement('li');
+          li.innerHTML = `<a href="/admin/admin-panel.html"><i class="fas fa-tools"></i> Admin Paneli</a>`;
+          menu.insertBefore(li, menu.firstChild);
+        }
+      }
+
+    } catch (error) {
+      console.error('Profil verisi hatası:', error);
+      profileAvatar.src = '/resim/avatar/user.png';
+      profileUsername.textContent = localStorage.getItem('username') || 'Giriş Yap';
+    }
+  }
+
+  // Dış tıklamada profil menüsünü kapat
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('profile-dropdown');
+    const profileCard = document.querySelector('.profile-card');
+    if (dropdown && !dropdown.contains(e.target) && !profileCard.contains(e.target)) {
+      closeProfileMenu();
+    }
+  });
+
 });
+window.toggleProfileMenu = function () {
+  const dropdown = document.getElementById('profile-dropdown');
+  if (!isLoggedIn) {
+    window.openAuthModal('login');
+  } else {
+    dropdown.classList.toggle('active');
+  }
+};
+
+
     </script>
 </body>
 </html>

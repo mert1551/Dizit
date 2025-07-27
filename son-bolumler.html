@@ -6,102 +6,12 @@
     <title>DİZİT - Son Bölümler</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <style>
-        .episode-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 10px 0;
-        }
-        .episode-card {
-            display: flex;
-            align-items: center;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            height: 100px;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .episode-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-        .episode-poster {
-            width: 60px;
-            height: 90px;
-            object-fit: cover;
-            border-radius: 5px;
-            margin: 5px;
-        }
-        .episode-info {
-            flex: 1;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .episode-series-title {
-            font-size: 1rem;
-            font-weight: 500;
-            color: var(--text-color);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 5px;
-        }
-        .episode-details {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        @media (min-width: 768px) and (max-width: 1200px) {
-            .episode-list {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-                max-width: 100%;
-                padding: 10px;
-            }
-            .episode-card {
-                height: 100px;
-            }
-            .episode-poster {
-                width: 50px;
-                height: 75px;
-            }
-            .episode-series-title {
-                font-size: 0.95rem;
-            }
-            .episode-details {
-                font-size: 0.8rem;
-            }
-        }
-        @media (max-width: 767px) {
-            .episode-poster {
-                width: 50px;
-                height: 75px;
-            }
-            .episode-series-title {
-                font-size: 0.9rem;
-            }
-            .episode-details {
-                font-size: 0.8rem;
-            }
-        }
-    </style>
+    <link rel="icon" href="/resim/dizit-favicon.ico" type="image/x-icon">
+   
 </head>
 <body>
     <header id="header">
-        <a href="index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="Film veya dizi ara...">
@@ -113,7 +23,7 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="index.html" class="home-link">Anasayfa</a></li>
+                <li><a href="/" class="home-link">Anasayfa</a></li>
                 <li><a href="hesabim.html">Hesabım</a></li>
                 <li><a href="filmler.html?type=film">Filmler</a></li>
                 <li><a href="diziler.html?type=dizi">Diziler</a></li>
@@ -295,10 +205,8 @@
         }
 
         function updateAuthUI() {
-            document.getElementById('auth-buttons').style.display = isLoggedIn ? 'none' : 'flex';
-            document.getElementById('user-info').style.display = isLoggedIn ? 'flex' : 'none';
-            if (isLoggedIn) document.getElementById('username-display').textContent = currentUser;
-        }
+    
+}
 
         function openAuthModal(type = 'login') {
             const modal = document.getElementById('auth-modal');
@@ -381,10 +289,9 @@
                     closeAuthModal();
                     updateAuthUI();
                     if (data.isAdmin) {
-                        console.log('Admin kullanıcısı, yönlendiriliyor: /admin/admin-panel.html');
                         window.location.href = '/admin/admin-panel.html';
                     } else {
-                        console.log('Admin olmayan kullanıcı, sayfa yeniden yükleniyor');
+
                         window.location.reload();
                     }
                 } else {
@@ -480,70 +387,50 @@
             isLoggedIn = false;
             currentUser = null;
             updateAuthUI();
-            window.location.href = 'index.html';
+            window.location.href = '/';
         }
 
-        function displayItems(items, containerId, isSlider = false, isEpisode = false) {
-            const container = document.getElementById(containerId);
-            if (!container) {
-                console.error(`Container bulunamadı: ${containerId}`);
-                return;
-            }
-            container.innerHTML = '';
-            console.log(`Rendering items for ${containerId}:`, items);
+        function displayItems(items, containerId, isSlider = true, isEpisode = false) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
 
-            if (!items || !Array.isArray(items) || items.length === 0) {
-                container.innerHTML = '<p>İçerik bulunamadı.</p>';
-                return;
-            }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+        container.innerHTML = '<p>İçerik bulunamadı.</p>';
+        return;
+    }
 
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = isEpisode ? 'episode-card' : (isSlider ? 'slider-item' : 'movie-card');
-                
-                if (isEpisode) {
-                    const seriesTitle = item.seriesTitle || 'Başlık Yok';
-                    const episodeDetails = `S${item.seasonNumber}E${item.episodeNumber} - ${item.episodeTitle || 'Bölüm ' + item.episodeNumber}`;
-                    card.innerHTML = `
-                        <img src="${item.poster || 'https://via.placeholder.com/60x90'}" alt="${seriesTitle}" class="episode-poster">
-                        <div class="episode-info">
-                            <h3 class="episode-series-title">${seriesTitle}</h3>
-                            <div class="episode-details">${episodeDetails}</div>
-                        </div>
-                    `;
-                } else {
-                    const title = item.title || 'Başlık Yok';
-                    const badge = item.language?.includes("Yerli") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli</span>' :
-                                 item.language?.includes("Türkçe Dublaj") && item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj <i class="fas fa-closed-captioning"></i> Altyazı</span>' :
-                                 item.language?.includes("Türkçe Dublaj") ? '<span class="language-badge"><img src="resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj</span>' :
-                                 item.language?.includes("Türkçe Altyazı") ? '<span class="language-badge"><i class="fas fa-closed-captioning"></i> Altyazı</span>' : '';
-                    card.innerHTML = `
-                        <div class="poster-wrapper">
-                            <img src="${item.poster || 'https://via.placeholder.com/300x450'}" alt="${title}" class="${isSlider ? 'slider-poster' : 'movie-poster'}">
-                            ${badge}
-                        </div>
-                        <div class="${isSlider ? 'slider-info' : 'movie-info'}">
-                            <h3 class="${isSlider ? 'slider-title' : 'movie-title'}">${title}</h3>
-                            <div class="${isSlider ? 'slider-meta' : 'movie-meta'}">
-                                <span>${item.year || 'Bilinmiyor'}</span>
-                                <div class="imdb-rating">
-                                    <i class="fas fa-star"></i> ${item.rating || 'N/A'}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                card.onclick = () => {
-                    if (isEpisode) {
-                        window.location.href = `dizi.html?id=${item.seriesId}&season=${item.seasonNumber}&episode=${item.episodeNumber}`;
-                    } else {
-                        window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
-                    }
-                };
-                container.appendChild(card);
-            });
+    items.forEach(item => {
+        let card;
+
+        if (isEpisode) {
+            const seriesTitle = item.seriesTitle || 'Başlık Yok';
+            const seasonNumber = item.seasonNumber || 1;
+            const episodeNumber = item.episodeNumber || 1;
+            const seriesId = item.seriesId || '';
+            const episodeDetails = `${seasonNumber}.Sezon ${episodeNumber}.Bölüm`;
+            const link = `/dizi/${seriesId}/sezon-${seasonNumber}/bolum-${episodeNumber}`;
+
+            card = document.createElement('div');
+            card.className = 'episode-card';
+            card.style.cursor = 'pointer';
+            card.onclick = () => {
+                window.location.href = link;
+            };
+
+            card.innerHTML = `
+                <img src="${item.poster || 'https://via.placeholder.com/60x90'}" alt="${seriesTitle}" class="episode-poster">
+                <div class="episode-info">
+                    <h3 class="episode-series-title">${seriesTitle}</h3>
+                    <div class="episode-details">${episodeDetails}</div>
+                </div>
+            `;
         }
+
+        container.appendChild(card);
+    });
+}
+
 
         async function fetchRecentEpisodes(limit = 50) {
             try {
@@ -656,6 +543,25 @@
                 }
             });
         });
+
+      async function loadLatestEpisodes() {
+    await fetchApiUrl();
+
+    try {
+        const response = await fetch(`${apiUrl}/api/movies/latest-episodes`);
+        const data = await response.json();
+        displayItems(data, 'episodes-list', false, true);
+    } catch (error) {
+        console.error('Son bölümler yüklenemedi:', error);
+        showToast('Son bölümler yüklenemedi', 'error');
+    }
+}
+
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadLatestEpisodes();
+        checkAuth();
+    });
     </script>
 </body>
 </html>

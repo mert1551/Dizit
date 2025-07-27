@@ -416,7 +416,7 @@
 </head>
 <body>
     <header id="header">
-        <a href="../index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="burger-menu" id="burger-menu">
                 <i class="fas fa-bars"></i>
@@ -755,7 +755,7 @@
             currentUser = null;
             isAdmin = false;
             updateAdminUI();
-            window.location.href = '../index.html';
+            window.location.href = '/';
         }
 
         function showToast(message) {
@@ -817,7 +817,12 @@
             const videoSourceList = document.getElementById('video-source-list');
             videoSourceList.innerHTML = '';
             if (movie.type === 'film' && movie.videoSrc?.length) {
-                movie.videoSrc.forEach(src => addVideoSource(src.type, src.src));
+              movie.videoSrc.forEach(src => {
+    // type boşsa otomatik belirlemesini istiyoruz
+    const typeToUse = src.type && src.type.trim() !== '' ? src.type : '';
+    addVideoSource(typeToUse, src.src);
+});
+
             }
 
             const seasonList = document.getElementById('season-list');
@@ -1116,7 +1121,7 @@
 
       function addVideoSource(type, src = '', targetList = document.getElementById('video-source-list')) {
     // Eğer 'type' boşsa veya zorla otomatik belirlemek istiyorsan:
-    if (!type || type === 'Dublaj') {
+    if (!type) {
         const languageInput = document.getElementById('movie-language');
         const rawValue = languageInput?.value?.toLowerCase() || '';
         const languages = rawValue.split(',').map(lang => lang.trim());

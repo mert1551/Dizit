@@ -2,23 +2,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // API_URL'yi global olarak tanımla
     let API_URL = 'http://localhost:3000'; // Varsayılan değer, config'den güncellenecek
 
-    // API_URL'yi çekme fonksiyonu
-    async function fetchApiUrl() {
-        try {
-            const response = await fetch('/api/config');
-            const data = await response.json();
-            API_URL = data.apiUrl;
-            console.log('API_URL fetched:', API_URL);
-        } catch (error) {
-            console.error('API_URL alınırken hata:', error);
-        }
-    }
+    // API_URL'yi çekme fonksiyon
 
-    // API_URL'yi sayfa yüklenirken çek
-    await fetchApiUrl();
+
 
     // DOM Elemanları
-    const searchInput = document.getElementById('search-input');
     const searchOverlayInput = document.getElementById('search-overlay-input');
     const searchOverlay = document.getElementById('search-overlay');
     const closeOverlayBtn = document.getElementById('close-overlay');
@@ -68,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         queryParams.append('page', page);
         queryParams.append('limit', itemsPerPage);
 
+        if (filters.title) queryParams.append('title', filters.title); // BUNU EKLEYİN
         if (filters.type) queryParams.append('type', filters.type);
         if (filters.year) queryParams.append('year', filters.year);
         if (filters.genres && filters.genres.length > 0) {
@@ -84,17 +73,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (filters.sort) queryParams.append('sort', filters.sort);
 
-        console.log('Gönderilen sorgu:', queryParams.toString());
-
         const response = await fetch(`${API_URL}/api/all-movies?${queryParams.toString()}`);
         if (!response.ok) throw new Error(`HTTP hatası: ${response.status}`);
         const data = await response.json();
-        console.log('Dönen içerik:', {
-            total: data.total,
-            currentPage: data.currentPage,
-            totalPages: data.totalPages,
-            results: data.results.slice(0, 5)
-        });
+
 
         // 2000 öncesi filtresi
         if (filters.year === 'before-2000') {
@@ -123,9 +105,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadingIndicator.style.display = 'none';
 
         // Eğer daha fazla içerik yoksa "tüm içerikler gösterildi" mesajını göster
-        if (!hasMore) {
-            endOfContentMessage.style.display = 'block';
-        }
+        if (!hasMore && filteredContent.length > 0) {
+    endOfContentMessage.style.display = 'block';
+} else {
+    endOfContentMessage.style.display = 'none';
+}
+
     }
 }
 
@@ -253,6 +238,7 @@ platformCheckboxes.forEach(checkbox => {
         const allGenres = [...selectedGenres, ...selectedPlatforms];
 
         return {
+             title: document.getElementById('title')?.value?.trim() || '',
             type: typeSelect.value,
             year: yearSelect.value,
             genres: allGenres,
@@ -388,7 +374,6 @@ platformCheckboxes.forEach(checkbox => {
         hasMore = true;
         searchResultsGrid.innerHTML = '';
         const filters = getFilters();
-        console.log('Uygulanan filtreler:', filters);
         await fetchMovies(filters, currentPage);
     }
 
@@ -418,12 +403,7 @@ platformCheckboxes.forEach(checkbox => {
         }
     });
 
-    // Arama Overlay Kontrolleri
-    searchInput.addEventListener('focus', () => {
-        searchOverlay.classList.add('active');
-        searchOverlayInput.focus();
-        searchOverlayInput.value = searchInput.value;
-    });
+
 
     searchOverlayInput.addEventListener('input', async () => {
         const searchTerm = searchOverlayInput.value.trim().toLowerCase();
@@ -433,12 +413,6 @@ platformCheckboxes.forEach(checkbox => {
             const results = await fetchSearchResults(searchTerm);
             displaySearchOverlayResults(results);
         }
-    });
-
-    closeOverlayBtn.addEventListener('click', () => {
-        searchOverlay.classList.remove('active');
-        searchInput.value = '';
-        searchOverlayInput.value = '';
     });
 
     // Burger Menü Kontrolü

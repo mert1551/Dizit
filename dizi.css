@@ -855,3 +855,58 @@ padding: 5px;
 .premium-message button:hover {
     background: #e6b800;
 }
+
+
+#series-player-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 oran */
+  height: 0;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#series-player-container iframe,
+#series-player-container #playerjs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+
+#series-player-container {
+  position: relative;
+}
+
+.player-overlay-logo {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: clamp(60px, 10vw, 100px);
+  height: auto;
+  z-index: 2; /* 999 değil, düşük tut ki player UI altında kalmasın */
+  opacity: 0.9;
+  pointer-events: none; /* Bu sayede arkasındaki butonlar tıklanabilir */
+  user-select: none;
+}
+
+/* Mobil uyum */
+@media (max-width: 480px) {
+  .player-overlay-logo {
+    top: 6px;
+    right: 6px;
+    width: 60px;
+  }
+}
+
+@media (max-width: 767px) {
+  .episode-list {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 100%;
+    padding: 10px 15px;
+  }
+}

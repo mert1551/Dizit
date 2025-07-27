@@ -552,3 +552,79 @@
         height: 9px;
     }
 }
+.styled-input {
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  background-color: var(--secondary-bg);
+  color: var(--text-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  outline: none;
+}
+.styled-input:focus {
+  border-color: var(--accent-color);
+}
+    .nav-container {
+  display: none;
+}
+
+.nav-container.active {
+  display: block;
+}
+#burger-menu {
+  position: absolute;
+  right: 155px;
+  z-index: 2000;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+@media screen and (max-width: 480px) {
+    #burger-menu {
+        right: 60px;
+    }
+}
+/* Tam ekran için (desktop modunda) */
+@media screen and (min-width: 905px) {
+  #nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
+    height: auto;
+  }
+
+  #nav-links {
+    display: flex; /* Menü öğelerini yatay olarak hizalar */
+    justify-content: space-between;
+    align-items: center;
+    width: 100%; /* Yeterince geniş olmalı */
+  }
+
+  #burger-menu {
+    display: none; /* Burger menüsünü gizle */
+  }
+}
+@media screen and (max-width: 768px) {
+  #nav-links {
+    display: none;  /* Burger menüsüne dönünce nav-links gizlensin */
+  }
+
+  #burger-menu {
+    display: block;  /* Burger menüsünü göster */
+  }
+
+  #nav-container.active #nav-links {
+    display: block;  /* Burger menüsü aktifken nav-links görünsün */
+  }
+}
+
+
+
+

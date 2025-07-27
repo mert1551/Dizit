@@ -19,6 +19,8 @@ const movieSchema = new mongoose.Schema({
     id: { type: String, required: true, unique: true },
     title: { type: String, required: true },
     title2: String,
+    title_normalized: String,
+    title2_normalized: String,
     year: { type: Number, required: true },
     runtime: String,
     rating: Number,

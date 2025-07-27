@@ -439,7 +439,7 @@
 </head>
 <body>
     <header id="header">
-        <a href="../index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="burger-menu" id="burger-menu">
                 <i class="fas fa-bars"></i>
@@ -521,7 +521,8 @@
       <select id="sourceSelect">
         <option value="auto" selected>Otomatik Algıla</option>
         <option value="dizipal">Dizipal</option>
-         <option value="sezonlukDizi">SezonlukDizi</option>
+        <option value="hdfilmcehennemi">HD Film Cehennemi</option>
+        <option value="sezonlukDizi">SezonlukDizi</option>
       </select>
     </div>
     <label for="dizipal-link">Dizipal Linki</label>
@@ -833,7 +834,6 @@
         }
 
         function addGenre() {
-            console.log('Tür ekleniyor');
             const genreSelect = document.getElementById('movie-genres');
             const genresList = document.getElementById('genres-list');
             const selectedGenre = genreSelect.value;
@@ -850,7 +850,6 @@
         }
 
         function validateForm() {
-            console.log('Form doğrulanıyor');
             let isValid = true;
             const isFilm = document.getElementById('movie-type').value === 'film';
             const fields = [
@@ -1439,6 +1438,7 @@ async function fetchDizipalMeta() {
   }
 }
 
+
 async function fetchFromSelectedSource() {
   const url = document.getElementById("dizipal-link").value.trim();
   const sourceSelect = document.getElementById("sourceSelect");
@@ -1455,10 +1455,15 @@ async function fetchFromSelectedSource() {
   } else if (/dizipal\d*\.com/.test(url)) {
     detectedSource = "dizipal";
     contentType = url.includes("/dizi/") ? "dizi" : "film";
+  } else if (/hdfilmcehennemi\d*\.site/.test(url)) {
+    detectedSource = "hdfilmcehennemi";
+    contentType = "film";
   }
 
+
+
   if (detectedSource === "unknown") {
-    return alert("Kaynak algılanamadı. Lütfen geçerli bir dizipal veya sezonlukdizi linki girin.");
+    return alert("Kaynak algılanamadı. Lütfen geçerli bir dizipal, sezonlukdizi veya hdfilmcehennemi linki girin.");
   }
 
   // 🎯 Seçim kutusunu güncelle (görsel)
@@ -1472,22 +1477,30 @@ async function fetchFromSelectedSource() {
     }
 
     // 👉 DİZİPAL FİLM
-   else if (detectedSource === "dizipal" && contentType === "film") {
+    else if (detectedSource === "dizipal" && contentType === "film") {
       const lastPart = url.split("/").filter(Boolean).pop();
       document.getElementById("movie-id").value = lastPart;
       await fetchDizipalFilm(url);
     }
+
     // 👉 SEZONLUKDİZİ DİZİ
     else if (detectedSource === "sezonlukDizi") {
       await fetchSezonlukMeta(url);
       await fetchSezonlukEpisodes(url);
     }
+    // 👉 Hdfilmcehennemi
+     // ✅ Eğer kullanıcı açıkça HD Film Cehennemi seçtiyse veya otomatik algılandıysa
+  else if (sourceSelect.value === "hdfilmcehennemi" || detectedSource === "hdfilmcehennemi") {
+    await fetchFromHDFilmCehennemi(url);
+    return;
+  }
 
   } catch (err) {
     console.error("Veri çekme hatası:", err);
     alert("Veri çekilirken hata oluştu:\n" + err.message);
   }
 }
+
 
 
 
@@ -1681,6 +1694,134 @@ else if (langLower.includes("altyazı")) selectedType = "Altyazı";
   document.getElementById("episodes-section").style.display = type === "dizi" ? "block" : "none";
   document.getElementById("video-sources-section").style.display = type === "film" ? "block" : "none";
 }
+
+
+
+async function fetchFromHDFilmCehennemi(url) {
+  // URL'den ID'yi çıkar
+  const match = url.match(/\/([^\/?#]+)-izle/i);
+  if (match && match[1]) {
+    const id = match[1].toLowerCase();
+    document.getElementById("movie-id").value = id;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch("/api/scrape/hdfilmcehennemi-film", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ url })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Sunucu hatası");
+
+    // "izle" kelimesini temizle
+    const cleanTitle = data.title?.replace(/\bizle\b/gi, "").trim();
+    const cleanAltTitle = data.originalTitle?.replace(/\bizle\b/gi, "").trim();
+
+    // Form inputlarını doldur
+    if (cleanTitle) document.getElementById("movie-title").value = cleanTitle;
+    if (cleanAltTitle) document.getElementById("movie-title2").value = cleanAltTitle;
+    if (data.duration) document.getElementById("movie-runtime").value = data.duration;
+    if (data.plot) document.getElementById("movie-plot").value = data.plot;
+    if (data.rating) document.getElementById("movie-rating").value = data.rating;
+    if (data.year) document.getElementById("movie-year").value = data.year;
+    if (data.country) document.getElementById("movie-country").value = data.country;
+
+    // Türleri sıfırla ve ekle
+    const genreList = document.getElementById("genres-list");
+    genreList.innerHTML = "";
+    if (Array.isArray(data.genres)) {
+      data.genres.forEach((g) => {
+        const trimmed = g.trim();
+        if (trimmed) {
+          const item = document.createElement("div");
+          item.className = "genre-item";
+
+          const span = document.createElement("span");
+          span.textContent = trimmed;
+
+          const removeBtn = document.createElement("button");
+          removeBtn.innerHTML = "×";
+          removeBtn.onclick = function () {
+            this.parentElement.remove();
+          };
+
+          item.appendChild(span);
+          item.appendChild(removeBtn);
+          genreList.appendChild(item);
+        }
+      });
+    }
+
+    // Video kaynaklarını ekle
+    const videoList = document.getElementById("video-source-list");
+    videoList.innerHTML = "";
+
+    if (Array.isArray(data.videoSrc)) {
+      data.videoSrc.forEach((video) => {
+        const selectedType = video.type || "Diğer";
+        const langRaw = video.type || "";
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "video-source-entry";
+        wrapper.innerHTML = `
+          <select class="video-type-select">
+            <option value="Dublaj" ${selectedType === "Dublaj" ? "selected" : ""}>Dublaj</option>
+            <option value="Altyazı" ${selectedType === "Altyazı" ? "selected" : ""}>Altyazı</option>
+            <option value="Türkçe Dublaj & Altyazı" ${selectedType === "Türkçe Dublaj & Altyazı" ? "selected" : ""}>Türkçe Dublaj & Altyazı</option>
+            <option value="Yerli" ${selectedType === "Yerli" ? "selected" : ""}>Yerli</option>
+            <option value="Özel Başlık" ${selectedType === "Özel Başlık" ? "selected" : ""}>Özel Başlık</option>
+            <option value="Diğer" ${!["Dublaj", "Altyazı", "Türkçe Dublaj & Altyazı", "Yerli", "Özel Başlık"].includes(selectedType) ? "selected" : ""}>Diğer (özel tür girin)</option>
+          </select>
+          <input type="text" class="video-type-custom" placeholder="Özel tür veya başlık"
+            style="${!["Dublaj", "Altyazı", "Türkçe Dublaj & Altyazı", "Yerli"].includes(selectedType) ? "" : "display:none;"}"
+            value="${!["Dublaj", "Altyazı", "Türkçe Dublaj & Altyazı", "Yerli"].includes(selectedType) ? langRaw : ""}">
+          <input type="url" class="video-src" value="${video.src || ""}" required>
+          <button type="button" class="remove-video">Kaldır</button>
+          <span class="validation-message video-error"></span>
+        `;
+
+        wrapper.querySelector(".remove-video").addEventListener("click", () => wrapper.remove());
+
+        wrapper.querySelector(".video-type-select").addEventListener("change", function () {
+          const customInput = wrapper.querySelector(".video-type-custom");
+          customInput.style.display = this.value === "Diğer" || this.value === "Özel Başlık" ? "block" : "none";
+        });
+
+        videoList.appendChild(wrapper);
+      });
+    }
+
+    // ✅ movie-language inputuna göre selectleri otomatik ayarla
+    const languageInput = document.getElementById("movie-language").value.toLowerCase();
+    const selects = document.querySelectorAll(".video-type-select");
+
+    selects.forEach(select => {
+      if (languageInput.includes("dublaj") && languageInput.includes("altyazı")) {
+        select.value = "Türkçe Dublaj & Altyazı";
+      } else if (languageInput.includes("dublaj")) {
+        select.value = "Dublaj";
+      } else if (languageInput.includes("altyazı")) {
+        select.value = "Altyazı";
+      } else if (languageInput.includes("yerli")) {
+        select.value = "Yerli";
+      }
+    });
+
+  } catch (err) {
+    console.error("HD Film Cehennemi veri çekme hatası:", err.message);
+    alert("Veri alınırken hata oluştu:\n" + err.message);
+  }
+}
+
+
+
+
 
 
 

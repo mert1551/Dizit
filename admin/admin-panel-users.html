@@ -604,7 +604,7 @@
 </head>
 <body>
     <header id="header">
-        <a href="/index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="burger-menu" id="burger-menu">
                 <i class="fas fa-bars"></i>
@@ -612,10 +612,10 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="/admin-panel.html">Anasayfa</a></li>
-                <li><a href="/add-movie.html">Ekle</a></li>
-                <li><a href="/edit-movie.html">Düzenle</a></li>
-                <li><a href="/admin-requests.html">İstek/Şikayet</a></li>
+                <li><a href="admin-panel.html">Anasayfa</a></li>
+                <li><a href="add-movie.html">Ekle</a></li>
+                <li><a href="edit-movie.html">Düzenle</a></li>
+                <li><a href="admin-requests.html">İstek/Şikayet</a></li>
             </ul>
             <div class="auth-buttons" id="auth-buttons">
                 <button class="login-btn" onclick="openAuthModal()">Giriş Yap</button>
@@ -777,13 +777,10 @@ async function fetchApiUrl() {
             throw new Error('Giriş yapılmadı');
         }
 
-        console.log('Kullanıcı detayları yükleniyor:', { username, token });
-
         const userResponse = await fetch(`${API_URL}/api/users/${username}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const user = await userResponse.json();
-        console.log('Kullanıcı API yanıtı:', user);
 
         if (!userResponse.ok) {
             if (userResponse.status === 404) {
@@ -853,7 +850,6 @@ async function fetchApiUrl() {
                 <option value="unlimited" ${user.premiumType === 'unlimited' ? 'selected' : ''}>Sınırsız</option>
             </select>
         `;
-        console.log('UI güncellendi:', { isBanned });
     } catch (error) {
         console.error('Kullanıcı detayları yükleme hatası:', error.message);
         showToast(error.message, 'error');
@@ -947,7 +943,6 @@ async function updatePremiumType(username, premiumType) {
                     body: JSON.stringify({ isBanned: true })
                 });
                 const data = await response.json();
-                console.log('Yasaklama API yanıtı:', data);
                 if (response.ok) {
                     showToast(data.message || 'Kullanıcı başarıyla yasaklandı!', 'success');
                     await loadUserDetails();
@@ -973,7 +968,6 @@ async function updatePremiumType(username, premiumType) {
                     body: JSON.stringify({ isBanned: false })
                 });
                 const data = await response.json();
-                console.log('Yasağı kaldırma API yanıtı:', data);
                 if (response.ok) {
                     showToast(data.message || 'Kullanıcı yasağı başarıyla kaldırıldı!', 'success');
                     await loadUserDetails();

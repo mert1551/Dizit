@@ -4,67 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Film İzle - DİZİT</title>
+    <meta name="description" content="">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/style.css?v=1">
     <link rel="stylesheet" href="/film.css?v=1">
+    <link rel="icon" href="/resim/dizit-favicon.ico" type="image/x-icon">
     <style>
-        /* Mevcut Stiller */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #121212;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
-        }
-        .loading-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-        .loading-logo {
-            font-size: 48px;
-            font-weight: bold;
-            color: #ffcc00;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
-            margin-bottom: 30px;
-            animation: glow 2s infinite ease-in-out;
-        }
-        .popcorn-loader {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100px;
-            height: 60px;
-        }
-        .popcorn {
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-            animation: pop 1.2s infinite ease-in-out;
-        }
-        .popcorn:nth-child(1) { left: 20px; animation-delay: 0s; }
-        .popcorn:nth-child(2) { left: 40px; animation-delay: 0.2s; }
-        .popcorn:nth-child(3) { left: 60px; animation-delay: 0.4s; }
-        @keyframes pop {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
-            50% { transform: translateY(-30px) scale(1.2); opacity: 0.7; }
-        }
-        @keyframes glow {
-            0% { text-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
-            50% { text-shadow: 0 0 20px rgba(255, 204, 0, 0.8); }
-            100% { text-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
-        }
-   
 .replies {
     display: block;
     max-width: 100%;
@@ -419,11 +364,11 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="/" class="home-link">Anasayfa</a></li>
-                <li><a href="/filmler.html?type=film">Filmler</a></li>
-                <li><a href="/diziler.html?type=dizi">Diziler</a></li>
-                <li><a href="/arama/film-dizi-arama.html">Detaylı Arama</a></li>
-                <li><a href="/request-complaint.html">İstek ve Şikayet</a></li>
+                <li><a href="/">Anasayfa</a></li>
+                <li><a href="/filmler" class="active">Filmler</a></li>
+                <li><a href="/diziler">Diziler</a></li>
+                <li><a href="/kesfet">Keşfet</a></li>
+                <li><a href="/istek-ve-sikayet">İstek ve Şikayet</a></li>
             </ul>
         </div>
         <div class="profile-wrapper">
@@ -541,7 +486,7 @@
     <footer>
         <div class="footer-content">
             <div class="footer-column">
-                <h2>DİZİT</h2>
+                <h3>DİZİT</h3>
                 <p>En iyi film ve dizi izleme platformu.</p>
             </div>
         </div>
@@ -601,42 +546,60 @@
             }, 3000);
         }
 
-        async function updateProfileAvatar() {
-            const profileAvatar = document.querySelector('.profile-avatar');
-            const profileUsername = document.querySelector('.profile-username');
-            if (!isLoggedIn) {
-                profileAvatar.src = '/resim/avatar/user.png';
-                profileUsername.textContent = 'Giriş Yap';
-                return;
+       async function updateProfileAvatar() {
+    const profileAvatar = document.querySelector('.profile-avatar');
+    const profileUsername = document.querySelector('.profile-username');
+    const profileMenu = document.querySelector('.profile-menu'); // Menü listesi
+
+    if (!isLoggedIn) {
+        profileAvatar.src = '/resim/avatar/user.png';
+        profileUsername.textContent = 'Giriş Yap';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${apiUrl}/api/user-profile?t=${Date.now()}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                showToast('Oturumunuzun süresi doldu. Lütfen yeniden giriş yapın.', 'error');
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                openAuthModal('login');
             }
-            try {
-                const response = await fetch(`${apiUrl}/api/user-profile?t=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        showToast('Oturumunuzun süresi doldu. Lütfen yeniden giriş yapın.', 'error');
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('username');
-                        isLoggedIn = false;
-                        currentUser = null;
-                        openAuthModal('login');
-                    }
-                    throw new Error('Kullanıcı verileri alınamadı');
-                }
-                const user = await response.json();
-                profileAvatar.src = user.avatar || '/resim/avatar/user.png';
-                profileAvatar.onerror = () => {
-                    profileAvatar.src = '/resim/avatar/user.png';
-                };
-                profileUsername.textContent = user.username || 'Kullanıcı';
-                localStorage.setItem('username', user.username);
-            } catch (error) {
-                console.error('Profil verileri yüklenemedi:', error);
-                profileAvatar.src = '/resim/avatar/user.png';
-                profileUsername.textContent = localStorage.getItem('username') || 'Giriş Yap';
-            }
+            throw new Error('Kullanıcı verileri alınamadı');
         }
+
+        const user = await response.json();
+        profileAvatar.src = user.avatar || '/resim/avatar/user.png';
+        profileAvatar.onerror = () => {
+            profileAvatar.src = '/resim/avatar/user.png';
+        };
+        profileUsername.textContent = user.username || 'Kullanıcı';
+        localStorage.setItem('username', user.username);
+
+        // Önce varsa admin panel linkini kaldır
+        const existingAdminLink = document.getElementById('admin-panel-link');
+        if (existingAdminLink) existingAdminLink.parentElement.remove();
+
+        // Adminse admin panel linkini profilim üstüne ekle
+        if (user.isAdmin && profileMenu) {
+            const adminItem = document.createElement('li');
+            adminItem.innerHTML = `<a id="admin-panel-link" href="admin/admin-panel.html"><i class="fas fa-tools"></i> Admin Panel</a>`;
+            profileMenu.insertBefore(adminItem, profileMenu.firstElementChild); // İlk sıraya ekle
+        }
+
+    } catch (error) {
+        console.error('Profil verileri yüklenemedi:', error);
+        profileAvatar.src = '/resim/avatar/user.png';
+        profileUsername.textContent = localStorage.getItem('username') || 'Giriş Yap';
+    }
+}
+
 
         async function checkAuth() {
             const token = localStorage.getItem('token');
@@ -884,7 +847,7 @@
             isLoggedIn = false;
             currentUser = null;
             updateProfileAvatar();
-            window.location.href = '/';
+            window.location.reload();
         }
 
         function getMovieIdFromDynamicUrl() {
@@ -917,7 +880,7 @@
                     <h2>Üzgünüz, İçerik Bulunamadı</h2>
                     <p>Aradığınız içerik arşivimizde bulunmamıştır.</p>
                     <a href="/" class="home-button">Ana Sayfaya Dön</a>
-                    <p>Veya<br> <a href="/istek-form/request-complaint.html" class="home-button">İstekte Bulunun</a></p>
+                    <p>Veya<br> <a href="/istek-ve-sikayet" class="home-button">İstekte Bulunun</a></p>
                 </div>
             `;
             document.getElementById('player-container').style.display = 'none';
@@ -996,6 +959,8 @@
                 });
             }
 
+            setDynamicDescription(movie);
+
             const plot = document.createElement('div');
             plot.className = 'film-plot';
             plot.innerHTML = `<strong>Konusu:</strong> ${movie.plot || 'Konu bilgisi mevcut değil.'}`;
@@ -1005,7 +970,7 @@
             container.innerHTML = '';
             container.appendChild(hero);
 
-            document.title = `${movie.title || 'İçerik'} (${movie.year || 'N/A'}) - DİZİT`;
+            document.title = `${movie.title || 'İçerik'} (${movie.year || 'N/A'}) izle - DİZİT`;
         }
 
         function createMetaItem(icon, text) {
@@ -1014,112 +979,188 @@
             item.innerHTML = `<i class="fas fa-${icon}"></i> ${text}`;
             return item;
         }
+function isFileLink(src = '') {
+    const FILE_EXTENSIONS = ['.m3u8', '.mp4', '.webm', '.mov', '.flv', '.mkv', '.ogg'];
+    const lower = src.split('?')[0].toLowerCase();
+    return FILE_EXTENSIONS.some(ext => lower.endsWith(ext));
+}
 
-        async function watchMovie(movieId, movieTitle, videoSrc) {
-            const playerContainer = document.getElementById('player-container');
-            playerContainer.innerHTML = '';
+       async function watchMovie(movieId, movieTitle, videoSrc) {
+    const playerContainer = document.getElementById('player-container');
+    playerContainer.innerHTML = '';
 
-            let isLiked = false;
-            let isDisliked = false;
-            let isWatched = false;
-            let isFavorited = false;
-            let isWatchLater = false;
-            let likeCount = 0;
-            let dislikeCount = 0;
+    let isLiked = false;
+    let isDisliked = false;
+    let isWatched = false;
+    let isFavorited = false;
+    let isWatchLater = false;
+    let likeCount = 0;
+    let dislikeCount = 0;
 
-            if (isLoggedIn) {
-                try {
-                    const res = await fetch(`${apiUrl}/api/movie-status/${movieId}`, {
-                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        isLiked = data.isLiked;
-                        isDisliked = data.isDisliked;
-                        isWatched = data.isWatched;
-                        isFavorited = data.isFavorited;
-                        isWatchLater = data.isWatchLater;
-                        likeCount = data.likeCount;
-                        dislikeCount = data.dislikeCount;
-                    }
-                } catch (error) {
-                    console.error('Status fetch error:', error);
-                }
-            } else {
-                try {
-                    const res = await fetch(`${apiUrl}/api/public/movie-status/${movieId}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        likeCount = data.likeCount;
-                        dislikeCount = data.dislikeCount;
-                    }
-                } catch (error) {
-                    console.error('Public status fetch error:', error);
-                }
+    if (isLoggedIn) {
+        try {
+            const res = await fetch(`${apiUrl}/api/movie-status/${movieId}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                isLiked = data.isLiked;
+                isDisliked = data.isDisliked;
+                isWatched = data.isWatched;
+                isFavorited = data.isFavorited;
+                isWatchLater = data.isWatchLater;
+                likeCount = data.likeCount;
+                dislikeCount = data.dislikeCount;
+            }
+        } catch (error) {
+            console.error('Status fetch error:', error);
+        }
+    } else {
+        try {
+            const res = await fetch(`${apiUrl}/api/public/movie-status/${movieId}`);
+            if (res.ok) {
+                const data = await res.json();
+                likeCount = data.likeCount;
+                dislikeCount = data.dislikeCount;
+            }
+        } catch (error) {
+            console.error('Public status fetch error:', error);
+        }
+    }
+
+    // ⚙️ Player box genel yapı
+    const videoBox = document.createElement('div');
+    videoBox.className = 'player-box';
+
+    videoBox.innerHTML = `
+        <div class="player-title">
+            <h2 class="film-name">${movieTitle || 'Bilinmeyen İçerik'}</h2>
+            <p class="runtime-info">${movieCache.runtime || 'N/A'}</p>
+        </div>
+        ${movieCache.premium && !isPremiumUser ? `
+            <div class="premium-message">
+                <i class="fas fa-lock"></i>
+                <p>İçerik Telifli Olduğu İçin Premium Üyelik Satın Alınız</p>
+                <button onclick="window.location.href='/premium.html'">Üyelik Satın Al</button>
+            </div>
+        ` : `
+            <div class="video-options" id="video-options"></div>
+            <div class="video-wrapper" id="video-wrapper"></div>
+            <div class="player-actions">
+                <button class="like-btn ${isLoggedIn ? '' : 'disabled'} ${isLiked ? 'active' : ''}" id="like-btn-${movieId}">
+                    <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> Beğen: ${likeCount}
+                </button>
+                <button class="dislike-btn ${isLoggedIn ? '' : 'disabled'} ${isDisliked ? 'active' : ''}" id="dislike-btn-${movieId}">
+                    <i class="${isDisliked ? 'fas' : 'far'} fa-thumbs-down"></i> Beğenme: ${dislikeCount}
+                </button>
+                <button class="favorite-btn ${isLoggedIn ? '' : 'disabled'} ${isFavorited ? 'active' : ''}" id="favorite-btn-${movieId}">
+                    <i class="${isFavorited ? 'fas' : 'far'} fa-heart"></i> ${isFavorited ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                </button>
+                <button class="watch-later-btn ${isLoggedIn ? '' : 'disabled'} ${isWatchLater ? 'active' : ''}" id="watch-later-btn-${movieId}">
+                    <i class="${isWatchLater ? 'fas' : 'far'} fa-clock"></i> ${isWatchLater ? 'Daha Sonra İzleden Çıkar' : 'Daha Sonra İzle'}
+                </button>
+                <label class="watched-checkbox ${isLoggedIn ? '' : 'disabled'}">
+                    <input type="checkbox" id="watched-checkbox-${movieId}" ${isWatched ? 'checked' : ''} ${isLoggedIn ? '' : 'disabled'}>
+                    <span class="checkbox-custom"></span>
+                    İzledim
+                </label>
+            </div>
+        `}
+    `;
+
+    playerContainer.appendChild(videoBox);
+
+    // ❗ Video oynatıcıyı yerleştir (id="video-wrapper" içine)
+    if (!(movieCache.premium && !isPremiumUser)) {
+        const wrapper = document.getElementById('video-wrapper');
+
+        // Logo
+        const logo = document.createElement("img");
+        logo.src = "/resim/dizit-logo.png";
+        logo.alt = "Logo";
+        logo.className = "player-overlay-logo";
+        wrapper.appendChild(logo);
+
+        if (isFileLink(videoSrc)) {
+            // PlayerJS için div
+            const div = document.createElement("div");
+            div.id = "playerjs";
+            wrapper.appendChild(div);
+
+            // Destroy önceki player varsa
+            if (window._pjs) {
+                try { window._pjs.api('destroy'); } catch (e) {}
             }
 
-            playerContainer.innerHTML = `
-                <div class="player-box">
-                    <div class="player-title">
-                        <h2 class="film-name">${movieTitle || 'Bilinmeyen İçerik'}</h2>
-                        <p class="runtime-info">${movieCache.runtime || 'N/A'}</p>
-                    </div>
-                    ${movieCache.premium && !isPremiumUser ? `
-                        <div class="premium-message">
-                            <i class="fas fa-lock"></i>
-                            <p>İçerik Telifli Olduğu İçin Premium Üyelik Satın Alınız</p>
-                            <button onclick="window.location.href='/premium.html'">Üyelik Satın Al</button>
-                        </div>
-                    ` : `
-                        <div class="video-options" id="video-options"></div>
-                        <div class="video-wrapper">
-                            <iframe id="movie-player" src="${videoSrc || 'about:blank'}" allowfullscreen></iframe>
-                        </div>
-                        <div class="player-actions">
-                            <button class="like-btn ${isLoggedIn ? '' : 'disabled'} ${isLiked ? 'active' : ''}" id="like-btn-${movieId}">
-                                <i class="${isLiked ? 'fas' : 'far'} fa-thumbs-up"></i> Beğen: ${likeCount}
-                            </button>
-                            <button class="dislike-btn ${isLoggedIn ? '' : 'disabled'} ${isDisliked ? 'active' : ''}" id="dislike-btn-${movieId}">
-                                <i class="${isDisliked ? 'fas' : 'far'} fa-thumbs-down"></i> Beğenme: ${dislikeCount}
-                            </button>
-                            <button class="favorite-btn ${isLoggedIn ? '' : 'disabled'} ${isFavorited ? 'active' : ''}" id="favorite-btn-${movieId}">
-                                <i class="${isFavorited ? 'fas' : 'far'} fa-heart"></i> ${isFavorited ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
-                            </button>
-                            <button class="watch-later-btn ${isLoggedIn ? '' : 'disabled'} ${isWatchLater ? 'active' : ''}" id="watch-later-btn-${movieId}">
-                                <i class="${isWatchLater ? 'fas' : 'far'} fa-clock"></i> ${isWatchLater ? 'Daha Sonra İzleden Çıkar' : 'Daha Sonra İzle'}
-                            </button>
-                            <label class="watched-checkbox ${isLoggedIn ? '' : 'disabled'}">
-                                <input type="checkbox" id="watched-checkbox-${movieId}" ${isWatched ? 'checked' : ''} ${isLoggedIn ? '' : 'disabled'}>
-                                <span class="checkbox-custom"></span>
-                                İzledim
-                            </label>
-                        </div>
-                    `}
-                </div>
-            `;
+            window._pjs = new Playerjs({
+    id: "playerjs",
+    file: videoSrc,
+    logo: "https://i.postimg.cc/TLD4m1Cq/dizit-logo.png",
+    type: videoSrc.endsWith(".m3u8") ? "hls" : undefined
+});
 
-            if (!(movieCache.premium && !isPremiumUser)) {
-                const videoOptions = document.getElementById('video-options');
-                if (movieCache.videoSrc && Array.isArray(movieCache.videoSrc)) {
-                    movieCache.videoSrc.forEach((src, index) => {
-                        const btn = document.createElement('button');
-                        btn.className = `video-option-btn ${index === 0 ? 'active' : ''}`;
-                        if (src.type.includes("Dublaj") && src.type.includes("Altyazı")) {
-                            btn.innerHTML = `<span class="icon-left"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"><i class="fas fa-closed-captioning"></i></span> Dublaj ve Altyazı`;
-                        } else {
-                            btn.innerHTML = src.type.includes("Dublaj") ? `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj` :
-                                            src.type.includes("Altyazı") ? `<i class="fas fa-closed-captioning"></i> Altyazı` :
-                                            src.type.includes("Yerli") ? `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli` : src.type;
-                        }
-                        btn.onclick = () => {
-                            document.querySelectorAll('.video-option-btn').forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            document.getElementById('movie-player').src = src.src || 'about:blank';
-                        };
-                        videoOptions.appendChild(btn);
-                    });
+        } else {
+            // Embed iframe
+            const iframe = document.createElement("iframe");
+            iframe.src = videoSrc || 'about:blank';
+            iframe.allowFullscreen = true;
+            iframe.frameBorder = "0";
+            iframe.scrolling = "no";
+            iframe.width = "100%";
+            iframe.height = "480";
+            iframe.id = "movie-player";
+            wrapper.appendChild(iframe);
+        }
+
+        // Video seçenekleri
+        const videoOptions = document.getElementById('video-options');
+        if (movieCache.videoSrc && Array.isArray(movieCache.videoSrc)) {
+            movieCache.videoSrc.forEach((src, index) => {
+                const btn = document.createElement('button');
+                btn.className = `video-option-btn ${index === 0 ? 'active' : ''}`;
+                if (src.type.includes("Dublaj") && src.type.includes("Altyazı")) {
+                    btn.innerHTML = `<span class="icon-left"><img src="/resim/flag-tr.png" alt="TR" class="flag-icon"><i class="fas fa-closed-captioning"></i></span> Dublaj ve Altyazı`;
+                } else {
+                    btn.innerHTML = src.type.includes("Dublaj") ? `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Dublaj` :
+                                    src.type.includes("Altyazı") ? `<i class="fas fa-closed-captioning"></i> Altyazı` :
+                                    src.type.includes("Yerli") ? `<img src="/resim/flag-tr.png" alt="TR" class="flag-icon"> Yerli` : src.type;
                 }
-            }
+                btn.onclick = () => {
+                    document.querySelectorAll('.video-option-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Yeni bağlantı embed mi file mı kontrol et
+                    const newSrc = src.src || 'about:blank';
+                    if (isFileLink(newSrc)) {
+                        wrapper.innerHTML = '';
+                        wrapper.appendChild(logo.cloneNode());
+                        const div = document.createElement("div");
+                        div.id = "playerjs";
+                        wrapper.appendChild(div);
+                        window._pjs = new Playerjs({
+                            id: "playerjs",
+                            file: newSrc,
+                            logo: "https://i.postimg.cc/TLD4m1Cq/dizit-logo.png"
+                        });
+                    } else {
+                        wrapper.innerHTML = '';
+                        wrapper.appendChild(logo.cloneNode());
+                        const iframe = document.createElement("iframe");
+                        iframe.src = newSrc;
+                        iframe.allowFullscreen = true;
+                        iframe.frameBorder = "0";
+                        iframe.scrolling = "no";
+                        iframe.width = "100%";
+                        iframe.height = "480";
+                        iframe.id = "movie-player";
+                        wrapper.appendChild(iframe);
+                    }
+                };
+                videoOptions.appendChild(btn);
+            });
+        }
+    }
+
 
             const likeBtn = document.getElementById(`like-btn-${movieId}`);
             const dislikeBtn = document.getElementById(`dislike-btn-${movieId}`);
@@ -1205,7 +1246,6 @@
                     return;
                 }
                 try {
-                    console.log('Favori ekleme isteği gönderiliyor:', { movieId });
                     const res = await fetch(`${apiUrl}/api/favorite`, {
                         method: 'POST',
                         headers: {
@@ -1315,7 +1355,7 @@
         async function displaySimilarMovies(currentMovie) {
             const container = document.getElementById('similar-movies');
             container.innerHTML = `
-                <h2 class="section-title">Benzer ${currentMovie.type === 'film' ? 'Filmler' : 'Diziler'}</h2>
+                <h2 class="section-title">Önerilen ${currentMovie.type === 'film' ? 'Filmler' : 'Diziler'}</h2>
                 <div class="poster-slider" id="similar-slider">
                     <div class="slider-container" id="similar-slider-container">
                         <p>Yükleniyor...</p>
@@ -1331,18 +1371,18 @@
                 const res = await fetch(`${apiUrl}/api/similar/${currentMovie.id}?type=${currentMovie.type}`, { headers });
                 if (!res.ok) {
                     const errorData = await res.json();
-                    throw new Error(errorData.error || 'Benzer içerikler alınamadı');
+                    throw new Error(errorData.error || 'Önerilen içerikler alınamadı');
                 }
                 const movies = await res.json();
                 if (!Array.isArray(movies) || movies.length === 0) {
-                    document.getElementById('similar-slider-container').innerHTML = '<p>Benzer içerik bulunamadı.</p>';
+                    document.getElementById('similar-slider-container').innerHTML = '<p>Önerilen içerik bulunamadı.</p>';
                     return;
                 }
                 displayItems(movies, 'similar-slider-container');
             } catch (error) {
                 console.error('Similar movies error:', error.message);
-                document.getElementById('similar-slider-container').innerHTML = '<p>Benzer içerikler yüklenemedi.</p>';
-                showToast('Benzer içerikler yüklenemedi', 'error');
+                document.getElementById('similar-slider-container').innerHTML = '<p>Önerilen içerikler yüklenemedi.</p>';
+                showToast('Önerilen içerikler yüklenemedi', 'error');
             }
         }
 
@@ -1490,13 +1530,10 @@
         }
 
         function searchByGenre(genre) {
-            const searchOverlay = document.getElementById('search-overlay');
-            const searchOverlayInput = document.getElementById('search-overlay-input');
-            searchOverlay.classList.add('active');
-            searchOverlayInput.value = genre;
-            searchOverlayInput.focus();
-            performSearch(genre);
-        }
+    const encodedGenre = encodeURIComponent(genre);
+    window.location.href = `/kesfet?genre=${encodedGenre}`;
+}
+
 
         async function performSearch(query) {
             const searchResults = document.getElementById('search-results');
@@ -1512,7 +1549,6 @@
                     item.title?.toLowerCase().includes(query.toLowerCase()) || 
                     item.title2?.toLowerCase().includes(query.toLowerCase())
                 ).slice(0, 7);
-                console.log('Arama sonuçları:', data);
                 displaySearchResults(data);
             } catch (error) {
                 searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
@@ -1682,7 +1718,6 @@ async function loadComments() {
         const headers = isLoggedIn ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {};
         const response = await fetch(`${apiUrl}/api/comments/${movieCache.id}`, { headers });
         const comments = await response.json();
-        console.log('API Comments:', JSON.stringify(comments, null, 2));
         const commentsList = document.getElementById('comments-list');
          commentsList.innerHTML = 'Yorumlar yükleniyor...';
         commentsList.innerHTML = '';
@@ -2023,7 +2058,98 @@ function sendViewEvent() {
   // 5 saniye sonra izlenme saydır
   setTimeout(sendViewEvent, 60000);
 
+
+
+  function setDynamicDescription(movie) {
+  const title = movie.title || 'Bilinmeyen Film';
+  const title2 = movie.title2 ? ` (${movie.title2})` : '';
+  const year = movie.year || 'N/A';
+  const languages = movie.language || [];
+  const poster = movie.poster || '/resim/default.jpg';
+  const canonicalUrl = window.location.origin + window.location.pathname;
+
+  // Açıklama metni
+  let descriptionText = `${title} filmini full HD ve tek parça DİZİT kalitesiyle hemen izle.`;
+
+  // Dil varyantları
+  let langParts = [];
+  if (languages.includes("Türkçe Dublaj")) langParts.push("Türkçe Dublajlı");
+  if (languages.includes("Türkçe Altyazı")) langParts.push("Türkçe Altyazılı");
+  if (langParts.length === 0 && movie.country?.includes("Türkiye")) langParts.push("Yerli");
+  if (langParts.length > 0) descriptionText += ` ${langParts.join(" ve ")}.`;
+
+  // META: description
+  document.querySelector('meta[name="description"]')?.setAttribute("content", descriptionText);
+
+  // META: keywords
+  const keywords = [
+    title,
+    title2.replace(/[()]/g, '').trim(),
+    'film izle',
+    'full hd film',
+    'tek parça',
+    ...languages
+  ]
+    .filter(Boolean)
+    .map(k => k.toLowerCase())
+    .join(', ');
+
+  let metaKeywords = document.querySelector('meta[name="keywords"]');
+  if (!metaKeywords) {
+    metaKeywords = document.createElement('meta');
+    metaKeywords.setAttribute('name', 'keywords');
+    document.head.appendChild(metaKeywords);
+  }
+  metaKeywords.setAttribute('content', keywords);
+
+  // LINK: canonical
+  let linkCanonical = document.querySelector('link[rel="canonical"]');
+  if (!linkCanonical) {
+    linkCanonical = document.createElement('link');
+    linkCanonical.setAttribute('rel', 'canonical');
+    document.head.appendChild(linkCanonical);
+  }
+  linkCanonical.setAttribute('href', canonicalUrl);
+
+  // Open Graph
+  const ogTags = {
+    'og:title': `${title} İzle (${year}) - DİZİT`,
+    'og:description': descriptionText,
+    'og:image': poster,
+    'og:url': canonicalUrl,
+    'og:type': 'video.movie',
+  };
+
+  Object.entries(ogTags).forEach(([property, content]) => {
+    let metaTag = document.querySelector(`meta[property="${property}"]`);
+    if (!metaTag) {
+      metaTag = document.createElement('meta');
+      metaTag.setAttribute('property', property);
+      document.head.appendChild(metaTag);
+    }
+    metaTag.setAttribute('content', content);
+  });
+
+  // JSON-LD Schema
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "Movie",
+    "name": title,
+    "description": descriptionText,
+    "image": poster,
+    "url": canonicalUrl
+  };
+
+  let ldScript = document.querySelector('script[type="application/ld+json"]');
+  if (!ldScript) {
+    ldScript = document.createElement('script');
+    ldScript.type = 'application/ld+json';
+    document.head.appendChild(ldScript);
+  }
+  ldScript.textContent = JSON.stringify(ld, null, 2);
+}
+
     </script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93c063ed9b7fb061',t:'MTc0NjYxNzQ3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
+<script src="/playerJS/js/playerjs.js"></script>
 </html>

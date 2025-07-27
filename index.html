@@ -6,76 +6,52 @@
     <title>DİZİT - Film ve Dizi İzleme Platformu</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <style>
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #121212;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
-        }
-        .loading-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-        .loading-logo {
-            font-size: 48px;
-            font-weight: bold;
-            color: #ffcc00;
-            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
-            margin-bottom: 30px;
-            animation: glow 2s infinite ease-in-out;
-        }
-        .popcorn-loader {
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100px;
-            height: 60px;
-        }
-        .popcorn {
-            position: absolute;
-            width: 15px;
-            height: 15px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-            animation: pop 1.2s infinite ease-in-out;
-        }
-        .popcorn:nth-child(1) { left: 20px; animation-delay: 0s; }
-        .popcorn:nth-child(2) { left: 40px; animation-delay: 0.2s; }
-        .popcorn:nth-child(3) { left: 60px; animation-delay: 0.4s; }
-        @keyframes pop {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
-            50% { transform: translateY(-30px) scale(1.2); opacity: 0.7; }
-        }
-        @keyframes glow {
-            0% { text-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
-            50% { text-shadow: 0 0 20px rgba(255, 204, 0, 0.8); }
-            100% { text-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
-        }
-        /* Premium Icon Styles (mevcut, değiştirilmedi) */
-        .premium-icon {
-            position: absolute;
-            top: 3px;
-            right: 3px;
-            background: #ffcc00;
-            color: #121212;
-            padding: 5px;
-            border-radius: 50%;
-            font-size: 14px;
-            z-index: 10;
-        }
-    </style>
+    <link rel="icon" href="/resim/dizit-favicon.ico" type="image/x-icon">
+
+<meta name="description" content="DİZİT, en güncel film ve dizileri yüksek kalitede izleyebileceğiniz ücretsiz bir platformdur. HD kalitede yerli ve yabancı içerikler!">
+<meta name="keywords" content="film izle, dizi izle, dizit, HD film, yeni filmler, popüler diziler, ücretsiz izle, yabancı dizi izle, yerli dizi izle, Türkçe dublaj, Türkçe altyazı, film platformu, dizi platformu">
+<meta name="author" content="DİZİT">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#121212">
+<meta property="og:title" content="DİZİT – Film ve Dizi İzleme Platformu">
+<meta property="og:description" content="En yeni filmleri ve dizileri ücretsiz izleyin. Reklamsız, HD kalitede içerik!">
+<meta property="og:image" content="https://dizit.onrender.com/resim/dizit-logo-og-1200x630.png">
+<meta property="og:url" content="https://www.orneksite.com">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DİZİT – Film ve Dizi İzleme Platformu">
+<meta name="twitter:description" content="Yeni çıkan filmleri ve dizileri HD kalitede ücretsiz izleyin. Hemen keşfedin!">
+<meta name="twitter:image" content="https://dizit.onrender.com/resim/dizit-logo-og-1200x630.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "DİZİT",
+  "url": "https://dizit.onrender.com",
+  "inLanguage": "tr",
+  "description": "DİZİT, dizi ve film dünyasına sınırsız ve ücretsiz erişim sunar. En güncel içerikler, üyelik gerektirmeden tek tıkla izlenebilir.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "DİZİT",
+    "url": "https://dizit.onrender.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dizit.onrender.com/resim/dizit-logo-og-1200x630.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://dizit.onrender.com/kesfet?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
 </head>
+
 <body>
     <div class="loading-screen" id="loading-screen">
         <div class="curtain-container">
@@ -103,10 +79,10 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="filmler.html?type=film">Filmler</a></li>
-                <li><a href="diziler.html?type=dizi">Diziler</a></li>
-                <li><a href="arama/film-dizi-arama.html">Keşfet</a></li>
-                <li><a href="request-complaint.html">İstek ve Şikayet</a></li>
+                <li><a href="/filmler">Filmler</a></li>
+                <li><a href="/diziler">Diziler</a></li>
+                <li><a href="/kesfet">Keşfet</a></li>
+                <li><a href="/istek-ve-sikayet">İstek ve Şikayet</a></li>
             </ul>
         </div>
         <div class="profile-wrapper">
@@ -198,40 +174,60 @@
     <main>
         <div class="home-content">
             <section>
-                <h2 class="section-title">Yeni Eklenen Filmler</h2>
+                <h2 class="section-title">Yeni Filmler</h2>
                 <div class="poster-slider" id="new-films-slider">
-                    <div class="slider-container" id="new-films-slider-container"></div>
-                    <button class="slider-prev" id="new-films-prev"><i class="fas fa-chevron-left"></i></button>
-                    <button class="slider-next" id="new-films-next"><i class="fas fa-chevron-right"></i></button>
-                </div>
+    <div class="slider-container" id="new-films-slider-container"></div>
+
+    <div id="loading-indicator" style="display: none; text-align: center; margin: 20px;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #ffcc00;"></i> Yükleniyor...
+    </div>
+
+    <button class="slider-prev" id="new-films-prev"><i class="fas fa-chevron-left"></i></button>
+    <button class="slider-next" id="new-films-next"><i class="fas fa-chevron-right"></i></button>
+</div>
+
             </section>
             <section>
-                <h2 class="section-title">Yeni Eklenen Diziler</h2>
+                <h2 class="section-title">Yeni Diziler</h2>
                 <div class="poster-slider" id="new-series-slider">
-                    <div class="slider-container" id="new-series-slider-container"></div>
-                    <button class="slider-prev" id="new-series-prev"><i class="fas fa-chevron-left"></i></button>
-                    <button class="slider-next" id="new-series-next"><i class="fas fa-chevron-right"></i></button>
-                </div>
+  <div class="slider-container" id="new-series-slider-container"></div>
+
+  <div id="loading-indicator-series" style="display: none; text-align: center; margin: 20px;">
+    <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #ffcc00;"></i> Yükleniyor...
+  </div>
+
+  <button class="slider-prev" id="new-series-prev"><i class="fas fa-chevron-left"></i></button>
+  <button class="slider-next" id="new-series-next"><i class="fas fa-chevron-right"></i></button>
+</div>
+
             </section>
             <section>
                 <h2 class="section-title">Yeni Bölümler</h2>
                 <div class="episode-list" id="new-episodes-list"></div>
                 <div class="show-all">
-                    <button onclick="window.location.href='son-bolumler.html'">Tümünü Göster</button>
+                    <button onclick="window.location.href='/son-bolumler'">Tümünü Göster</button>
                 </div>
             </section>
             <section>
                 <h2 class="section-title">Tüm Filmler</h2>
                 <div class="movie-grid" id="all-films-grid"></div>
+<div id="loading-indicator-all-films" style="display: none; text-align: center; margin: 20px;">
+  <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #ffcc00;"></i> Yükleniyor...
+</div>
+
                 <div class="show-all" id="show-all-films">
-                    <button onclick="window.location.href='filmler.html?type=film'">Tümünü Göster</button>
+                    <button onclick="window.location.href='/filmler'">Tümünü Göster</button>
                 </div>
             </section>
             <section>
                 <h2 class="section-title">Tüm Diziler</h2>
                 <div class="movie-grid" id="all-series-grid"></div>
+<div id="loading-indicator-all-series" style="display: none; text-align: center; margin: 20px;">
+  <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #ffcc00;"></i> Yükleniyor...
+</div>
+
                 <div class="show-all" id="show-all-series">
-                    <button onclick="window.location.href='diziler.html?type=dizi'">Tümünü Göster</button>
+                    <button onclick="window.location.href='/diziler'">Tümünü Göster</button>
                 </div>
             </section>
         </div>
@@ -278,42 +274,52 @@
             }, 3000);
         }
 
-        async function updateProfileAvatar() {
-            const profileAvatar = document.querySelector('.profile-avatar');
-            const profileUsername = document.querySelector('.profile-username');
-            if (!isLoggedIn) {
-                profileAvatar.src = '/resim/avatar/user.png';
-                profileUsername.textContent = 'Giriş Yap';
-                return;
-            }
-            try {
-                const response = await fetch(`${apiUrl}/api/user-profile?t=${Date.now()}`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        showToast('Oturumunuzun süresi doldu. Lütfen yeniden giriş yapın.', 'error');
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('username');
-                        isLoggedIn = false;
-                        currentUser = null;
-                        openAuthModal('login');
-                    }
-                    throw new Error('Kullanıcı verileri alınamadı');
-                }
-                const user = await response.json();
-                profileAvatar.src = user.avatar || '/resim/avatar/user.png';
-                profileAvatar.onerror = () => {
-                    profileAvatar.src = '/resim/avatar/user.png';
-                };
-                profileUsername.textContent = user.username || 'Kullanıcı';
-                localStorage.setItem('username', user.username);
-            } catch (error) {
-                console.error('Profil verileri yüklenemedi:', error);
-                profileAvatar.src = '/resim/avatar/user.png';
-                profileUsername.textContent = localStorage.getItem('username') || 'Giriş Yap';
-            }
-        }
+       async function updateProfileAvatar() {
+    const profileAvatar = document.querySelector('.profile-avatar');
+    const profileUsername = document.querySelector('.profile-username');
+    const profileMenu = document.querySelector('.profile-menu');
+
+    if (!isLoggedIn) {
+        profileAvatar.src = '/resim/avatar/user.png';
+        profileUsername.textContent = 'Giriş Yap';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${apiUrl}/api/user-profile?t=${Date.now()}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) throw new Error();
+
+        const user = await response.json();
+        profileAvatar.src = user.avatar || '/resim/avatar/user.png';
+        profileAvatar.onerror = () => {
+            profileAvatar.src = '/resim/avatar/user.png';
+        };
+        profileUsername.textContent = user.username || 'Kullanıcı';
+        localStorage.setItem('username', user.username);
+
+        // Admin panel linki ekle (önce varsa sil)
+        const existingAdminLink = document.getElementById('admin-panel-link');
+        if (existingAdminLink) existingAdminLink.remove();
+
+       if (user.isAdmin) {
+    const adminLink = document.createElement('li');
+    adminLink.innerHTML = `<a id="admin-panel-link" href="admin/admin-panel.html"><i class="fas fa-tools"></i> Admin Panel</a>`;
+
+    const profileMenu = document.querySelector('.profile-menu');
+    const firstItem = profileMenu.children[0]; // "Profilim" öğesi
+
+    profileMenu.insertBefore(adminLink, firstItem); // Profilim'in üstüne ekle
+}
+
+    } catch (error) {
+        console.error('Profil verileri yüklenemedi:', error);
+        profileAvatar.src = '/resim/avatar/user.png';
+        profileUsername.textContent = localStorage.getItem('username') || 'Giriş Yap';
+    }
+}
+
 
         async function checkAuth() {
             const token = localStorage.getItem('token');
@@ -548,7 +554,7 @@
             currentUser = null;
             updateAuthUI();
             updateProfileAvatar();
-            window.location.href = 'index.html';
+            window.location.href = '/';
         }
 
         function displayItems(items, containerId, isSlider = true, isEpisode = false) {
@@ -576,7 +582,6 @@
             card.className = 'episode-card';
             card.style.cursor = 'pointer';
             card.onclick = () => {
-                console.log('Yönlendirme:', link);
                 window.location.href = link;
             };
 
@@ -615,9 +620,10 @@
                 </div>
             `;
 
-            card.onclick = () => {
-                window.location.href = item.type === 'dizi' ? `dizi.html?id=${item.id}` : `film.html?id=${item.id}`;
-            };
+           card.onclick = () => {
+    window.location.href = item.type === 'dizi' ? `/dizi/${item.id}` : `/film/${item.id}`;
+};
+
         }
 
         container.appendChild(card);
@@ -628,15 +634,22 @@
 
 
  let homeMoviesLoaded = false;
-
 async function loadHomeContent() {
     if (homeMoviesLoaded) {
-        console.log("Ana sayfa film/dizi içerikleri zaten yüklendi.");
         return;
     }
 
     const loadingScreen = document.getElementById('loading-screen');
-    loadingScreen.classList.remove('hidden'); // Ekranı göster
+    const filmLoading = document.getElementById('loading-indicator');
+    const seriesLoading = document.getElementById('loading-indicator-series');
+    const allFilmsLoading = document.getElementById('loading-indicator-all-films');
+    const allSeriesLoading = document.getElementById('loading-indicator-all-series');
+
+    loadingScreen.classList.remove('hidden');
+    filmLoading && (filmLoading.style.display = 'block');
+    seriesLoading && (seriesLoading.style.display = 'block');
+    allFilmsLoading && (allFilmsLoading.style.display = 'block');
+    allSeriesLoading && (allSeriesLoading.style.display = 'block');
 
     try {
         const res = await fetch(`${apiUrl}/api/movies/home`);
@@ -663,10 +676,17 @@ async function loadHomeContent() {
         console.error("Ana sayfa film/dizi içerikleri yüklenemedi:", error);
         showToast("İçerikler yüklenemedi", "error");
     } finally {
-        loadingScreen.classList.add('hidden'); // Ekranı gizle
+        loadingScreen.classList.add('hidden');
         setTimeout(() => loadingScreen.remove(), 500);
+
+        filmLoading && (filmLoading.style.display = 'none');
+        seriesLoading && (seriesLoading.style.display = 'none');
+        allFilmsLoading && (allFilmsLoading.style.display = 'none');
+        allSeriesLoading && (allSeriesLoading.style.display = 'none');
     }
 }
+
+
 
 
 
@@ -678,7 +698,6 @@ async function loadHomeContent() {
                 const response = await fetch(`${apiUrl}/api/movies/home?limit=${limit}&fields=title,title2,type,poster,year,rating,language,premium`);
                 if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                 const movies = await response.json();
-                console.log('Çekilen filmler:', movies);
                 return movies;
             } catch (error) {
                 console.error('Filmler alınamadı:', error);
@@ -692,7 +711,6 @@ async function loadHomeContent() {
                 const response = await fetch(`${apiUrl}/api/recent-episodes?limit=${limit}&sort=-addedDate&fields=seriesId,seriesTitle,seasonNumber,episodeNumber,year,rating,poster`);
                 if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                 const episodes = await response.json();
-                console.log('Çekilen bölümler:', episodes);
                 return episodes;
             } catch (error) {
                 console.error('Yeni bölümler alınamadı:', error);
@@ -702,11 +720,11 @@ async function loadHomeContent() {
         }
 
         function getNewFilms(movies) {
-            return movies.filter(m => m.type === "film").sort((a, b) => (b.year || 0) - (a.year || 0)).slice(0, 10);
+            return movies.filter(m => m.type === "film").sort((a, b) => (b.year || 0) - (a.year || 0)).slice(0, 20);
         }
 
         function getNewSeries(movies) {
-            return movies.filter(m => m.type === "dizi").sort((a, b) => (b.year || 0) - (a.year || 0)).slice(0, 10);
+            return movies.filter(m => m.type === "dizi").sort((a, b) => (b.year || 0) - (a.year || 0)).slice(0, 20);
         }
 
         function getAllFilms(movies) {
@@ -745,7 +763,6 @@ async function loadHomeContent() {
                     item.title?.toLowerCase().includes(query.toLowerCase()) || 
                     item.title2?.toLowerCase().includes(query.toLowerCase())
                 ).slice(0, 7);
-                console.log('Arama sonuçları:', data);
                 displaySearchResults(data);
             } catch (error) {
                 searchResults.innerHTML = '<p>Sonuç bulunamadı.</p>';
@@ -917,6 +934,5 @@ async function loadHomeContent() {
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93c318ca3b9baff5',t:'MTc0NjY0NTg1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

@@ -13,12 +13,12 @@ const sanitizeHtml = require("sanitize-html")
 dotenv.config()
 const app = express()
 
-app.use(express.json({ limit: '200kb' }));
+app.use(express.json({ limit: '500kb' }));
 app.use(express.urlencoded({ extended: true, limit: '200kb' }));
 app.use(cors())
 app.use(express.static(path.join(__dirname, "../")))
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, '../', 'index.html'))
+  res.sendFile(path.join(__dirname, '../', '/'))
 
 })
 
@@ -761,101 +761,120 @@ app.delete("/api/users/:username", authMiddleware, adminMiddleware, async (req, 
 
 // Film/Dizi Ekleme
 app.post('/api/movies', authMiddleware, adminMiddleware, async (req, res) => {
-    try {
-        const movieData = req.body;
-        console.log('Gelen movieData:', movieData);
-        if (!/^[a-zA-Z0-9-$]{1,1000}$/.test(movieData.id)) {
-            return res.status(400).json({ error: 'ID 1-100 karakter olmalı, sadece harf ve sayı içermeli' });
+  try {
+    const movieData = req.body;  // movieData objesini alıyoruz
+    console.log('Gelen movieData:', movieData);
+
+    // ID kontrolü (sadece harf ve rakam olmalı)
+    if (!/^[a-zA-Z0-9-$]{1,1000}$/.test(movieData.id)) {
+      return res.status(400).json({ error: 'ID 1-100 karakter olmalı, sadece harf ve sayı içermeli' });
+    }
+
+    // Aynı ID'ye sahip film olup olmadığını kontrol et
+    const existingMovie = await Movie.findOne({ id: movieData.id });
+    if (existingMovie) {
+      return res.status(400).json({ error: 'Bu ID zaten kullanımda' });
+    }
+
+    // Poster URL'sinin doğru formatta olup olmadığını kontrol et
+    if (movieData.poster && !/^https?:\/\/.+\.(jpg|png|jpeg)$/.test(movieData.poster)) {
+      return res.status(400).json({ error: 'Poster URL’si geçerli bir jpg/png resmi olmalı' });
+    }
+
+    // İlgili seriler kontrolü
+    if (movieData.relatedSeries && Array.isArray(movieData.relatedSeries)) {
+      for (const seriesId of movieData.relatedSeries) {
+        if (!/^[a-zA-Z0-9-$]{1,100}$/.test(seriesId)) {
+          return res.status(400).json({ error: 'İlgili seri ID’leri 1-100 karakter olmalı, sadece harf ve sayı' });
         }
-        const existingMovie = await Movie.findOne({ id: movieData.id });
-        if (existingMovie) {
-            return res.status(400).json({ error: 'Bu ID zaten kullanımda' });
+        const relatedMovie = await Movie.findOne({ id: seriesId });
+        if (!relatedMovie) {
+          return res.status(400).json({ error: `İlgili seri ID’si bulunamadı: ${seriesId}` });
         }
-        if (movieData.poster && !/^https?:\/\/.+\.(jpg|png|jpeg)$/.test(movieData.poster)) {
-            return res.status(400).json({ error: 'Poster URL’si geçerli bir jpg/png resmi olmalı' });
+      }
+    } else {
+      movieData.relatedSeries = [];  // Eğer ilgili seri yoksa boş dizi olarak ayarla
+    }
+
+    // Video kaynaklarını kontrol et
+    if (movieData.videoSrc && Array.isArray(movieData.videoSrc)) {
+      movieData.videoSrc.forEach((src, index) => {
+        if (!src.type || typeof src.type !== 'string' || !src.src || typeof src.src !== 'string' || !/^https?:\/\/.+/.test(src.src)) {
+          throw new Error(`Geçersiz video kaynağı formatı: videoSrc[${index}]`);
         }
-        if (movieData.relatedSeries && Array.isArray(movieData.relatedSeries)) {
-            for (const seriesId of movieData.relatedSeries) {
-                if (!/^[a-zA-Z0-9-$]{1,100}$/.test(seriesId)) {
-                    return res.status(400).json({ error: 'İlgili seri ID’leri 1-100 karakter olmalı, sadece harf ve sayı' });
-                }
-                const relatedMovie = await Movie.findOne({ id: seriesId });
-                if (!relatedMovie) {
-                    return res.status(400).json({ error: `İlgili seri ID’si bulunamadı: ${seriesId}` });
-                }
+      });
+    } else {
+      movieData.videoSrc = [];  // Eğer video kaynakları yoksa boş dizi olarak ayarla
+    }
+
+    // Bölümleri kontrol et
+    if (movieData.episodes && Array.isArray(movieData.episodes)) {
+      movieData.episodes = movieData.episodes.map((ep, index) => {
+        if (!ep.seasonNumber || !ep.episodeNumber) {
+          throw new Error(`Geçersiz bölüm: episodes[${index}]`);
+        }
+        if (ep.videoSrc && Array.isArray(ep.videoSrc)) {
+          ep.videoSrc.forEach((src, srcIndex) => {
+            if (!src.type || typeof src.type !== 'string' || !src.src || typeof src.src !== 'string' || !/^https?:\/\/.+/.test(src.src)) {
+              throw new Error(`Geçersiz bölüm video kaynağı: episodes[${index}].videoSrc[${srcIndex}]`);
             }
+          });
         } else {
-            movieData.relatedSeries = [];
+          ep.videoSrc = [];  // Eğer video kaynakları yoksa boş dizi olarak ayarla
         }
-        if (movieData.videoSrc && Array.isArray(movieData.videoSrc)) {
-            movieData.videoSrc.forEach((src, index) => {
-                if (!src.type || typeof src.type !== 'string' || !src.src || typeof src.src !== 'string' || !/^https?:\/\/.+/.test(src.src)) {
-                    throw new Error(`Geçersiz video kaynağı formatı: videoSrc[${index}]`);
-                }
-            });
+
+        // addedDate kontrolü
+        let addedDate = ep.addedDate;
+        if (addedDate) {
+          const parsedDate = new Date(addedDate);
+          if (isNaN(parsedDate.getTime())) {
+            console.warn(`Geçersiz addedDate formatı, varsayılan kullanılıyor: episodes[${index}]`, addedDate);
+            addedDate = new Date();  // Geçersizse varsayılan tarih
+          } else {
+            addedDate = parsedDate;  // Geçerliyse kullan
+          }
         } else {
-            movieData.videoSrc = [];
+          addedDate = new Date();  // Varsayılan olarak şu anki tarih
         }
-        if (movieData.episodes && Array.isArray(movieData.episodes)) {
-            movieData.episodes = movieData.episodes.map((ep, index) => {
-                if (!ep.seasonNumber || !ep.episodeNumber) {
-                    throw new Error(`Geçersiz bölüm: episodes[${index}]`);
-                }
-                if (ep.videoSrc && Array.isArray(ep.videoSrc)) {
-                    ep.videoSrc.forEach((src, srcIndex) => {
-                        if (!src.type || typeof src.type !== 'string' || !src.src || typeof src.src !== 'string' || !/^https?:\/\/.+/.test(src.src)) {
-                            throw new Error(`Geçersiz bölüm video kaynağı: episodes[${index}].videoSrc[${srcIndex}]`);
-                        }
-                    });
-                } else {
-                    ep.videoSrc = [];
-                }
-                // addedDate kontrolü
-                let addedDate = ep.addedDate;
-                if (addedDate) {
-                    const parsedDate = new Date(addedDate);
-                    if (isNaN(parsedDate.getTime())) {
-                        console.warn(`Geçersiz addedDate formatı, varsayılan kullanılıyor: episodes[${index}]`, addedDate);
-                        addedDate = new Date();
-                    } else {
-                        addedDate = parsedDate;
-                    }
-                } else {
-                    addedDate = new Date();
-                }
-                return { ...ep, addedDate };
-            });
-        } else {
-            movieData.episodes = [];
-}
-const newMovie = new Movie({
-  id: movieData.id,
-  title: movieData.title,
-  title2: movieData.title2,
-  year: movieData.year,
-  runtime: movieData.runtime,
-  rating: movieData.rating,
-  country: movieData.country,
-  language: movieData.language,
-  genres: movieData.genres,
-  plot: movieData.plot,
-  poster: movieData.poster,
-  videoSrc: movieData.videoSrc,
-  relatedSeries: movieData.relatedSeries,
-  type: movieData.type,
-  episodes: movieData.episodes,
-  season: movieData.season,
-  premium: movieData.premium || false,
-})
-await newMovie.save()
-console.log("Film kaydedildi:", newMovie.id)
-res.status(201).json({ message: "Film/Dizi başarıyla eklendi", movie: newMovie })
-} catch (error)
-{
-  console.error("Film ekleme hatası:", error.message)
-  res.status(500).json({ error: error.message || "Film ekleme işlemi sırasında bir hata oluştu" })
-}
-})
+        return { ...ep, addedDate };
+      });
+    } else {
+      movieData.episodes = [];  // Eğer bölümler yoksa boş dizi olarak ayarla
+    }
+
+    // Yeni filmi veritabanına kaydet
+    const newMovie = new Movie({
+      id: movieData.id,
+      title: movieData.title,
+      title2: movieData.title2,
+      title_normalized: normalizeTurkish(movieData.title), // normalizeTurkish fonksiyonu varsa, film başlıklarını normalize et
+      title2_normalized: normalizeTurkish(movieData.title2 || ""),
+      year: movieData.year,
+      runtime: movieData.runtime,
+      rating: movieData.rating,
+      country: movieData.country,
+      language: movieData.language,
+      genres: movieData.genres,
+      plot: movieData.plot,
+      poster: movieData.poster,
+      videoSrc: movieData.videoSrc,
+      relatedSeries: movieData.relatedSeries,
+      type: movieData.type,
+      episodes: movieData.episodes,
+      season: movieData.season,
+      premium: movieData.premium || false,
+    });
+
+    // Yeni filmi veritabanına kaydet
+    await newMovie.save();
+    console.log("Film kaydedildi:", newMovie.id);
+    res.status(201).json({ message: "Film/Dizi başarıyla eklendi", movie: newMovie });
+  } catch (error) {
+    console.error("Film ekleme hatası:", error.message);
+    res.status(500).json({ error: error.message || "Film ekleme işlemi sırasında bir hata oluştu" });
+  }
+});
+
 
 // Film/Dizi Güncelleme
 app.put('/api/movies/:id', authMiddleware, adminMiddleware, async (req, res) =>
@@ -1108,8 +1127,8 @@ app.get("/api/movies/home", async (req, res) => {
       latestFilms,
       latestSeries
     ] = await Promise.all([
-      Movie.find({ type: "film" }).sort({ year: -1, _id: -1 }).limit(10).lean(),
-      Movie.find({ type: "dizi" }).sort({ year: -1, _id: -1 }).limit(10).lean(),
+      Movie.find({ type: "film" }).sort({ year: -1, _id: -1 }).limit(15).lean(),
+      Movie.find({ type: "dizi" }).sort({ year: -1, _id: -1 }).limit(15).lean(),
       Movie.find({ type: "film" }).sort({ _id: -1 }).limit(12).lean(),
       Movie.find({ type: "dizi" }).sort({ _id: -1 }).limit(12).lean()
     ]);
@@ -1166,11 +1185,51 @@ app.get("/api/films", async (req, res) => {
 });
 
 
+
+
+function normalizeTurkish(str) {
+  return str
+    .toLowerCase()
+    .normalize('NFD') // harfleri ayrıştır
+    .replace(/[\u0300-\u036f]/g, '') // aksan, nokta vb. karakterleri sil
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ş/g, 's')
+    .replace(/ü/g, 'u')
+    .replace(/İ/g, 'i')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+
 app.get('/api/all-movies', async (req, res) => {
   try {
-    const { type, year, genres, language, sort, page = 1, limit = 20 } = req.query;
+    const { title, type, year, genres, language, sort, page = 1, limit = 20 } = req.query;
 
     const query = {};
+
+
+
+
+    // 🔍 Yeni eklenen başlık arama filtresi
+if (title) {
+  const normalized = normalizeTurkish(title);
+  const words = normalized.split(' ').filter(Boolean);
+
+  query.$and = words.map(word => ({
+    $or: [
+      { title_normalized: { $regex: new RegExp(word, 'i') } },
+      { title2_normalized: { $regex: new RegExp(word, 'i') } }
+    ]
+  }));
+}
+
+
+
+
+
     if (type) query.type = type;
 
     if (year) {
@@ -1219,6 +1278,7 @@ app.get('/api/all-movies', async (req, res) => {
     res.status(500).json({ error: "Veriler alınamadı" });
   }
 });
+
 
 
 
@@ -1540,7 +1600,7 @@ app.get("/api/search", async (req, res) =>
 }
 )
 
-// Akıllı Benzer Diziler
+// Akıllı Önerilen Diziler
 app.get("/api/similar/:id", async (req, res) =>
 {
   try {
@@ -3039,6 +3099,109 @@ if (title.toLowerCase() === title2.toLowerCase()) {
 
 
 
+const convertMinutesToReadable = (minutes) => {
+  const min = parseInt(minutes);
+  if (isNaN(min)) return "";
+  const hours = Math.floor(min / 60);
+  const remaining = min % 60;
+  return `${hours > 0 ? `${hours}s ` : ""}${remaining}dk`.trim();
+};
+
+app.post("/api/scrape/hdfilmcehennemi-film", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { url } = req.body;
+
+    if (!/^https:\/\/(www\.)?hdfilmcehennemi\d*\.site\/.+/.test(url)) {
+      return res.status(400).json({ error: "Geçersiz HD Film Cehennemi URL'si" });
+    }
+
+    const { data: html } = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" }
+    });
+
+    const $ = cheerio.load(html);
+
+    // Başlık ve alternatif başlık ("izle" temizleme dahil)
+    const rawTitle = $(".page-title").first().text().trim();
+    const title = rawTitle.replace(/\bizle\b/gi, "").trim();
+
+    const rawOriginalTitle = $(".page-title").siblings("small.text-muted").first().text().trim();
+    const originalTitle = rawOriginalTitle.replace(/\bizle\b/gi, "").trim();
+
+    // Konu
+    const plot = $("article > p").text().trim();
+
+    // IMDb Puanı
+    const imdbRating = $(".detail-text:contains('IMDb Puanı')")
+      .prev(".rate").find("span").first().text().trim();
+
+    // Türler
+    const genres = [];
+    $("div.pb-2").each((_, el) => {
+      const label = $(el).find("strong").text().trim().toLowerCase();
+      if (label.includes("tür")) {
+        $(el).find("a").each((_, a) => {
+          const genre = $(a).text().trim();
+          if (genre && !genres.includes(genre)) genres.push(genre);
+        });
+      }
+    });
+
+    // Ülke ve yıl
+    const country = $("td:has(small:contains('Ülke')) a").first().text().trim();
+    const year = $("td:has(small:contains('Yıl')) a").first().text().trim();
+
+    // Süre: metinden sayı çek, sayıya çevir, formata sok
+    let runtime = "";
+    $("td:has(small)").each((_, el) => {
+      const label = $(el).find("small").text().trim().toLowerCase();
+      if (label.includes("süre")) {
+        const raw = $(el).text().replace(/Süre\s*:/i, "").trim(); // Örn: "88 Dak."
+        const minMatch = raw.match(/(\d+)/);
+        if (minMatch) {
+          const mins = parseInt(minMatch[1]);
+          runtime = convertMinutesToReadable(mins); // Örn: 88 → 1s 28dk
+        }
+      }
+    });
+
+    // Video iframe
+  // Mevcut iframe
+const iframeSrc = $(".video iframe").attr("src")?.trim();
+
+// Ekstra: .vidmoly class'ına sahip iframe’in data-src'si
+const vidmolyDataSrc = $("iframe.vidmoly").attr("data-src")?.trim();
+
+const videoSrcList = [];
+
+if (iframeSrc) {
+  videoSrcList.push({ type: "HD Film Cehennemi", src: iframeSrc });
+}
+if (vidmolyDataSrc) {
+  videoSrcList.push({ src: vidmolyDataSrc });
+}
+
+
+   return res.json({
+  title,
+  originalTitle,
+  year,
+  plot,
+  rating: imdbRating,
+  country,
+  duration: runtime,
+  genres,
+  imdbLink: "",
+  videoSrc: videoSrcList, // artık birden fazla kaynak olabilir
+  type: "film"
+});
+
+
+  } catch (err) {
+    console.error("HD Film Cehennemi verisi çekme hatası:", err.message);
+    res.status(500).json({ error: "Film verisi alınırken hata oluştu." });
+  }
+});
 
 
 
@@ -3052,6 +3215,10 @@ app.listen(PORT, () => {
 })
 
 // SEO dostu dizi yönlendirmesi
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../index.html'));
+});
+
 app.get('/dizi/:id', (req, res) => {
   res.sendFile(path.join(__dirname, '../dizi.html'));
 });
@@ -3059,7 +3226,27 @@ app.get('/dizi/:id', (req, res) => {
 app.get("/dizi/:id/sezon-:season/bolum-:episode", (req, res) => {
   res.sendFile(path.join(__dirname, "../dizi.html"))
 })
+
 app.get("/film/:id", (req, res) => {
   res.sendFile(path.join(__dirname, "../film.html"))
 })
 
+app.get("/filmler", (req, res) => {
+  res.sendFile(path.join(__dirname, "../filmler.html"));
+});
+
+app.get("/diziler", (req, res) => {
+  res.sendFile(path.join(__dirname, "../diziler.html"));
+});
+
+app.get("/kesfet", (req, res) => {
+  res.sendFile(path.join(__dirname, "../arama/film-dizi-arama.html"));
+});
+
+app.get("/istek-ve-sikayet", (req, res) => {
+  res.sendFile(path.join(__dirname, "../request-complaint.html"));
+});
+
+app.get("/son-bolumler", (req, res) => {
+  res.sendFile(path.join(__dirname, "../son-bolumler.html"));
+});

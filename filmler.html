@@ -6,11 +6,66 @@
     <title>DİZİT - Tüm Filmler</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="/resim/dizit-favicon.ico" type="image/x-icon">
+
+<meta name="description" content="DİZİT ile en güncel ve popüler filmleri HD kalitede, dublaj ve altyazı seçenekleriyle ücretsiz izleyin. Üyelik gerekmeden hemen izlemeye başlayın.">
+<meta name="keywords" content="film izle, ücretsiz film, HD film izle, dizit, türkçe dublaj, altyazılı film, yeni çıkan filmler">
+<meta name="author" content="DİZİT">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#121212">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Tüm Filmler | DİZİT">
+<meta property="og:description" content="Yüzlerce HD film reklamsız ve ücretsiz olarak DİZİT’te. Hemen izlemeye başla!">
+<meta property="og:image" content="https://dizit.onrender.com/resim/dizit-logo-og-1200x630.png">
+<meta property="og:url" content="https://dizit.onrender.com/filmler.html">
+<meta property="og:site_name" content="DİZİT">
+<meta property="og:locale" content="tr_TR">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Tüm Filmler | DİZİT",
+  "url": "https://dizit.onrender.com/filmler.html",
+  "description": "DİZİT'te en güncel filmleri ücretsiz, reklamsız ve HD kalitede izleyin. Dublaj ve altyazı seçenekleriyle en iyi sinema deneyimi.",
+  "inLanguage": "tr",
+  "publisher": {
+    "@type": "Organization",
+    "name": "DİZİT",
+    "url": "https://dizit.onrender.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://dizit.onrender.com/resim/dizit-logo-og-1200x630.png",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "mainEntity": {
+    "@type": "ItemList",
+    "name": "Film Listesi",
+    "itemListOrder": "http://schema.org/ItemListOrderDescending",
+    "numberOfItems": 100,
+    "itemListElement": []
+  }
+}
+</script>
+
+
 </head>
 <body>
-    <!-- Header -->
+       <div class="loading-screen" id="loading-screen">
+    <div class="curtain-container">
+        <div class="curtain-left"></div>
+        <div class="curtain-right"></div>
+    </div>
+    <div class="loading-logo">DİZİT</div>
+    <div class="popcorn-loader">
+        <div class="popcorn"></div>
+        <div class="popcorn"></div>
+        <div class="popcorn"></div>
+    </div>
+</div>
     <header id="header">
-        <a href="index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="Film veya dizi ara...">
@@ -22,21 +77,25 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="index.html">Anasayfa</a></li>
-                <li><a href="#" class="active">Filmler</a></li>
-                <li><a href="diziler.html?type=dizi">Diziler</a></li>
-                <li><a href="arama/film-dizi-arama.html">Detaylı Arama (Keşfet)</a></li>
+                <li><a href="/">Anasayfa</a></li>
+                <li><a href="#">Filmler</a></li>
+                <li><a href="/diziler">Diziler</a></li>
+                <li><a href="/kesfet">Keşfet</a></li>
+                <li><a href="/istek-ve-sikayet">İstek ve Şikayet</a></li>
             </ul>
-            <div class="auth-buttons" id="auth-buttons">
-                <button class="login-btn" onclick="openAuthModal('login')">Giriş Yap</button>
-                <button class="signup-btn" onclick="openAuthModal('signup')">Üye Ol</button>
+        </div>
+        <div class="profile-wrapper">
+            <div class="profile-card" onclick="toggleProfileMenu()">
+                <img src="/resim/avatar/user.png" alt="Profile Avatar" class="profile-avatar">
+                <span class="profile-username"></span>
+                <i class="fas fa-chevron-down profile-arrow"></i>
             </div>
-            <div class="user-info" id="user-info" style="display: none;">
-                <div class="user-profile">
-                    <span class="user-greeting">Merhaba,</span>
-                    <span class="username-display" id="username-display"></span>
-                </div>
-                <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+            <div class="profile-dropdown" id="profile-dropdown">
+                <ul class="profile-menu">
+                    <li><a href="hesabim.html"><i class="fas fa-user"></i> Profilim</a></li>
+                    <li><a href="ayarlar.html"><i class="fas fa-cog"></i> Ayarlar</a></li>
+                    <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</a></li>
+                </ul>
             </div>
         </div>
     </header>
@@ -155,7 +214,6 @@
                 const response = await fetch('/api/config');
                 const data = await response.json();
                 API_URL = data.apiUrl;
-                console.log('API_URL fetched:', API_URL);
             } catch (error) {
                 console.error('API_URL alınırken hata:', error);
                 // Hata durumunda varsayılan URL kullanılacak
@@ -195,18 +253,8 @@
         }
     
         function updateAuthUI() {
-            const authButtons = document.getElementById('auth-buttons');
-            const userInfo = document.getElementById('user-info');
-            const usernameDisplay = document.getElementById('username-display');
-            if (isLoggedIn && currentUser) {
-                authButtons.style.display = 'none';
-                userInfo.style.display = 'flex';
-                usernameDisplay.textContent = currentUser;
-            } else {
-                authButtons.style.display = 'flex';
-                userInfo.style.display = 'none';
-            }
-        }
+    
+}
     
         function openAuthModal(type = 'login') {
             const modal = document.getElementById('auth-modal');
@@ -390,6 +438,8 @@
             isLoggedIn = false;
             currentUser = null;
             updateAuthUI();
+            updateProfileAvatar();
+             window.location.reload();
         }
     
         // Mevcut Fonksiyonlar
@@ -543,14 +593,26 @@ function onScrollLoadMore() {
     }
 }
 
-// Tek DOMContentLoaded!
+// DOMContentLoaded!
 document.addEventListener("DOMContentLoaded", async () => {
-    await fetchApiUrl();
-    await checkAuth();
-    await loadMoreSeries();
-     await ensureEnoughContent();
-    window.addEventListener("scroll", onScrollLoadMore);
+  document.getElementById("loading-screen")?.classList.remove("hidden");
+
+  await fetchApiUrl();
+  await checkAuth();
+  await loadMoreSeries();
+  await ensureEnoughContent();
+
+  window.addEventListener("scroll", onScrollLoadMore);
+
+  // 🎯 Loading ekranını kapat
+  const loadingScreen = document.getElementById("loading-screen");
+  if (loadingScreen) {
+    loadingScreen.classList.add("hidden");
+    setTimeout(() => loadingScreen.remove(), 800); // animasyonla birlikte kaldır
+  }
 });
+
+
 
         function displaySearchResults(results) {
             const searchResults = document.getElementById('search-results');
@@ -617,7 +679,190 @@ document.addEventListener("DOMContentLoaded", async () => {
         burgerMenu.addEventListener('click', () => {
             navContainer.classList.toggle('active');
         });
-    
+
+        
+   async function updateProfileAvatar() {
+    const profileAvatar = document.querySelector('.profile-avatar');
+    const profileUsername = document.querySelector('.profile-username');
+    const profileMenu = document.querySelector('.profile-menu'); // <ul class="profile-menu">
+
+    if (!isLoggedIn) {
+        profileAvatar.src = '/resim/avatar/user.png';
+        profileUsername.textContent = 'Giriş Yap';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/api/user-profile?t=${Date.now()}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                isLoggedIn = false;
+                currentUser = null;
+                openAuthModal('login');
+            }
+            throw new Error('Kullanıcı verileri alınamadı');
+        }
+
+        const user = await response.json();
+
+        // Avatar ve kullanıcı adı güncelle
+        profileAvatar.src = user.avatar || '/resim/avatar/user.png';
+        profileAvatar.onerror = () => {
+            profileAvatar.src = '/resim/avatar/user.png';
+        };
+        profileUsername.textContent = user.username || 'Kullanıcı';
+        localStorage.setItem('username', user.username);
+
+        // Daha önce eklenmiş admin panel linki varsa kaldır
+        const existingAdminLink = document.getElementById('admin-panel-link');
+        if (existingAdminLink) {
+            existingAdminLink.parentElement.remove();
+        }
+
+        // Eğer kullanıcı adminse, admin panel bağlantısını "Profilim" öğesinin üstüne ekle
+        if (user.isAdmin && profileMenu) {
+            const adminItem = document.createElement('li');
+            adminItem.innerHTML = `<a id="admin-panel-link" href="admin/admin-panel.html"><i class="fas fa-tools"></i> Admin Panel</a>`;
+            profileMenu.insertBefore(adminItem, profileMenu.firstElementChild);
+        }
+
+    } catch (error) {
+        console.error('Profil verileri yüklenemedi:', error);
+        profileAvatar.src = '/resim/avatar/user.png';
+        profileUsername.textContent = localStorage.getItem('username') || 'Giriş Yap';
+    }
+}
+
+
+async function checkAuth() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        isLoggedIn = false;
+        currentUser = null;
+        await updateProfileAvatar();
+        return false;
+    }
+    try {
+        const res = await fetch(`${API_URL}/api/verify-token`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            isLoggedIn = true;
+            currentUser = data.username;
+            localStorage.setItem('username', data.username);
+            await updateProfileAvatar();
+            return true;
+        } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            isLoggedIn = false;
+            currentUser = null;
+            await updateProfileAvatar();
+            return false;
+        }
+    } catch (error) {
+        console.error('Token doğrulama hatası:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        isLoggedIn = false;
+        currentUser = null;
+        await updateProfileAvatar();
+        return false;
+    }
+}
+
+
+function closeProfileMenu() {
+    const dropdown = document.getElementById('profile-dropdown');
+    dropdown.classList.remove('active');
+}
+
+// Dış tıklamada menüyü kapat
+document.addEventListener('click', (event) => {
+    const dropdown = document.getElementById('profile-dropdown');
+    const profileCard = document.querySelector('.profile-card');
+    if (!dropdown.contains(event.target) && !profileCard.contains(event.target)) {
+        closeProfileMenu();
+    }
+});
+
+document.addEventListener('touchstart', (event) => {
+    const dropdown = document.getElementById('profile-dropdown');
+    const profileCard = document.querySelector('.profile-card');
+    if (!dropdown.contains(event.target) && !profileCard.contains(event.target)) {
+        closeProfileMenu();
+    }
+});
+function toggleProfileMenu() {
+  const dropdown = document.getElementById('profile-dropdown');
+  if (!isLoggedIn) {
+    openAuthModal('login');
+  } else {
+    dropdown.classList.toggle('active');
+  }
+}
+
+function closeProfileMenu() {
+  const dropdown = document.getElementById('profile-dropdown');
+  dropdown.classList.remove('active');
+}
+document.addEventListener('click', (event) => {
+  const dropdown = document.getElementById('profile-dropdown');
+  const profileCard = document.querySelector('.profile-card');
+  if (dropdown && profileCard && !dropdown.contains(event.target) && !profileCard.contains(event.target)) {
+    closeProfileMenu();
+  }
+});
+
+
+
+
+async function updateProfileAvatar() {
+  const profileAvatar = document.querySelector('.profile-avatar');
+  const profileUsername = document.querySelector('.profile-username');
+
+  if (!isLoggedIn) {
+    profileAvatar.src = '/resim/avatar/user.png';
+    profileUsername.textContent = 'Giriş Yap';
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/user-profile?t=${Date.now()}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        logout();
+        return;
+      }
+      throw new Error('Kullanıcı verileri alınamadı');
+    }
+
+    const user = await response.json();
+    profileAvatar.src = user.avatar || '/resim/avatar/user.png';
+    profileAvatar.onerror = () => {
+      profileAvatar.src = '/resim/avatar/user.png';
+    };
+    profileUsername.textContent = user.username || 'Kullanıcı';
+    localStorage.setItem('username', user.username);
+
+  } catch (error) {
+    console.error('Profil verileri yüklenemedi:', error);
+    profileAvatar.src = '/resim/avatar/user.png';
+    profileUsername.textContent = localStorage.getItem('username') || 'Giriş Yap';
+  }
+}
+
   
     </script>
 </body>

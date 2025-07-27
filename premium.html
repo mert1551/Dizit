@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DİZİT - Premium Üyelik</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="/resim/dizit-favicon.ico" type="image/x-icon">
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a1a1a;
+            --card-bg: #2a2a2a;
+            --text-color: #ffffff;
+            --text-secondary: #cccccc;
+            --accent-color: #ffd700;
+            --border-color: #333333;
+            --input-bg: #1a1a1a;
+            --hover-color: #333333;
+            --gradient-gold: linear-gradient(45deg, #ffd700, #ffed4e);
+            --gradient-premium: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .premium-section {
+            max-width: 800px;
+            margin: 120px auto 50px;
+            padding: 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        /* Premium Package Card */
+        .premium-package {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--accent-color);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 50px;
+        }
+
+        .premium-package::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-gold);
+        }
+
+        .package-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .package-title {
+            font-size: 2rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .package-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .package-period {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .package-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+
+        .package-features li {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1rem;
+        }
+
+        .package-features li:last-child {
+            border-bottom: none;
+        }
+
+        .package-features i {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .get-premium-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--gradient-gold);
+            color: var(--primary-bg);
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .get-premium-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            margin-top: 50px;
+        }
+
+        .faq-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: var(--accent-color);
+        }
+
+        .faq-item {
+            background: var(--card-bg);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .faq-question {
+            padding: 20px;
+            background: var(--secondary-bg);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background: var(--hover-color);
+        }
+
+        .faq-question i {
+            color: var(--accent-color);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            background: var(--card-bg);
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 20px;
+            max-height: 1000px;
+        }
+
+        .faq-answer p {
+            margin: 0;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .premium-section {
+                margin: 100px auto 30px;
+                padding: 15px;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .premium-package {
+                padding: 20px;
+            }
+
+            .package-title {
+                font-size: 1.5rem;
+            }
+
+            .package-price {
+                font-size: 2.5rem;
+            }
+
+            .package-features li {
+                font-size: 1rem;
+            }
+
+            .get-premium-btn {
+                font-size: 1rem;
+                padding: 12px;
+            }
+
+            .faq-title {
+                font-size: 1.5rem;
+            }
+
+            .faq-question {
+                padding: 15px;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .premium-section {
+                padding: 10px;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .premium-package {
+                padding: 15px;
+            }
+
+            .package-title {
+                font-size: 1.3rem;
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .package-price {
+                font-size: 2rem;
+            }
+
+            .package-features li {
+                font-size: 0.9rem;
+                gap: 10px;
+            }
+
+            .faq-question {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-logo {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 30px;
+        }
+
+        .popcorn-loader {
+            display: flex;
+            gap: 10px;
+        }
+
+        .popcorn {
+            width: 15px;
+            height: 15px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .popcorn:nth-child(1) { animation-delay: -0.32s; }
+        .popcorn:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Header Styles */
+        #header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary-bg);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+        }
+
+        .burger-menu {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .burger-menu {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-logo">DİZİT</div>
+        <div class="popcorn-loader">
+            <div class="popcorn"></div>
+            <div class="popcorn"></div>
+            <div class="popcorn"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header id="header">
+        <a href="/" class="logo">DİZİT</a>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">Anasayfa</a></li>
+                <li><a href="/filmler">Filmler</a></li>
+                <li><a href="/diziler">Diziler</a></li>
+                <li><a href="/kesfet">Keşfet</a></li>
+                <li><a href="/request-complaint.html">İstek ve Şikayet</a></li>
+            </ul>
+        </nav>
+        <div class="burger-menu" id="burger-menu">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <section class="premium-section">
+            <h1 class="section-title">Premium Üyelik</h1>
+            <p class="section-subtitle">Tüm içeriklere sınırsız erişim ve özel avantajlar</p>
+
+            <!-- Premium Package -->
+            <div class="premium-package">
+                <div class="package-header">
+                    <h2 class="package-title">
+                        <i class="fas fa-crown"></i>
+                        Premium Paket
+                    </h2>
+                    <div class="package-price">50₺</div>
+                    <div class="package-period">/ Aylık</div>
+                </div>
+
+                <ul class="package-features">
+                    <li>
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Tüm Telif Hakkı ile Korunan İçeriklere Erişim</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-star"></i>
+                        <span>İstek İçeriklerde Öncelik</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Yorumlarda En Üstte Olmak</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-badge-check"></i>
+                        <span>İsminizin Yanına Rozet</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-user-circle"></i>
+                        <span>Premium Avatarlar</span>
+                    </li>
+                </ul>
+
+                <button class="get-premium-btn" onclick="getPremium()">
+                    <i class="fas fa-crown"></i>
+                    Premium Üye Ol
+                </button>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="faq-section">
+                <h2 class="faq-title">Sık Sorulan Sorular</h2>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Neden Telifli İçerikler Paralı?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Amacımız sizlere ücretsiz içerik sunmaktır fakat hem site için hem de kullanıcı deneyimini arttırmak için Telifli içerikleri sadece 50₺ aylık ücretle sunuyoruz.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Neden Üyelik Ucuz?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Amacımız Telif haklarından korunmaktır ve herkesin içeriklere erişim sağlamasını istememizdir.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Üyelik Nasıl Alırım?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Üyelik almak için İstek/Şikayet sayfasına giderek konuyu "Premium Üyelik" seçip ödeme bilgisi talep edebilirsiniz. Gelen ödeme bilgisinde kullanıcı açıklama kısmına kullanıcı adınızı yazmanız gerekmektedir. Ödeme işlemi gerçekleştikten en geç 1-2 saat sonra üyeliğiniz tanımlanmış olur.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Üyeliğim Ne Zaman ve Nasıl Tanımlanır?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>İstek ve Şikayet sayfasından ödeme bilgisini aldıktan sonra açıklamaya "[Kullanıcı Adı]" yazarak gönderiyorsunuz ve 24 saat içerisinde üyelik aktif oluyor. (Açıklama Örneği: Dizit Mert34)</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFAQ(this)">
+                        <span>Üyelik Ne Zaman İptal Edebilirim?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Üyeliğiniz her seferinde tekrar yenilemek durumundasınız. Bu yüzden üyelik süresi dolduğunda tekrar üyelik satın alıp devam edebilirsiniz.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Loading screen
+        window.addEventListener('load', function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => {
+                loadingScreen.remove();
+            }, 800);
+        });
+
+        // FAQ Toggle
+        function toggleFAQ(element) {
+            const faqItem = element.parentElement;
+            const isActive = faqItem.classList.contains('active');
+            
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Open clicked item if it wasn't already open
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+
+        // Premium button action
+        function getPremium() {
+            // Redirect to request-complaint page
+            window.location.href = '/request-complaint.html';
+        }
+
+        // Burger menu toggle
+        document.getElementById('burger-menu').addEventListener('click', function() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+        });
+    </script>
+</body>
+</html>

@@ -616,7 +616,7 @@
 </head>
 <body>
     <header id="header">
-        <a href="../index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="burger-menu" id="burger-menu">
                 <i class="fas fa-bars"></i>
@@ -825,7 +825,6 @@
             try {
                 const token = localStorage.getItem('token');
                 if (!token) {
-                    console.log('Token bulunamadı');
                     openAuthModal(); // Giriş yapılmamışsa modalı aç
                     throw new Error('Token bulunamadı');
                 }
@@ -837,7 +836,6 @@
                 }
                 const data = await res.json();
                 isAdmin = data.isAdmin;
-                console.log('Admin durumu:', isAdmin, 'Kullanıcı:', currentUser);
                 updateAdminUI();
                 if (isAdmin) {
                     await Promise.all([fetchMovies(), fetchUsers()]);
@@ -958,7 +956,6 @@
                 }
                 const movies = await res.json();
                 allMovies = Array.isArray(movies) ? movies : [];
-                console.log('Filmler alındı:', allMovies.length);
                 updateStatistics();
                 renderMovies(allMovies);
 
@@ -1125,7 +1122,6 @@ observer.observe(loadSentinel);
                 }
                 const users = await res.json();
                 allUsers = Array.isArray(users) ? users : [];
-                console.log('Kullanıcılar alındı:', allUsers.length, 'Veri:', JSON.stringify(allUsers.slice(0, 2)));
                 updateStatistics();
                 renderUsers(allUsers);
                 if (allUsers.length === 0) {

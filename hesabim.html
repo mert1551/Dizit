@@ -693,7 +693,7 @@
 <body>
     <!-- Header -->
     <header id="header">
-        <a href="index.html" class="logo">DİZİT</a>
+        <a href="/" class="logo">DİZİT</a>
         <div class="header-right">
             <div class="burger-menu" id="burger-menu">
                 <i class="fas fa-bars"></i>
@@ -701,7 +701,7 @@
         </div>
         <div class="nav-container" id="nav-container">
             <ul class="nav-links">
-                <li><a href="index.html">Anasayfa</a></li>
+                <li><a href="/">Anasayfa</a></li>
                 <li><a href="filmler.html?type=film">Filmler</a></li>
                 <li><a href="diziler.html?type=dizi">Diziler</a></li>
                 <li><a href="#" class="active">Hesabım</a></li>
@@ -1017,18 +1017,8 @@
         }
     
         function updateAuthUI() {
-            const authButtons = document.getElementById('auth-buttons');
-            const userInfo = document.getElementById('user-info');
-            const usernameDisplay = document.getElementById('username-display');
-            if (isLoggedIn && currentUser) {
-                authButtons.style.display = 'none';
-                userInfo.style.display = 'flex';
-                usernameDisplay.textContent = currentUser;
-            } else {
-                authButtons.style.display = 'flex';
-                userInfo.style.display = 'none';
-            }
-        }
+    
+}
     
         function openAuthModal(type = 'login') {
             const modal = document.getElementById('auth-modal');
@@ -1212,7 +1202,7 @@
             isLoggedIn = false;
             currentUser = null;
             updateAuthUI();
-            window.location.href = 'index.html';
+            window.location.href = '/';
         }
 
         // Loading state gösterme
@@ -1484,7 +1474,7 @@ renderContent(likedSeries, 'liked-series', 'Henüz beğenilen dizi yok.');
                 loadProfile(currentUser);
             } else {
                 // Giriş yapmamış kullanıcıyı giriş sayfasına yönlendir
-                window.location.href = 'index.html';
+                window.location.href = '/';
             }
         });
     </script>
