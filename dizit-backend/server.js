@@ -577,6 +577,7 @@ app.post("/api/forgot-password", async (req, res) => {
 
     const resetUrl = `${process.env.API_URL}/reset-password.html?token=${resetToken}`
     await transporter.sendMail({
+      from: '"Dizit" <dizit2025@gmail.com>',
       to: email,
       subject: "DİZİT Şifre Sıfırlama",
       html: `
@@ -592,7 +593,7 @@ app.post("/api/forgot-password", async (req, res) => {
                         <!-- Header -->
                         <tr>
                             <td style="background-color: #252525; padding: 20px; text-align: center;">
-                                <img src="https://via.placeholder.com/150x50?text=D%C4%B0Z%C4%B0T+Logo" alt="DİZİT Logo" style="max-width: 150px; height: auto;">
+                                <img src="../resim/dizit-logo.png" alt="DİZİT Logo" style="max-width: 150px; height: auto;">
                             </td>
                         </tr>
                         <!-- Content -->
@@ -610,8 +611,8 @@ app.post("/api/forgot-password", async (req, res) => {
                             <td style="background-color: #252525; padding: 20px; text-align: center; font-size: 12px; color: #aaaaaa;">
                                 <p style="margin: 0 0 10px;">DİZİT Ekibi</p>
                                 <p style="margin: 0;">
-                                    <a href="${process.env.API_URL}" style="color: #ffcc00; text-decoration: none;">dizit.com</a> | 
-                                    <a href="mailto:destek@dizit.com" style="color: #ffcc00; text-decoration: none;">destek@dizit.com</a>
+                                    <a href="${process.env.API_URL}" style="color: #ffcc00; text-decoration: none;">dizit.onrender.com</a> | 
+                                    <a href="mailto:destek@dizit.com" style="color: #ffcc00; text-decoration: none;">dizit2025@gmail.com</a>
                                 </p>
                                 <p style="margin: 10px 0 0;">© ${new Date().getFullYear()} DİZİT. Tüm hakları saklıdır.</p>
                             </td>
